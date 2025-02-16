@@ -54,7 +54,54 @@ export default function Exercise() {
           `Learn ${exercise.name}: ${exercise.description}. Benefits include: ${exercise.benefits.join(', ')}`
         );
       }
+
+      // Add JSON-LD structured data
+      const structuredData = {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        "name": `${exercise.name} Breathing Exercise`,
+        "description": exercise.description,
+        "totalTime": `PT${Math.round(exercise.pattern.inhale + (exercise.pattern.hold || 0) + exercise.pattern.exhale)}S`,
+        "step": [
+          {
+            "@type": "HowToStep",
+            "name": "Inhale",
+            "text": `Inhale for ${exercise.pattern.inhale} seconds`,
+            "position": "1"
+          },
+          ...(exercise.pattern.hold ? [{
+            "@type": "HowToStep",
+            "name": "Hold",
+            "text": `Hold breath for ${exercise.pattern.hold} seconds`,
+            "position": "2"
+          }] : []),
+          {
+            "@type": "HowToStep",
+            "name": "Exhale",
+            "text": `Exhale for ${exercise.pattern.exhale} seconds`,
+            "position": exercise.pattern.hold ? "3" : "2"
+          }
+        ]
+      };
+
+      // Add or update structured data script tag
+      let scriptTag = document.querySelector('#structured-data');
+      if (!scriptTag) {
+        scriptTag = document.createElement('script');
+        scriptTag.id = 'structured-data';
+        scriptTag.type = 'application/ld+json';
+        document.head.appendChild(scriptTag);
+      }
+      scriptTag.textContent = JSON.stringify(structuredData);
     }
+
+    return () => {
+      // Clean up structured data when component unmounts
+      const scriptTag = document.querySelector('#structured-data');
+      if (scriptTag) {
+        scriptTag.remove();
+      }
+    };
   }, [exercise]);
 
   if (!exercise) {

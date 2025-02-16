@@ -30,11 +30,15 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background dark:from-primary/10">
       <ThemeToggle />
-      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-40 dark:opacity-20" />
+      <div 
+        className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-40 dark:opacity-20"
+        role="presentation" 
+        aria-hidden="true"
+      />
 
-      <div className="relative">
+      <main className="relative">
         <div className="container mx-auto px-4 pt-24 pb-16">
-          <motion.div
+          <motion.header
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
@@ -47,19 +51,21 @@ export default function Home() {
               Find balance and inner peace through guided breathing exercises
               tailored to your current state of mind
             </p>
-          </motion.div>
+          </motion.header>
 
           <Tabs defaultValue="mood" className="max-w-5xl mx-auto">
-            <TabsList className="w-full max-w-md mx-auto grid grid-cols-2 mb-16 bg-transparent">
+            <TabsList className="w-full max-w-md mx-auto grid grid-cols-2 mb-16 bg-transparent" role="tablist" aria-label="Exercise selection methods">
               <TabsTrigger
                 value="mood"
                 className="text-lg px-8 py-4 data-[state=active]:text-primary hover:text-primary/80 transition-colors"
+                role="tab"
               >
                 <span className="relative">Find by Mood</span>
               </TabsTrigger>
               <TabsTrigger
                 value="all"
                 className="text-lg px-8 py-4 data-[state=active]:text-primary hover:text-primary/80 transition-colors"
+                role="tab"
               >
                 <span className="relative">All Exercises</span>
               </TabsTrigger>
@@ -68,10 +74,12 @@ export default function Home() {
             <TabsContent
               value="mood"
               className="focus-visible:outline-none space-y-16 px-4"
+              role="tabpanel"
+              aria-label="Find exercises by mood"
             >
               <AnimatePresence mode="wait">
                 {!selectedMood ? (
-                  <motion.div
+                  <motion.section
                     key="mood-selector"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -83,9 +91,9 @@ export default function Home() {
                       How are you feeling today?
                     </h2>
                     <MoodSelector onSelect={handleMoodSelect} />
-                  </motion.div>
+                  </motion.section>
                 ) : (
-                  <motion.div
+                  <motion.section
                     key="exercises"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -99,7 +107,7 @@ export default function Home() {
                         className="text-primary hover:text-primary/80"
                         onClick={handleBackToMoods}
                       >
-                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
                         Back to Moods
                       </Button>
                       <h3 className="text-2xl font-medium text-center">
@@ -124,12 +132,12 @@ export default function Home() {
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center text-muted-foreground">
+                      <p className="text-center text-muted-foreground">
                         No exercises found for this mood. Try another mood or
                         check all exercises.
-                      </div>
+                      </p>
                     )}
-                  </motion.div>
+                  </motion.section>
                 )}
               </AnimatePresence>
             </TabsContent>
@@ -137,6 +145,8 @@ export default function Home() {
             <TabsContent
               value="all"
               className="focus-visible:outline-none px-4"
+              role="tabpanel"
+              aria-label="All breathing exercises"
             >
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {exercises.map((exercise, index) => (
@@ -150,7 +160,7 @@ export default function Home() {
             </TabsContent>
           </Tabs>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
