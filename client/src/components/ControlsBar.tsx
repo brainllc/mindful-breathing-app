@@ -41,7 +41,7 @@ export function ControlsBar({ rounds, onRoundsChange, onPause, onEndSession }: P
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => onRoundsChange(Math.min(10, rounds + 1))}
+          onClick={() => onRoundsChange(Math.min(50, rounds + 1))}
           className="h-8 w-8"
         >
           <Plus className="h-4 w-4" />
