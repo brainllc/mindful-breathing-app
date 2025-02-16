@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <script>
+      // Ensure dark mode is set before any content renders
+      let theme = localStorage.getItem('theme');
+      if (!theme || theme === 'light') {
+        localStorage.setItem('theme', 'dark');
+        theme = 'dark';
+      }
+      document.documentElement.classList.add(theme);
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script>
-      // Set dark mode by default
-      if (!localStorage.getItem('theme')) {
-        localStorage.setItem('theme', 'dark');
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.add(localStorage.getItem('theme'));
-      }
-    </script>
   </head>
   <body>
     <div id="root"></div>

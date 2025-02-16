@@ -4,7 +4,15 @@ import { useEffect, useState } from "react";
 
 export function ThemeToggle() {
   const [theme, setTheme] = useState<'light' | 'dark'>(
-    () => (localStorage.getItem('theme') as 'light' | 'dark') || 'dark'
+    () => {
+      // Always default to dark if no theme is set
+      const savedTheme = localStorage.getItem('theme');
+      if (!savedTheme || savedTheme === 'light') {
+        localStorage.setItem('theme', 'dark');
+        return 'dark';
+      }
+      return savedTheme as 'light' | 'dark';
+    }
   );
 
   useEffect(() => {
