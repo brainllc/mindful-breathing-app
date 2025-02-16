@@ -15,115 +15,103 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
   const [phaseTimeLeft, setPhaseTimeLeft] = useState(0);
   const animationFrameRef = useRef<number | null>(null);
   const startTimeRef = useRef<number | null>(null);
-  const phaseStartTimeRef = useRef<number | null>(null);
 
   useEffect(() => {
+    // Clear animation when not active
     if (!isActive) {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
         animationFrameRef.current = null;
       }
       startTimeRef.current = null;
-      phaseStartTimeRef.current = null;
       return;
     }
 
-    const resetAnimation = () => {
-      startTimeRef.current = null;
-      phaseStartTimeRef.current = null;
-      setPhase("inhale");
-    };
-
-    const { pattern } = exercise;
-    const roundDuration = pattern.inhale + (pattern.hold || 0) + pattern.exhale + (pattern.holdEmpty || 0);
-
-    const startAnimation = async () => {
+    // Start exercise
+    const startExercise = async () => {
       try {
         await audioService.playMusic();
       } catch (error) {
         console.error('Failed to start meditation music:', error);
       }
 
-      const animate = (currentTime: number) => {
+      // Calculate total round duration
+      const { pattern } = exercise;
+      const totalDuration = pattern.inhale + 
+                          (pattern.hold || 0) + 
+                          pattern.exhale + 
+                          (pattern.holdEmpty || 0);
+
+      // Create timestamp markers for phase transitions
+      const phaseTimestamps = {
+        inhale: pattern.inhale,
+        hold: pattern.hold ? pattern.inhale + pattern.hold : null,
+        exhale: pattern.inhale + (pattern.hold || 0) + pattern.exhale,
+        holdEmpty: pattern.holdEmpty ? 
+          pattern.inhale + (pattern.hold || 0) + pattern.exhale + pattern.holdEmpty 
+          : null
+      };
+
+      const animate = (timestamp: number) => {
+        // Initialize start time if needed
         if (!startTimeRef.current) {
-          startTimeRef.current = currentTime;
-          phaseStartTimeRef.current = currentTime;
+          startTimeRef.current = timestamp;
         }
 
-        const totalElapsed = (currentTime - startTimeRef.current) / 1000;
-        const phaseElapsed = (currentTime - phaseStartTimeRef.current!) / 1000;
+        // Calculate progress
+        const elapsed = (timestamp - startTimeRef.current) / 1000;
+        const progress = elapsed % totalDuration;
 
-        // Calculate overall progress for the round
-        const roundProgress = totalElapsed % roundDuration;
-        onPhaseProgress(roundProgress);
+        // Update progress bar
+        onPhaseProgress(progress);
 
-        // Handle phase transitions
-        const updatePhase = () => {
-          let nextPhase: typeof phase = phase;
-          let phaseDuration = 0;
+        // Determine current phase and time remaining
+        let currentPhase: typeof phase = "inhale";
+        let timeLeft = 0;
 
-          switch (phase) {
-            case "inhale":
-              phaseDuration = pattern.inhale;
-              if (phaseElapsed >= phaseDuration) {
-                nextPhase = pattern.hold ? "hold" : "exhale";
-              }
-              break;
-            case "hold":
-              phaseDuration = pattern.hold || 0;
-              if (phaseElapsed >= phaseDuration) {
-                nextPhase = "exhale";
-              }
-              break;
-            case "exhale":
-              phaseDuration = pattern.exhale;
-              if (phaseElapsed >= phaseDuration) {
-                nextPhase = pattern.holdEmpty ? "holdEmpty" : "inhale";
-              }
-              break;
-            case "holdEmpty":
-              phaseDuration = pattern.holdEmpty || 0;
-              if (phaseElapsed >= phaseDuration) {
-                nextPhase = "inhale";
-              }
-              break;
-          }
+        if (progress < pattern.inhale) {
+          currentPhase = "inhale";
+          timeLeft = Math.ceil(pattern.inhale - progress);
+        } else if (pattern.hold && progress < phaseTimestamps.hold!) {
+          currentPhase = "hold";
+          timeLeft = Math.ceil(phaseTimestamps.hold! - progress);
+        } else if (progress < phaseTimestamps.exhale) {
+          currentPhase = "exhale";
+          timeLeft = Math.ceil(phaseTimestamps.exhale - progress);
+        } else if (pattern.holdEmpty) {
+          currentPhase = "holdEmpty";
+          timeLeft = Math.ceil(totalDuration - progress);
+        }
 
-          if (nextPhase !== phase) {
-            setPhase(nextPhase);
-            phaseStartTimeRef.current = currentTime;
+        // Update phase and time left
+        setPhase(currentPhase);
+        setPhaseTimeLeft(Math.max(0, timeLeft));
 
-            // If we're completing a round
-            if (nextPhase === "inhale" && phase === (pattern.holdEmpty ? "holdEmpty" : "exhale")) {
-              onRoundComplete();
-              startTimeRef.current = currentTime;
-            }
-          }
+        // Check for round completion
+        if (progress + 0.1 >= totalDuration) {
+          startTimeRef.current = timestamp;
+          onRoundComplete();
+        }
 
-          return { phaseDuration };
-        };
-
-        const { phaseDuration } = updatePhase();
-        setPhaseTimeLeft(Math.ceil(phaseDuration - phaseElapsed));
-
+        // Continue animation
         if (isActive) {
           animationFrameRef.current = requestAnimationFrame(animate);
         }
       };
 
-      resetAnimation();
+      // Start animation loop
       animationFrameRef.current = requestAnimationFrame(animate);
     };
 
-    startAnimation();
+    startExercise();
 
+    // Cleanup
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = null;
       }
       audioService.stopMusic();
-      resetAnimation();
+      startTimeRef.current = null;
     };
   }, [isActive, exercise, onRoundComplete, onPhaseProgress]);
 
