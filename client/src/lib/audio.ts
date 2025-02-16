@@ -6,14 +6,18 @@ class AudioService {
   private gainNode: GainNode | null = null;
   private musicSource: AudioBufferSourceNode | null = null;
   private musicBuffer: AudioBuffer | null = null;
+  private initialized = false;
 
   constructor() {
-    this.initAudioContext();
-    this.loadMeditationMusic();
+    // Don't initialize automatically, wait for user interaction
+    console.log('Audio service created, waiting for initialization...');
   }
 
-  private initAudioContext() {
+  async init() {
+    if (this.initialized) return;
+
     try {
+      console.log('Initializing audio context...');
       this.audioContext = new AudioContext();
       this.gainNode = this.audioContext.createGain();
       this.gainNode.connect(this.audioContext.destination);
@@ -22,13 +26,19 @@ class AudioService {
           this.gainNode.gain.value = vol;
         }
       });
+
+      await this.loadMeditationMusic();
+      this.initialized = true;
       console.log('Audio context initialized successfully');
     } catch (error) {
       console.error('Failed to initialize Web Audio API:', error);
+      throw error;
     }
   }
 
   private async loadMeditationMusic() {
+    if (!this.audioContext) return;
+
     try {
       console.log('Attempting to load meditation music...');
       const response = await fetch('/audio/meditation.mp3');
@@ -36,33 +46,38 @@ class AudioService {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const arrayBuffer = await response.arrayBuffer();
-      this.musicBuffer = await this.audioContext!.decodeAudioData(arrayBuffer);
+      this.musicBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
       console.log('Meditation music loaded successfully');
     } catch (error) {
       console.error('Failed to load meditation music:', error);
+      throw error;
     }
   }
 
-  playMusic() {
-    if (!this.audioContext || !this.gainNode || !this.musicBuffer) {
-      console.warn('Audio system not ready:', {
-        context: !!this.audioContext,
-        gainNode: !!this.gainNode,
-        buffer: !!this.musicBuffer
-      });
-      return;
-    }
-
-    // Resume the audio context if it's suspended
-    if (this.audioContext.state === 'suspended') {
-      console.log('Resuming audio context...');
-      this.audioContext.resume();
-    }
-
-    // Stop any currently playing music
-    this.stopMusic();
-
+  async playMusic() {
     try {
+      if (!this.initialized) {
+        await this.init();
+      }
+
+      if (!this.audioContext || !this.gainNode || !this.musicBuffer) {
+        console.warn('Audio system not ready:', {
+          context: !!this.audioContext,
+          gainNode: !!this.gainNode,
+          buffer: !!this.musicBuffer
+        });
+        return;
+      }
+
+      // Resume the audio context if it's suspended
+      if (this.audioContext.state === 'suspended') {
+        console.log('Resuming audio context...');
+        await this.audioContext.resume();
+      }
+
+      // Stop any currently playing music
+      this.stopMusic();
+
       console.log('Creating and starting new music source...');
       // Create and configure new source
       this.musicSource = this.audioContext.createBufferSource();
@@ -100,13 +115,6 @@ class AudioService {
 
   getVolume(): number {
     return this.volume.value;
-  }
-
-  resume() {
-    if (this.audioContext?.state === 'suspended') {
-      console.log('Manually resuming audio context...');
-      this.audioContext.resume();
-    }
   }
 }
 

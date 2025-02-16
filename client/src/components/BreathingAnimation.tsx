@@ -18,51 +18,60 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
   const currentStepRef = useRef(0);
 
   useEffect(() => {
-    if (!isActive) return;
+    const startExercise = async () => {
+      if (!isActive) return;
 
-    // Start playing meditation music when exercise becomes active
-    audioService.playMusic();
-
-    const { pattern } = exercise;
-    const totalTime =
-      pattern.inhale +
-      (pattern.hold || 0) +
-      pattern.exhale;
-
-    const interval = 1000; // 1 second intervals for counting
-    const steps = totalTime;
-
-    intervalRef.current = window.setInterval(() => {
-      currentStepRef.current++;
-      const progress = currentStepRef.current / steps;
-
-      // Determine current phase and its duration
-      const inhaleDuration = pattern.inhale;
-      const holdDuration = pattern.hold || 0;
-      const exhaleDuration = pattern.exhale;
-
-      const timeInPhase = currentStepRef.current;
-
-      // Calculate phase and remaining time
-      if (progress < pattern.inhale / totalTime) {
-        setPhase("inhale");
-        const timeLeft = Math.ceil(inhaleDuration - timeInPhase);
-        setPhaseTimeLeft(timeLeft);
-      } else if (progress < (pattern.inhale + (pattern.hold || 0)) / totalTime) {
-        setPhase("hold");
-        const timeLeft = Math.ceil(holdDuration - (timeInPhase - inhaleDuration));
-        setPhaseTimeLeft(timeLeft);
-      } else {
-        setPhase("exhale");
-        const timeLeft = Math.ceil(exhaleDuration - (timeInPhase - inhaleDuration - holdDuration));
-        setPhaseTimeLeft(timeLeft);
+      try {
+        // Start playing meditation music when exercise becomes active
+        await audioService.playMusic();
+        console.log('Started meditation music');
+      } catch (error) {
+        console.error('Failed to start meditation music:', error);
       }
 
-      if (currentStepRef.current >= steps) {
-        currentStepRef.current = 0;
-        onRoundComplete();
-      }
-    }, interval);
+      const { pattern } = exercise;
+      const totalTime =
+        pattern.inhale +
+        (pattern.hold || 0) +
+        pattern.exhale;
+
+      const interval = 1000; // 1 second intervals for counting
+      const steps = totalTime;
+
+      intervalRef.current = window.setInterval(() => {
+        currentStepRef.current++;
+        const progress = currentStepRef.current / steps;
+
+        // Determine current phase and its duration
+        const inhaleDuration = pattern.inhale;
+        const holdDuration = pattern.hold || 0;
+        const exhaleDuration = pattern.exhale;
+
+        const timeInPhase = currentStepRef.current;
+
+        // Calculate phase and remaining time
+        if (progress < pattern.inhale / totalTime) {
+          setPhase("inhale");
+          const timeLeft = Math.ceil(inhaleDuration - timeInPhase);
+          setPhaseTimeLeft(timeLeft);
+        } else if (progress < (pattern.inhale + (pattern.hold || 0)) / totalTime) {
+          setPhase("hold");
+          const timeLeft = Math.ceil(holdDuration - (timeInPhase - inhaleDuration));
+          setPhaseTimeLeft(timeLeft);
+        } else {
+          setPhase("exhale");
+          const timeLeft = Math.ceil(exhaleDuration - (timeInPhase - inhaleDuration - holdDuration));
+          setPhaseTimeLeft(timeLeft);
+        }
+
+        if (currentStepRef.current >= steps) {
+          currentStepRef.current = 0;
+          onRoundComplete();
+        }
+      }, interval);
+    };
+
+    startExercise();
 
     // Cleanup function
     return () => {
