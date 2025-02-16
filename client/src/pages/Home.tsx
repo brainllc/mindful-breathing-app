@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function Home() {
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
@@ -18,21 +19,22 @@ export default function Home() {
     setSelectedMood(null);
   };
 
-  const recommendedExercises = selectedMood 
+  const recommendedExercises = selectedMood
     ? getExercisesByMood(selectedMood)
     : [];
 
-  const selectedMoodLabel = selectedMood 
-    ? moods.find(m => m.id === selectedMood)?.label 
+  const selectedMoodLabel = selectedMood
+    ? moods.find((m) => m.id === selectedMood)?.label
     : null;
 
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background dark:from-primary/10">
+      <ThemeToggle />
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-40 dark:opacity-20" />
 
       <div className="relative">
         <div className="container mx-auto px-4 pt-24 pb-16">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
@@ -42,33 +44,34 @@ export default function Home() {
               Mindful Breathing
             </h1>
             <p className="text-xl text-muted-foreground leading-relaxed max-w-xl mx-auto">
-              Find balance and inner peace through guided breathing exercises tailored to your current state of mind
+              Find balance and inner peace through guided breathing exercises
+              tailored to your current state of mind
             </p>
           </motion.div>
 
           <Tabs defaultValue="mood" className="max-w-5xl mx-auto">
             <TabsList className="w-full max-w-md mx-auto grid grid-cols-2 mb-16 bg-transparent">
-              <TabsTrigger 
-                value="mood" 
+              <TabsTrigger
+                value="mood"
                 className="text-lg px-8 py-4 data-[state=active]:text-primary hover:text-primary/80 transition-colors"
               >
                 <span className="relative">Find by Mood</span>
               </TabsTrigger>
-              <TabsTrigger 
-                value="all" 
+              <TabsTrigger
+                value="all"
                 className="text-lg px-8 py-4 data-[state=active]:text-primary hover:text-primary/80 transition-colors"
               >
                 <span className="relative">All Exercises</span>
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent 
-              value="mood" 
+            <TabsContent
+              value="mood"
               className="focus-visible:outline-none space-y-16 px-4"
             >
               <AnimatePresence mode="wait">
                 {!selectedMood ? (
-                  <motion.div 
+                  <motion.div
                     key="mood-selector"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -82,7 +85,7 @@ export default function Home() {
                     <MoodSelector onSelect={handleMoodSelect} />
                   </motion.div>
                 ) : (
-                  <motion.div 
+                  <motion.div
                     key="exercises"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -105,22 +108,25 @@ export default function Home() {
                     </div>
 
                     {recommendedExercises.length > 0 ? (
-                      <div className={`grid gap-8 ${
-                        recommendedExercises.length === 1 
-                          ? 'max-w-2xl mx-auto' 
-                          : 'grid-cols-1 lg:grid-cols-2'
-                      }`}>
+                      <div
+                        className={`grid gap-8 ${
+                          recommendedExercises.length === 1
+                            ? "max-w-2xl mx-auto"
+                            : "grid-cols-1 lg:grid-cols-2"
+                        }`}
+                      >
                         {recommendedExercises.map((exercise, index) => (
-                          <ExerciseCard 
-                            key={exercise.id} 
+                          <ExerciseCard
+                            key={exercise.id}
                             exercise={exercise}
-                            index={index} 
+                            index={index}
                           />
                         ))}
                       </div>
                     ) : (
                       <div className="text-center text-muted-foreground">
-                        No exercises found for this mood. Try another mood or check all exercises.
+                        No exercises found for this mood. Try another mood or
+                        check all exercises.
                       </div>
                     )}
                   </motion.div>
@@ -128,14 +134,14 @@ export default function Home() {
               </AnimatePresence>
             </TabsContent>
 
-            <TabsContent 
-              value="all" 
+            <TabsContent
+              value="all"
               className="focus-visible:outline-none px-4"
             >
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {exercises.map((exercise, index) => (
-                  <ExerciseCard 
-                    key={exercise.id} 
+                  <ExerciseCard
+                    key={exercise.id}
                     exercise={exercise}
                     index={index}
                   />

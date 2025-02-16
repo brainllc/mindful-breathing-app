@@ -13,7 +13,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { ExerciseInfoModal } from "@/components/ExerciseInfoModal";
 import { ControlsBar } from "@/components/ControlsBar";
-import { audioService } from "@/lib/audio"; 
+import { audioService } from "@/lib/audio";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function Exercise() {
   const [, params] = useRoute("/exercise/:id");
@@ -118,6 +119,7 @@ export default function Exercise() {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background dark:from-primary/10">
+      <ThemeToggle />
       <SafetyDisclaimer 
         isOpen={showDisclaimer} 
         onAccept={handleDisclaimerAccept}
