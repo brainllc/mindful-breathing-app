@@ -7,9 +7,10 @@ interface Props {
   exercise: Exercise;
   isActive: boolean;
   onRoundComplete: () => void;
+  onPhaseProgress: (progress: number) => void;
 }
 
-export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Props) {
+export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhaseProgress }: Props) {
   const [phase, setPhase] = useState<"inhale" | "hold" | "exhale">("inhale");
   const [phaseTimeLeft, setPhaseTimeLeft] = useState(0);
 
@@ -41,6 +42,9 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
       intervalRef.current = window.setInterval(() => {
         currentStepRef.current++;
         const progress = currentStepRef.current / steps;
+
+        // Report progress to parent component
+        onPhaseProgress(currentStepRef.current);
 
         // Determine current phase and its duration
         const inhaleDuration = pattern.inhale;
@@ -82,7 +86,7 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
       // Stop music when component is unmounted or exercise becomes inactive
       audioService.stopMusic();
     };
-  }, [isActive, exercise, onRoundComplete]);
+  }, [isActive, exercise, onRoundComplete, onPhaseProgress]);
 
   const circleVariants = {
     inhale: {

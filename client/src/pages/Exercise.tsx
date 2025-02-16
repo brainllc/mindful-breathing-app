@@ -26,6 +26,7 @@ export default function Exercise() {
   const [totalRounds, setTotalRounds] = useState(exercise?.defaultRounds || 4);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [hasAcceptedDisclaimer, setHasAcceptedDisclaimer] = useState(false);
+  const [phaseProgress, setPhaseProgress] = useState(0);
 
   if (!exercise) {
     return <div>Exercise not found</div>;
@@ -83,6 +84,7 @@ export default function Exercise() {
     setIsStarted(false);
     setIsPaused(false);
     setCurrentRound(0);
+    setPhaseProgress(0);
     toast({
       title: "Exercise Stopped",
       description: "Take a moment to rest. If you experience any discomfort, please seek medical attention.",
@@ -95,14 +97,23 @@ export default function Exercise() {
       setIsStarted(false);
       setIsPaused(false);
       setCurrentRound(0);
+      setPhaseProgress(0);
     } else {
       setCurrentRound(prev => prev + 1);
+      setPhaseProgress(0);
     }
   };
 
-  const progress = (currentRound / totalRounds) * 100;
-  const duration = exercise.pattern.inhale + (exercise.pattern.hold || 0) + 
-                  exercise.pattern.exhale + (exercise.pattern.holdEmpty || 0);
+  // Calculate total duration of a single round
+  const roundDuration = exercise.pattern.inhale + 
+                       (exercise.pattern.hold || 0) + 
+                       exercise.pattern.exhale + 
+                       (exercise.pattern.holdEmpty || 0);
+
+  // Calculate overall progress including current phase
+  const completedRoundsProgress = (currentRound / totalRounds) * 100;
+  const currentRoundProgress = (phaseProgress / roundDuration) * (100 / totalRounds);
+  const totalProgress = Math.min(completedRoundsProgress + currentRoundProgress, 100);
 
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background dark:from-primary/10">
@@ -153,7 +164,7 @@ export default function Exercise() {
               <div className="flex items-center justify-center gap-2 text-sm">
                 <div className="flex items-center text-primary">
                   <Clock className="w-4 h-4 mr-1" />
-                  <span>{duration}s per round</span>
+                  <span>{roundDuration}s per round</span>
                 </div>
                 <ExerciseInfoModal exercise={exercise} />
               </div>
@@ -172,15 +183,16 @@ export default function Exercise() {
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm text-muted-foreground">
                         <span>Round {currentRound + 1} of {totalRounds}</span>
-                        <span>{Math.round(progress)}% Complete</span>
+                        <span>{Math.round(totalProgress)}% Complete</span>
                       </div>
-                      <Progress value={progress} className="h-1" />
+                      <Progress value={totalProgress} className="h-1" />
                     </div>
 
                     <BreathingAnimation
                       exercise={exercise}
                       isActive={isStarted && !isPaused}
                       onRoundComplete={handleRoundComplete}
+                      onPhaseProgress={setPhaseProgress}
                     />
 
                     {isStarted && (
@@ -191,6 +203,7 @@ export default function Exercise() {
                         onEndSession={() => {
                           setIsStarted(false);
                           setCurrentRound(0);
+                          setPhaseProgress(0);
                         }}
                       />
                     )}
