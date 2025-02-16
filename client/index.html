@@ -2,9 +2,9 @@
 <html lang="en">
   <head>
     <script>
-      // Ensure dark mode is set before any content renders
+      // Only set dark theme if no theme is saved
       let theme = localStorage.getItem('theme');
-      if (!theme || theme === 'light') {
+      if (!theme) {
         localStorage.setItem('theme', 'dark');
         theme = 'dark';
       }
