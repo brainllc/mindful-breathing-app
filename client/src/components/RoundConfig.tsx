@@ -19,15 +19,26 @@ export function RoundConfig({ defaultRounds, onStart, isStarted }: Props) {
           <Label className="text-muted-foreground">Number of Rounds</Label>
           <span className="text-2xl font-medium text-primary">{defaultRounds}</span>
         </div>
-        <Slider
-          defaultValue={[defaultRounds]}
-          min={1}
-          max={10}
-          step={1}
-          disabled={isStarted}
-          onValueChange={handleValueChange}
-          className="w-full"
-        />
+        <div 
+          className="relative" 
+          onClick={(e) => {
+            if (isStarted) return;
+            const rect = e.currentTarget.getBoundingClientRect();
+            const pos = (e.clientX - rect.left) / rect.width;
+            const value = Math.round(1 + pos * 9); // Scale to 1-10 range
+            handleValueChange([value]);
+          }}
+        >
+          <Slider
+            defaultValue={[defaultRounds]}
+            min={1}
+            max={10}
+            step={1}
+            disabled={isStarted}
+            onValueChange={handleValueChange}
+            className="w-full cursor-pointer"
+          />
+        </div>
       </div>
     </div>
   );
