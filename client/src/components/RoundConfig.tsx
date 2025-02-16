@@ -25,14 +25,14 @@ export function RoundConfig({ defaultRounds, onStart, isStarted }: Props) {
             if (isStarted) return;
             const rect = e.currentTarget.getBoundingClientRect();
             const pos = (e.clientX - rect.left) / rect.width;
-            const value = Math.round(1 + pos * 9); // Scale to 1-10 range
+            const value = Math.round(1 + pos * 49); // Scale to 1-50 range
             handleValueChange([value]);
           }}
         >
           <Slider
             defaultValue={[defaultRounds]}
             min={1}
-            max={10}
+            max={50}
             step={1}
             disabled={isStarted}
             onValueChange={handleValueChange}

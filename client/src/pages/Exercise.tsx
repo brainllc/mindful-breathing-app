@@ -35,7 +35,11 @@ export default function Exercise() {
   };
 
   const adjustRounds = (amount: number) => {
-    setTotalRounds(prev => Math.min(Math.max(prev + amount, 1), 10));
+    setTotalRounds(prev => {
+      // Ensure we stay within bounds of 1-50 rounds
+      const newValue = prev + amount;
+      return Math.min(Math.max(newValue, 1), 50);
+    });
   };
 
   const progress = (currentRound / totalRounds) * 100;
@@ -94,6 +98,7 @@ export default function Exercise() {
                   </div>
 
                   <BreathingAnimation
+                    key={`breathing-${currentRound}`}
                     exercise={exercise}
                     isActive={isStarted}
                     onRoundComplete={handleRoundComplete}
@@ -105,6 +110,7 @@ export default function Exercise() {
                       size="icon"
                       onClick={() => adjustRounds(-1)}
                       className="rounded-full"
+                      disabled={totalRounds <= 1}
                     >
                       <Minus className="w-4 h-4" />
                     </Button>
@@ -116,6 +122,7 @@ export default function Exercise() {
                       size="icon"
                       onClick={() => adjustRounds(1)}
                       className="rounded-full"
+                      disabled={totalRounds >= 50}
                     >
                       <Plus className="w-4 h-4" />
                     </Button>
