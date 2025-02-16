@@ -179,70 +179,74 @@ export default function Exercise() {
                   exit={{ opacity: 0 }}
                   className="space-y-8"
                 >
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>Round {currentRound + 1} of {totalRounds}</span>
-                      <span>{Math.round(progress)}% Complete</span>
+                  <div className="space-y-8">
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm text-muted-foreground">
+                        <span>Round {currentRound + 1} of {totalRounds}</span>
+                        <span>{Math.round(progress)}% Complete</span>
+                      </div>
+                      <Progress value={progress} className="h-1" />
                     </div>
-                    <Progress value={progress} className="h-1" />
-                  </div>
 
-                  <BreathingAnimation
-                    exercise={exercise}
-                    isActive={isStarted && !isPaused}
-                    onRoundComplete={handleRoundComplete}
-                  />
+                    <BreathingAnimation
+                      exercise={exercise}
+                      isActive={isStarted && !isPaused}
+                      onRoundComplete={handleRoundComplete}
+                    />
 
-                  <div className="flex items-center justify-center gap-4">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => adjustRounds(-1)}
-                      className="rounded-full"
-                      disabled={totalRounds <= 1}
-                    >
-                      <Minus className="w-4 h-4" />
-                    </Button>
-                    <span className="text-lg font-medium text-primary">
-                      {totalRounds} Rounds
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => adjustRounds(1)}
-                      className="rounded-full"
-                      disabled={totalRounds >= 50}
-                    >
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
+                    <div className="flex items-center justify-center gap-4">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => adjustRounds(-1)}
+                        className="rounded-full"
+                        disabled={totalRounds <= 1}
+                      >
+                        <Minus className="w-4 h-4" />
+                      </Button>
+                      <span className="text-lg font-medium text-primary">
+                        {totalRounds} Rounds
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => adjustRounds(1)}
+                        className="rounded-full"
+                        disabled={totalRounds >= 50}
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
 
-                  <div className="flex justify-center gap-4 items-center">
-                    <AudioControls />
-                    <Button
-                      variant="outline"
-                      onClick={togglePause}
-                      className="w-32"
-                    >
-                      {isPaused ? (
-                        <>
-                          <Play className="w-4 h-4 mr-2" />
-                          Resume
-                        </>
-                      ) : (
-                        <>
-                          <Pause className="w-4 h-4 mr-2" />
-                          Pause
-                        </>
-                      )}
-                    </Button>
-                    <Button 
-                      variant="ghost"
-                      onClick={() => setIsStarted(false)}
-                      className="w-32"
-                    >
-                      End Session
-                    </Button>
+                    <div className="flex flex-col items-center gap-4">
+                      <AudioControls />
+                      <div className="flex gap-4">
+                        <Button
+                          variant="outline"
+                          onClick={togglePause}
+                          className="w-32"
+                        >
+                          {isPaused ? (
+                            <>
+                              <Play className="w-4 h-4 mr-2" />
+                              Resume
+                            </>
+                          ) : (
+                            <>
+                              <Pause className="w-4 h-4 mr-2" />
+                              Pause
+                            </>
+                          )}
+                        </Button>
+                        <Button 
+                          variant="ghost"
+                          onClick={() => setIsStarted(false)}
+                          className="w-32"
+                        >
+                          End Session
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </motion.div>
               ) : (
