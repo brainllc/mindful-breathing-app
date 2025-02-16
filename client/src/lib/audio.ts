@@ -4,12 +4,10 @@ class AudioService {
   private volume = new BehaviorSubject<number>(0.3);
   private audioContext: AudioContext | null = null;
   private gainNode: GainNode | null = null;
-  private musicSource: AudioBufferSourceNode | null = null;
-  private musicBuffer: AudioBuffer | null = null;
+  private oscillator: OscillatorNode | null = null;
   private initialized = false;
 
   constructor() {
-    // Don't initialize automatically, wait for user interaction
     console.log('Audio service created, waiting for initialization...');
   }
 
@@ -21,35 +19,18 @@ class AudioService {
       this.audioContext = new AudioContext();
       this.gainNode = this.audioContext.createGain();
       this.gainNode.connect(this.audioContext.destination);
+      this.gainNode.gain.value = this.volume.value;
+
       this.volume.subscribe(vol => {
         if (this.gainNode) {
           this.gainNode.gain.value = vol;
         }
       });
 
-      await this.loadMeditationMusic();
       this.initialized = true;
       console.log('Audio context initialized successfully');
     } catch (error) {
       console.error('Failed to initialize Web Audio API:', error);
-      throw error;
-    }
-  }
-
-  private async loadMeditationMusic() {
-    if (!this.audioContext) return;
-
-    try {
-      console.log('Attempting to load meditation music...');
-      const response = await fetch('/audio/meditation.mp3');
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const arrayBuffer = await response.arrayBuffer();
-      this.musicBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
-      console.log('Meditation music loaded successfully');
-    } catch (error) {
-      console.error('Failed to load meditation music:', error);
       throw error;
     }
   }
@@ -60,12 +41,8 @@ class AudioService {
         await this.init();
       }
 
-      if (!this.audioContext || !this.gainNode || !this.musicBuffer) {
-        console.warn('Audio system not ready:', {
-          context: !!this.audioContext,
-          gainNode: !!this.gainNode,
-          buffer: !!this.musicBuffer
-        });
+      if (!this.audioContext || !this.gainNode) {
+        console.warn('Audio system not ready');
         return;
       }
 
@@ -75,37 +52,41 @@ class AudioService {
         await this.audioContext.resume();
       }
 
-      // Stop any currently playing music
+      // Stop any currently playing sound
       this.stopMusic();
 
-      console.log('Creating and starting new music source...');
-      // Create and configure new source
-      this.musicSource = this.audioContext.createBufferSource();
-      this.musicSource.buffer = this.musicBuffer;
-      this.musicSource.loop = true; // Enable looping
+      // Create and configure oscillator for a soft, meditation-like tone
+      this.oscillator = this.audioContext.createOscillator();
+      this.oscillator.type = 'sine';
+      this.oscillator.frequency.value = 432; // Frequency in Hz
 
-      // Apply volume
-      this.musicSource.connect(this.gainNode);
+      // Create a low-pass filter for a softer sound
+      const filter = this.audioContext.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 1000;
 
-      // Start playback
-      this.musicSource.start();
-      console.log('Music playback started successfully');
+      // Connect the nodes
+      this.oscillator.connect(filter);
+      filter.connect(this.gainNode);
+
+      // Start the oscillator
+      this.oscillator.start();
+      console.log('Started meditation sound');
     } catch (error) {
-      console.error('Failed to start music playback:', error);
+      console.error('Failed to start meditation sound:', error);
     }
   }
 
   stopMusic() {
-    if (this.musicSource) {
+    if (this.oscillator) {
       try {
-        this.musicSource.stop();
-        this.musicSource.disconnect();
-        console.log('Music stopped successfully');
+        this.oscillator.stop();
+        this.oscillator.disconnect();
+        console.log('Sound stopped successfully');
       } catch (e) {
-        // Ignore errors from stopping already stopped sources
-        console.log('Note: Music was already stopped');
+        console.log('Note: Sound was already stopped');
       }
-      this.musicSource = null;
+      this.oscillator = null;
     }
   }
 
