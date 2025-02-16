@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { moods } from "@/lib/exercises";
 import { motion } from "framer-motion";
-import * as Icons from "lucide-react";
+import * as LucideIcons from "lucide-react";
 
 interface Props {
   onSelect: (mood: string) => void;
@@ -32,7 +32,7 @@ export function MoodSelector({ onSelect }: Props) {
       animate="show"
     >
       {moods.map((mood) => {
-        const Icon = Icons[mood.icon as keyof typeof Icons];
+        const IconComponent = LucideIcons[mood.icon as keyof typeof LucideIcons] as React.ComponentType<any>;
         return (
           <motion.div
             key={mood.id}
@@ -47,7 +47,7 @@ export function MoodSelector({ onSelect }: Props) {
             >
               <div className="relative">
                 <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100 dark:bg-primary/20" />
-                {Icon && <Icon className="w-10 h-10 text-primary relative z-10" />}
+                {IconComponent && <IconComponent className="w-10 h-10 text-primary relative z-10" />}
               </div>
               <span className="text-lg font-medium relative z-10">{mood.label}</span>
             </Button>
