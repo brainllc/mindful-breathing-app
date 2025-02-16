@@ -20,7 +20,7 @@ export function AudioControls() {
   };
 
   return (
-    <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-4 w-full max-w-[200px]">
+    <div className="absolute bottom-32 left-1/2 -translate-x-1/2 flex items-center gap-4 w-full max-w-[200px]">
       <Button
         variant="ghost"
         size="icon"
