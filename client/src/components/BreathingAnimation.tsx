@@ -15,17 +15,12 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
   const [phaseTimeLeft, setPhaseTimeLeft] = useState(exercise.pattern.inhale);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number | null>(null);
-  const phaseTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!isActive) {
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
-      }
-      if (phaseTimerRef.current) {
-        clearInterval(phaseTimerRef.current);
-        phaseTimerRef.current = null;
       }
       startTimeRef.current = null;
       return;
@@ -48,14 +43,12 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
         const now = Date.now();
         const elapsedSeconds = (now - (startTimeRef.current || now)) / 1000;
         onPhaseProgress(elapsedSeconds);
-      }, 50); // Update progress every 50ms
 
-      // Phase timer - handles breathing phase changes
-      phaseTimerRef.current = setInterval(() => {
+        // Update phase countdown
         setPhaseTimeLeft(current => {
-          const newTimeLeft = current - 0.1; // Decrement by 0.1 seconds
+          const newTimeLeft = Math.max(0, current - 0.05); // Prevent negative values
 
-          if (newTimeLeft <= 0) {
+          if (newTimeLeft === 0) {
             const nextPhase = (() => {
               switch (phase) {
                 case "inhale": return exercise.pattern.hold ? "hold" : "exhale";
@@ -83,7 +76,7 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
 
           return newTimeLeft;
         });
-      }, 100); // Update phase timer every 100ms
+      }, 50); // Update every 50ms for smooth animation
     };
 
     startBreathing();
@@ -92,10 +85,6 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
-      }
-      if (phaseTimerRef.current) {
-        clearInterval(phaseTimerRef.current);
-        phaseTimerRef.current = null;
       }
       audioService.stopMusic();
     };
