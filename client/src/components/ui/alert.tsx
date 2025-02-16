@@ -50,7 +50,7 @@ const AlertDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("text-sm [&_p]:leading-relaxed flex items-center justify-center gap-2", className)}
+    className={cn("text-sm [&_p]:leading-relaxed flex items-center gap-1", className)}
     {...props}
   />
 ))
