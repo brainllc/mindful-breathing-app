@@ -6,7 +6,7 @@ import { BreathingAnimation } from "@/components/BreathingAnimation";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Clock, CheckCircle } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Exercise() {
@@ -35,16 +35,16 @@ export default function Exercise() {
   };
 
   const progress = (currentRound / totalRounds) * 100;
+  const duration = exercise.pattern.inhale + (exercise.pattern.hold || 0) + 
+                  exercise.pattern.exhale + (exercise.pattern.holdEmpty || 0);
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-2xl mx-auto"
-        >
-          <Link href="/" className="inline-block mb-8">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background dark:from-primary/10">
+      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-40 dark:opacity-20" />
+
+      <div className="container relative mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto">
+          <Link href="/" className="inline-block mb-12">
             <Button
               variant="ghost"
               className="text-primary hover:text-primary/80"
@@ -54,39 +54,21 @@ export default function Exercise() {
             </Button>
           </Link>
 
-          <div className="space-y-8">
-            <div className="text-center">
-              <h1 className="text-3xl font-bold mb-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-12"
+          >
+            <div className="text-center space-y-4">
+              <h1 className="text-4xl font-bold bg-gradient-to-b from-primary/90 to-primary/70 bg-clip-text text-transparent">
                 {exercise.name}
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                 {exercise.description}
               </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <h2 className="text-xl font-semibold">Configure</h2>
-                <RoundConfig
-                  defaultRounds={exercise.defaultRounds}
-                  onStart={(rounds) => {
-                    setTotalRounds(rounds);
-                    setIsStarted(true);
-                  }}
-                  isStarted={isStarted}
-                />
-              </div>
-
-              <div className="space-y-4">
-                <h2 className="text-xl font-semibold">Benefits</h2>
-                <ul className="space-y-2">
-                  {exercise.benefits.map((benefit, index) => (
-                    <li key={index} className="flex items-center gap-2 text-muted-foreground">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary/60" />
-                      {benefit}
-                    </li>
-                  ))}
-                </ul>
+              <div className="flex items-center justify-center gap-2 text-sm text-primary">
+                <Clock className="w-4 h-4" />
+                <span>{duration}s per round</span>
               </div>
             </div>
 
@@ -100,11 +82,11 @@ export default function Exercise() {
                   className="space-y-8"
                 >
                   <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-sm text-muted-foreground">
                       <span>Round {currentRound + 1} of {totalRounds}</span>
-                      <span>{Math.round(progress)}%</span>
+                      <span>{Math.round(progress)}% Complete</span>
                     </div>
-                    <Progress value={progress} />
+                    <Progress value={progress} className="h-1" />
                   </div>
 
                   <BreathingAnimation
@@ -114,8 +96,8 @@ export default function Exercise() {
                   />
 
                   <Button 
-                    variant="secondary"
-                    className="w-full"
+                    variant="ghost"
+                    className="w-full max-w-sm mx-auto block"
                     onClick={() => setIsStarted(false)}
                   >
                     End Session
@@ -123,15 +105,49 @@ export default function Exercise() {
                 </motion.div>
               ) : (
                 <motion.div
-                  key="start"
+                  key="config"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="text-center"
+                  className="space-y-16"
                 >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <div className="relative">
+                      <div className="bg-card p-6 rounded-lg border border-primary/10">
+                        <h2 className="text-xl font-medium mb-6">Configure Session</h2>
+                        <RoundConfig
+                          defaultRounds={exercise.defaultRounds}
+                          onStart={(rounds) => {
+                            setTotalRounds(rounds);
+                            setIsStarted(true);
+                          }}
+                          isStarted={isStarted}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-6">
+                      <h2 className="text-xl font-medium">Benefits</h2>
+                      <ul className="space-y-4">
+                        {exercise.benefits.map((benefit, index) => (
+                          <motion.li 
+                            key={index}
+                            className="flex items-start gap-3"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                          >
+                            <CheckCircle className="w-5 h-5 mt-0.5 text-primary/60 shrink-0" />
+                            <span className="text-muted-foreground">{benefit}</span>
+                          </motion.li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
                   <Button 
                     size="lg"
-                    className="w-full max-w-md"
+                    className="w-full max-w-md mx-auto block"
                     onClick={handleStart}
                   >
                     Start Breathing
@@ -139,8 +155,8 @@ export default function Exercise() {
                 </motion.div>
               )}
             </AnimatePresence>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
       </div>
     </div>
   );
