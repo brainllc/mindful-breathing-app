@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const alertVariants = cva(
-  "relative w-full rounded-lg border px-4 py-3 text-center",
+  "relative w-full rounded-lg border px-3 py-3 text-center",
   {
     variants: {
       variant: {
@@ -50,7 +50,7 @@ const AlertDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("text-sm [&_p]:leading-relaxed flex items-center gap-1", className)}
+    className={cn("text-sm [&_p]:leading-relaxed flex items-center gap-2", className)}
     {...props}
   />
 ))
