@@ -20,17 +20,17 @@ export function AudioControls() {
   };
 
   return (
-    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-4 w-full max-w-[200px]">
+    <div className="absolute top-4 right-4 flex items-center gap-2 w-32">
       <Button
         variant="ghost"
-        size="icon"
+        size="sm"
         onClick={toggleMute}
         className="text-primary hover:text-primary/80"
       >
         {isMuted ? (
-          <VolumeX className="h-5 w-5" />
+          <VolumeX className="h-4 w-4" />
         ) : (
-          <Volume2 className="h-5 w-5" />
+          <Volume2 className="h-4 w-4" />
         )}
       </Button>
       <Slider
