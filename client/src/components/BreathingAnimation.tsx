@@ -11,7 +11,7 @@ interface Props {
 }
 
 export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhaseProgress }: Props) {
-  const [phase, setPhase] = useState<"inhale" | "hold" | "exhale">("inhale");
+  const [phase, setPhase] = useState<"inhale" | "hold" | "exhale" | "holdEmpty">("inhale");
   const [phaseTimeLeft, setPhaseTimeLeft] = useState(0);
 
   // Use refs to track the animation
@@ -30,7 +30,10 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
       }
 
       const { pattern } = exercise;
-      const totalTime = pattern.inhale + (pattern.hold || 0) + pattern.exhale;
+      const totalTime = pattern.inhale + 
+                       (pattern.hold || 0) + 
+                       pattern.exhale + 
+                       (pattern.holdEmpty || 0);
 
       const animate = (timestamp: number) => {
         if (!startTimeRef.current) {
@@ -43,24 +46,23 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
         // Report smooth progress to parent
         onPhaseProgress(progress);
 
-        // Determine current phase and its duration
-        const inhaleDuration = pattern.inhale;
-        const holdDuration = pattern.hold || 0;
-
-        // Calculate phase and remaining time
+        // Determine current phase and time left
         if (progress < pattern.inhale) {
           setPhase("inhale");
-          setPhaseTimeLeft(Math.ceil(inhaleDuration - progress));
-        } else if (progress < (pattern.inhale + (pattern.hold || 0))) {
+          setPhaseTimeLeft(Math.ceil(pattern.inhale - progress));
+        } else if (pattern.hold && progress < (pattern.inhale + pattern.hold)) {
           setPhase("hold");
-          setPhaseTimeLeft(Math.ceil(holdDuration - (progress - inhaleDuration)));
-        } else {
+          setPhaseTimeLeft(Math.ceil(pattern.inhale + pattern.hold - progress));
+        } else if (progress < (pattern.inhale + (pattern.hold || 0) + pattern.exhale)) {
           setPhase("exhale");
-          setPhaseTimeLeft(Math.ceil(pattern.exhale - (progress - inhaleDuration - holdDuration)));
+          setPhaseTimeLeft(Math.ceil(pattern.inhale + (pattern.hold || 0) + pattern.exhale - progress));
+        } else if (pattern.holdEmpty) {
+          setPhase("holdEmpty");
+          setPhaseTimeLeft(Math.ceil(totalTime - progress));
         }
 
         // Check if round is complete
-        if (elapsed >= totalTime) {
+        if (progress + 0.1 >= totalTime) {
           startTimeRef.current = timestamp;
           onRoundComplete();
         }
@@ -99,6 +101,11 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
       scale: 1,
       opacity: 0.5,
       transition: { duration: exercise.pattern.exhale }
+    },
+    holdEmpty: {
+      scale: 1,
+      opacity: 0.5,
+      transition: { duration: exercise.pattern.holdEmpty || 0 }
     }
   };
 
