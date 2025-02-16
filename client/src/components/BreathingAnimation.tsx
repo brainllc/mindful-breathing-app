@@ -14,16 +14,15 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
   const [phase, setPhase] = useState<"inhale" | "hold" | "exhale">("inhale");
   const [phaseTimeLeft, setPhaseTimeLeft] = useState(0);
 
-  // Use refs to track the interval ID and current step
-  const intervalRef = useRef<number>();
-  const currentStepRef = useRef(0);
+  // Use refs to track the animation
+  const startTimeRef = useRef<number>();
+  const animationFrameRef = useRef<number>();
 
   useEffect(() => {
     const startExercise = async () => {
       if (!isActive) return;
 
       try {
-        // Start playing meditation music when exercise becomes active
         await audioService.playMusic();
         console.log('Started meditation music');
       } catch (error) {
@@ -31,60 +30,57 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
       }
 
       const { pattern } = exercise;
-      const totalTime =
-        pattern.inhale +
-        (pattern.hold || 0) +
-        pattern.exhale;
+      const totalTime = pattern.inhale + (pattern.hold || 0) + pattern.exhale;
 
-      const interval = 1000; // 1 second intervals for counting
-      const steps = totalTime;
+      const animate = (timestamp: number) => {
+        if (!startTimeRef.current) {
+          startTimeRef.current = timestamp;
+        }
 
-      intervalRef.current = window.setInterval(() => {
-        currentStepRef.current++;
-        const progress = currentStepRef.current / steps;
+        const elapsed = (timestamp - startTimeRef.current) / 1000; // Convert to seconds
+        const progress = elapsed % totalTime;
 
-        // Report progress to parent component
-        onPhaseProgress(currentStepRef.current);
+        // Report smooth progress to parent
+        onPhaseProgress(progress);
 
         // Determine current phase and its duration
         const inhaleDuration = pattern.inhale;
         const holdDuration = pattern.hold || 0;
-        const exhaleDuration = pattern.exhale;
-
-        const timeInPhase = currentStepRef.current;
 
         // Calculate phase and remaining time
-        if (progress < pattern.inhale / totalTime) {
+        if (progress < pattern.inhale) {
           setPhase("inhale");
-          const timeLeft = Math.ceil(inhaleDuration - timeInPhase);
-          setPhaseTimeLeft(timeLeft);
-        } else if (progress < (pattern.inhale + (pattern.hold || 0)) / totalTime) {
+          setPhaseTimeLeft(Math.ceil(inhaleDuration - progress));
+        } else if (progress < (pattern.inhale + (pattern.hold || 0))) {
           setPhase("hold");
-          const timeLeft = Math.ceil(holdDuration - (timeInPhase - inhaleDuration));
-          setPhaseTimeLeft(timeLeft);
+          setPhaseTimeLeft(Math.ceil(holdDuration - (progress - inhaleDuration)));
         } else {
           setPhase("exhale");
-          const timeLeft = Math.ceil(exhaleDuration - (timeInPhase - inhaleDuration - holdDuration));
-          setPhaseTimeLeft(timeLeft);
+          setPhaseTimeLeft(Math.ceil(pattern.exhale - (progress - inhaleDuration - holdDuration)));
         }
 
-        if (currentStepRef.current >= steps) {
-          currentStepRef.current = 0;
+        // Check if round is complete
+        if (elapsed >= totalTime) {
+          startTimeRef.current = timestamp;
           onRoundComplete();
         }
-      }, interval);
+
+        if (isActive) {
+          animationFrameRef.current = requestAnimationFrame(animate);
+        }
+      };
+
+      animationFrameRef.current = requestAnimationFrame(animate);
     };
 
     startExercise();
 
-    // Cleanup function
     return () => {
-      if (intervalRef.current) {
-        window.clearInterval(intervalRef.current);
-        intervalRef.current = undefined;
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
       }
-      // Stop music when component is unmounted or exercise becomes inactive
       audioService.stopMusic();
+      startTimeRef.current = undefined;
     };
   }, [isActive, exercise, onRoundComplete, onPhaseProgress]);
 
