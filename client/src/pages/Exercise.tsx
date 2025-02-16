@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { ExerciseInfoModal } from "@/components/ExerciseInfoModal";
 import { AudioControls } from "@/components/AudioControls";
+import { audioService } from "@/lib/audio"; 
 
 export default function Exercise() {
   const [, params] = useRoute("/exercise/:id");
@@ -30,19 +31,44 @@ export default function Exercise() {
     return <div>Exercise not found</div>;
   }
 
-  const handleStart = () => {
+  const handleStart = async () => {
     if (!hasAcceptedDisclaimer) {
       setShowDisclaimer(true);
       return;
     }
-    setIsStarted(true);
-    setIsPaused(false);
+
+    try {
+      await audioService.init();
+      setIsStarted(true);
+      setIsPaused(false);
+    } catch (error) {
+      console.error('Failed to initialize audio:', error);
+      toast({
+        title: "Audio Error",
+        description: "Failed to initialize audio. You may need to allow audio playback in your browser settings.",
+        variant: "destructive",
+      });
+      setIsStarted(true);
+      setIsPaused(false);
+    }
   };
 
-  const handleDisclaimerAccept = () => {
+  const handleDisclaimerAccept = async () => {
     setHasAcceptedDisclaimer(true);
     setShowDisclaimer(false);
-    setIsStarted(true);
+
+    try {
+      await audioService.init();
+      setIsStarted(true);
+    } catch (error) {
+      console.error('Failed to initialize audio:', error);
+      toast({
+        title: "Audio Error",
+        description: "Failed to initialize audio. You may need to allow audio playback in your browser settings.",
+        variant: "destructive",
+      });
+      setIsStarted(true);
+    }
   };
 
   const handleDisclaimerDecline = () => {
@@ -111,7 +137,6 @@ export default function Exercise() {
             </Button>
           </Link>
 
-          {/* Safety Alert - Only show before starting */}
           {!isStarted && (
             <Alert className="mb-8 border-yellow-500/50 bg-yellow-500/10">
               <AlertTriangle className="h-4 w-4 text-yellow-500" />
