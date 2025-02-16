@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRoute } from "wouter";
 import { exercises } from "@/lib/exercises";
 import { RoundConfig } from "@/components/RoundConfig";
@@ -28,6 +28,34 @@ export default function Exercise() {
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [hasAcceptedDisclaimer, setHasAcceptedDisclaimer] = useState(false);
   const [phaseProgress, setPhaseProgress] = useState(0);
+
+  useEffect(() => {
+    if (exercise) {
+      // Update meta tags dynamically for each exercise
+      document.title = `${exercise.name} - Mindful Breathing Exercise Guide`;
+
+      // Update meta description
+      const metaDescription = document.querySelector('meta[name="description"]');
+      if (metaDescription) {
+        metaDescription.setAttribute('content', 
+          `Learn and practice ${exercise.name}: ${exercise.description}. ${exercise.benefits.join('. ')}`
+        );
+      }
+
+      // Update Open Graph tags
+      const ogTitle = document.querySelector('meta[property="og:title"]');
+      const ogDesc = document.querySelector('meta[property="og:description"]');
+
+      if (ogTitle) {
+        ogTitle.setAttribute('content', `${exercise.name} - Breathing Exercise Guide`);
+      }
+      if (ogDesc) {
+        ogDesc.setAttribute('content', 
+          `Learn ${exercise.name}: ${exercise.description}. Benefits include: ${exercise.benefits.join(', ')}`
+        );
+      }
+    }
+  }, [exercise]);
 
   if (!exercise) {
     return <div>Exercise not found</div>;
