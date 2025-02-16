@@ -138,9 +138,9 @@ export default function Exercise() {
           </Link>
 
           {!isStarted && (
-            <Alert className="mb-8 border-yellow-500/50 bg-yellow-500/10 flex items-center justify-center">
-              <AlertTriangle className="h-4 w-4 text-yellow-500" />
-              <AlertDescription className="text-sm text-yellow-500 flex-1 text-center">
+            <Alert className="mb-8 border-yellow-500/50 bg-yellow-500/10 inline-flex w-auto mx-auto">
+              <AlertDescription className="text-sm text-yellow-500">
+                <AlertTriangle className="h-4 w-4" />
                 Please stop immediately if you experience any discomfort. 
                 These exercises are not a substitute for medical advice.
               </AlertDescription>
