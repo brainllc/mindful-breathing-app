@@ -8,6 +8,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useEffect, useRef, useState } from "react";
 
 interface Props {
   isOpen: boolean;
@@ -16,6 +17,27 @@ interface Props {
 }
 
 export function SafetyDisclaimer({ isOpen, onAccept, onDecline }: Props) {
+  const [hasReadAll, setHasReadAll] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const element = e.currentTarget;
+    const isAtBottom = Math.abs(
+      element.scrollHeight - element.clientHeight - element.scrollTop
+    ) < 2;
+
+    if (isAtBottom) {
+      setHasReadAll(true);
+    }
+  };
+
+  // Reset hasReadAll when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setHasReadAll(false);
+    }
+  }, [isOpen]);
+
   return (
     <AlertDialog open={isOpen}>
       <AlertDialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
@@ -45,7 +67,11 @@ export function SafetyDisclaimer({ isOpen, onAccept, onDecline }: Props) {
         </AlertDialogHeader>
 
         {/* Scrollable Content */}
-        <AlertDialogDescription className="space-y-6 overflow-y-auto pr-6">
+        <AlertDialogDescription 
+          className="space-y-6 overflow-y-auto pr-6"
+          onScroll={handleScroll}
+          ref={contentRef}
+        >
           <div className="space-y-6">
             <p className="text-base">
               The breathing exercises provided in this application are for general wellness purposes only and are not intended to be a substitute for professional medical advice, diagnosis, or treatment.
@@ -87,7 +113,11 @@ export function SafetyDisclaimer({ isOpen, onAccept, onDecline }: Props) {
           <AlertDialogCancel onClick={onDecline}>
             I Do Not Accept
           </AlertDialogCancel>
-          <AlertDialogAction onClick={onAccept}>
+          <AlertDialogAction
+            onClick={onAccept}
+            disabled={!hasReadAll}
+            className="disabled:opacity-50"
+          >
             I Understand and Accept
           </AlertDialogAction>
         </AlertDialogFooter>
