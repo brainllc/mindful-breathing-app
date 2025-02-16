@@ -20,31 +20,26 @@ export function AudioControls() {
   };
 
   return (
-    <div className="w-full max-w-[300px] flex flex-col gap-2">
-      <div className="text-sm text-muted-foreground mb-1">
-        Background Music Volume
-      </div>
-      <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleMute}
-          className="text-primary hover:text-primary/80"
-        >
-          {isMuted ? (
-            <VolumeX className="h-5 w-5" />
-          ) : (
-            <Volume2 className="h-5 w-5" />
-          )}
-        </Button>
-        <Slider
-          defaultValue={[volume]}
-          max={1}
-          step={0.01}
-          onValueChange={handleVolumeChange}
-          className="flex-1"
-        />
-      </div>
+    <div className="flex items-center justify-center gap-4 w-full max-w-xs mx-auto">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={toggleMute}
+        className="text-primary hover:text-primary/80"
+      >
+        {isMuted ? (
+          <VolumeX className="h-5 w-5" />
+        ) : (
+          <Volume2 className="h-5 w-5" />
+        )}
+      </Button>
+      <Slider
+        defaultValue={[volume]}
+        max={1}
+        step={0.01}
+        onValueChange={handleVolumeChange}
+        className="flex-1"
+      />
     </div>
   );
 }

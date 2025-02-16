@@ -25,6 +25,7 @@ class AudioService {
       // Create audio element
       this.audioElement = new Audio('/meditation.mp3');
       this.audioElement.loop = true;
+      this.audioElement.crossOrigin = 'anonymous';
 
       // Connect audio element to Web Audio API
       this.mediaSource = this.audioContext.createMediaElementSource(this.audioElement);
@@ -61,17 +62,26 @@ class AudioService {
         await this.audioContext.resume();
       }
 
-      // Fade in
-      if (this.gainNode) {
-        this.gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
-        this.gainNode.gain.linearRampToValueAtTime(
-          this.volume.value,
-          this.audioContext.currentTime + 2
-        );
-      }
+      console.log('Attempting to play audio...');
+      const playPromise = this.audioElement.play();
 
-      await this.audioElement.play();
-      console.log('Started meditation music');
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log('Audio started playing successfully');
+            // Fade in
+            if (this.gainNode && this.audioContext) {
+              this.gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+              this.gainNode.gain.linearRampToValueAtTime(
+                this.volume.value,
+                this.audioContext.currentTime + 2
+              );
+            }
+          })
+          .catch(error => {
+            console.error('Error playing audio:', error);
+          });
+      }
     } catch (error) {
       console.error('Failed to start meditation music:', error);
     }
