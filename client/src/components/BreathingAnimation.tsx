@@ -22,10 +22,10 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
     if (!isActive) return;
 
     const { pattern } = exercise;
-    const totalTime = 
-      pattern.inhale + 
-      (pattern.hold || 0) + 
-      pattern.exhale + 
+    const totalTime =
+      pattern.inhale +
+      (pattern.hold || 0) +
+      pattern.exhale +
       (pattern.holdEmpty || 0);
 
     const interval = 50; // 50ms intervals for smooth animation
@@ -51,7 +51,7 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
 
         // Play inhale sound when phase changes
         if (previousPhase !== "inhale") {
-          audioService.playBreathingTone(432); // A calming frequency
+          audioService.playBreathingTone(174); // G3 - gentle, calming frequency
         }
       } else if (progress < (pattern.inhale + (pattern.hold || 0)) / totalTime) {
         setPhase("hold");
@@ -59,7 +59,6 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
 
         // Play hold sound
         if (previousPhase !== "hold") {
-          audioService.playTransitionBell();
           audioService.stopBreathingTone();
         }
       } else if (progress < (pattern.inhale + (pattern.hold || 0) + pattern.exhale) / totalTime) {
@@ -68,7 +67,7 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
 
         // Play exhale sound
         if (previousPhase !== "exhale") {
-          audioService.playBreathingTone(288); // Lower frequency for exhale
+          audioService.playBreathingTone(146.83); // D3 - slightly lower for exhale
         }
       } else {
         setPhase("holdEmpty");
@@ -76,7 +75,6 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
 
         // Play hold empty sound
         if (previousPhase !== "holdEmpty") {
-          audioService.playTransitionBell();
           audioService.stopBreathingTone();
         }
       }
