@@ -6,7 +6,7 @@ import { BreathingAnimation } from "@/components/BreathingAnimation";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Clock, Plus, Minus, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Clock, Plus, Minus, AlertTriangle, Pause, Play } from "lucide-react";
 import { Link } from "wouter";
 import { SafetyDisclaimer } from "@/components/SafetyDisclaimer";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -18,6 +18,7 @@ export default function Exercise() {
   const { toast } = useToast();
 
   const [isStarted, setIsStarted] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [currentRound, setCurrentRound] = useState(0);
   const [totalRounds, setTotalRounds] = useState(exercise?.defaultRounds || 4);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
@@ -33,6 +34,7 @@ export default function Exercise() {
       return;
     }
     setIsStarted(true);
+    setIsPaused(false);
   };
 
   const handleDisclaimerAccept = () => {
@@ -51,6 +53,7 @@ export default function Exercise() {
 
   const handleEmergencyStop = () => {
     setIsStarted(false);
+    setIsPaused(false);
     setCurrentRound(0);
     toast({
       title: "Exercise Stopped",
@@ -62,15 +65,19 @@ export default function Exercise() {
   const handleRoundComplete = () => {
     if (currentRound + 1 >= totalRounds) {
       setIsStarted(false);
+      setIsPaused(false);
       setCurrentRound(0);
     } else {
       setCurrentRound(prev => prev + 1);
     }
   };
 
+  const togglePause = () => {
+    setIsPaused(!isPaused);
+  };
+
   const adjustRounds = (amount: number) => {
     setTotalRounds(prev => {
-      // Ensure we stay within bounds of 1-50 rounds
       const newValue = prev + amount;
       return Math.min(Math.max(newValue, 1), 50);
     });
@@ -102,14 +109,16 @@ export default function Exercise() {
             </Button>
           </Link>
 
-          {/* Safety Alert */}
-          <Alert className="mb-8 border-yellow-500/50 bg-yellow-500/10">
-            <AlertTriangle className="h-4 w-4 text-yellow-500" />
-            <AlertDescription className="text-sm text-yellow-500">
-              Please stop immediately if you experience any discomfort. 
-              These exercises are not a substitute for medical advice.
-            </AlertDescription>
-          </Alert>
+          {/* Safety Alert - Only show before starting */}
+          {!isStarted && (
+            <Alert className="mb-8 border-yellow-500/50 bg-yellow-500/10">
+              <AlertTriangle className="h-4 w-4 text-yellow-500" />
+              <AlertDescription className="text-sm text-yellow-500">
+                Please stop immediately if you experience any discomfort. 
+                These exercises are not a substitute for medical advice.
+              </AlertDescription>
+            </Alert>
+          )}
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -148,7 +157,7 @@ export default function Exercise() {
 
                   <BreathingAnimation
                     exercise={exercise}
-                    isActive={isStarted}
+                    isActive={isStarted && !isPaused}
                     onRoundComplete={handleRoundComplete}
                   />
 
@@ -176,13 +185,32 @@ export default function Exercise() {
                     </Button>
                   </div>
 
-                  <Button 
-                    variant="ghost"
-                    className="w-full max-w-sm mx-auto block"
-                    onClick={() => setIsStarted(false)}
-                  >
-                    End Session
-                  </Button>
+                  <div className="flex justify-center gap-4">
+                    <Button
+                      variant="outline"
+                      onClick={togglePause}
+                      className="w-32"
+                    >
+                      {isPaused ? (
+                        <>
+                          <Play className="w-4 h-4 mr-2" />
+                          Resume
+                        </>
+                      ) : (
+                        <>
+                          <Pause className="w-4 h-4 mr-2" />
+                          Pause
+                        </>
+                      )}
+                    </Button>
+                    <Button 
+                      variant="ghost"
+                      onClick={() => setIsStarted(false)}
+                      className="w-32"
+                    >
+                      End Session
+                    </Button>
+                  </div>
                 </motion.div>
               ) : (
                 <motion.div
