@@ -40,8 +40,9 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
           startTimeRef.current = timestamp;
         }
 
-        const elapsed = (timestamp - startTimeRef.current) / 1000; // Convert to seconds
-        const progress = elapsed % totalTime;
+        const elapsed = timestamp - startTimeRef.current;
+        const elapsedSeconds = elapsed / 1000; // Convert to seconds
+        const progress = elapsedSeconds % totalTime;
 
         // Report smooth progress to parent
         onPhaseProgress(progress);
@@ -63,16 +64,20 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
 
         // Check if round is complete
         if (progress + 0.1 >= totalTime) {
-          startTimeRef.current = timestamp;
+          startTimeRef.current = timestamp; // Reset for next round
           onRoundComplete();
         }
 
+        // Continue animation if active
         if (isActive) {
           animationFrameRef.current = requestAnimationFrame(animate);
         }
       };
 
-      animationFrameRef.current = requestAnimationFrame(animate);
+      // Start the animation loop
+      if (isActive) {
+        animationFrameRef.current = requestAnimationFrame(animate);
+      }
     };
 
     startExercise();
