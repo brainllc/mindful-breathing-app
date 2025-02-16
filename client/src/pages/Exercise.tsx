@@ -6,13 +6,13 @@ import { BreathingAnimation } from "@/components/BreathingAnimation";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Clock, Plus, Minus, AlertTriangle, Pause, Play } from "lucide-react";
+import { ArrowLeft, Clock, AlertTriangle } from "lucide-react";
 import { Link } from "wouter";
 import { SafetyDisclaimer } from "@/components/SafetyDisclaimer";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { ExerciseInfoModal } from "@/components/ExerciseInfoModal";
-import { AudioControls } from "@/components/AudioControls";
+import { ControlsBar } from "@/components/ControlsBar";
 import { audioService } from "@/lib/audio"; 
 
 export default function Exercise() {
@@ -100,17 +100,6 @@ export default function Exercise() {
     }
   };
 
-  const togglePause = () => {
-    setIsPaused(!isPaused);
-  };
-
-  const adjustRounds = (amount: number) => {
-    setTotalRounds(prev => {
-      const newValue = prev + amount;
-      return Math.min(Math.max(newValue, 1), 50);
-    });
-  };
-
   const progress = (currentRound / totalRounds) * 100;
   const duration = exercise.pattern.inhale + (exercise.pattern.hold || 0) + 
                   exercise.pattern.exhale + (exercise.pattern.holdEmpty || 0);
@@ -194,59 +183,17 @@ export default function Exercise() {
                       onRoundComplete={handleRoundComplete}
                     />
 
-                    <div className="flex items-center justify-center gap-4">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => adjustRounds(-1)}
-                        className="rounded-full"
-                        disabled={totalRounds <= 1}
-                      >
-                        <Minus className="w-4 h-4" />
-                      </Button>
-                      <span className="text-lg font-medium text-primary">
-                        {totalRounds} Rounds
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => adjustRounds(1)}
-                        className="rounded-full"
-                        disabled={totalRounds >= 50}
-                      >
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                    </div>
-
-                    <div className="flex flex-col items-center gap-4">
-                      <AudioControls />
-                      <div className="flex gap-4">
-                        <Button
-                          variant="outline"
-                          onClick={togglePause}
-                          className="w-32"
-                        >
-                          {isPaused ? (
-                            <>
-                              <Play className="w-4 h-4 mr-2" />
-                              Resume
-                            </>
-                          ) : (
-                            <>
-                              <Pause className="w-4 h-4 mr-2" />
-                              Pause
-                            </>
-                          )}
-                        </Button>
-                        <Button 
-                          variant="ghost"
-                          onClick={() => setIsStarted(false)}
-                          className="w-32"
-                        >
-                          End Session
-                        </Button>
-                      </div>
-                    </div>
+                    {isStarted && (
+                      <ControlsBar
+                        rounds={totalRounds}
+                        onRoundsChange={setTotalRounds}
+                        onPause={() => setIsPaused(!isPaused)}
+                        onEndSession={() => {
+                          setIsStarted(false);
+                          setCurrentRound(0);
+                        }}
+                      />
+                    )}
                   </div>
                 </motion.div>
               ) : (
