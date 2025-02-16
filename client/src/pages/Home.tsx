@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { MoodSelector } from "@/components/MoodSelector";
 import { ExerciseCard } from "@/components/ExerciseCard";
-import { exercises, getExercisesByMood } from "@/lib/exercises";
+import { exercises, getExercisesByMood, moods } from "@/lib/exercises";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
@@ -12,9 +14,17 @@ export default function Home() {
     setSelectedMood(mood);
   };
 
+  const handleBackToMoods = () => {
+    setSelectedMood(null);
+  };
+
   const recommendedExercises = selectedMood 
     ? getExercisesByMood(selectedMood)
     : [];
+
+  const selectedMoodLabel = selectedMood 
+    ? moods.find(m => m.id === selectedMood)?.label 
+    : null;
 
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background dark:from-primary/10">
@@ -56,51 +66,62 @@ export default function Home() {
               value="mood" 
               className="focus-visible:outline-none space-y-16 px-4"
             >
-              <div className="space-y-16">
-                <motion.div 
-                  className="space-y-8"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  <h2 className="text-3xl font-medium text-center mb-12">
-                    How are you feeling today?
-                  </h2>
-                  <MoodSelector onSelect={handleMoodSelect} />
-                </motion.div>
-
-                {selectedMood && recommendedExercises.length > 0 && (
+              <AnimatePresence mode="wait">
+                {!selectedMood ? (
                   <motion.div 
+                    key="mood-selector"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
                     className="space-y-8"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
                   >
-                    <h3 className="text-2xl font-medium text-center mb-12">
-                      Recommended for You
-                    </h3>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                      {recommendedExercises.map((exercise, index) => (
-                        <ExerciseCard 
-                          key={exercise.id} 
-                          exercise={exercise}
-                          index={index} 
-                        />
-                      ))}
+                    <h2 className="text-3xl font-medium text-center mb-12">
+                      How are you feeling today?
+                    </h2>
+                    <MoodSelector onSelect={handleMoodSelect} />
+                  </motion.div>
+                ) : (
+                  <motion.div 
+                    key="exercises"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="space-y-8"
+                  >
+                    <div className="flex items-center justify-between mb-12">
+                      <Button
+                        variant="ghost"
+                        className="text-primary hover:text-primary/80"
+                        onClick={handleBackToMoods}
+                      >
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Back to Moods
+                      </Button>
+                      <h3 className="text-2xl font-medium">
+                        Exercises for when you're feeling {selectedMoodLabel}
+                      </h3>
                     </div>
-                  </motion.div>
-                )}
 
-                {selectedMood && recommendedExercises.length === 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-center text-muted-foreground"
-                  >
-                    No exercises found for this mood. Try another mood or check all exercises.
+                    {recommendedExercises.length > 0 ? (
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        {recommendedExercises.map((exercise, index) => (
+                          <ExerciseCard 
+                            key={exercise.id} 
+                            exercise={exercise}
+                            index={index} 
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center text-muted-foreground">
+                        No exercises found for this mood. Try another mood or check all exercises.
+                      </div>
+                    )}
                   </motion.div>
                 )}
-              </div>
+              </AnimatePresence>
             </TabsContent>
 
             <TabsContent 
