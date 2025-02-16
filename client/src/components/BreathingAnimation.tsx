@@ -12,7 +12,7 @@ interface Props {
 
 export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhaseProgress }: Props) {
   const [phase, setPhase] = useState<"inhale" | "hold" | "exhale" | "holdEmpty">("inhale");
-  const [phaseTimeLeft, setPhaseTimeLeft] = useState(0);
+  const [phaseTimeLeft, setPhaseTimeLeft] = useState(exercise.pattern.inhale);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const progressRef = useRef(0);
 
@@ -23,6 +23,9 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
         timerRef.current = null;
       }
       progressRef.current = 0;
+      // Reset to initial phase and time when stopped
+      setPhase("inhale");
+      setPhaseTimeLeft(exercise.pattern.inhale);
       return;
     }
 
@@ -56,9 +59,21 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
         }
       };
 
-      // Initialize phase
-      let timeLeft = getCurrentPhaseDuration();
-      setPhaseTimeLeft(timeLeft);
+      // Initialize new phase
+      const startNewPhase = () => {
+        const nextPhase = getNextPhase();
+        setPhase(nextPhase);
+        const nextPhaseDuration = (() => {
+          switch (nextPhase) {
+            case "inhale": return pattern.inhale;
+            case "hold": return pattern.hold || 0;
+            case "exhale": return pattern.exhale;
+            case "holdEmpty": return pattern.holdEmpty || 0;
+          }
+        })();
+        setPhaseTimeLeft(nextPhaseDuration);
+        return nextPhaseDuration;
+      };
 
       // Clear any existing timer
       if (timerRef.current) {
@@ -67,29 +82,38 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
 
       // Start the timer that handles both countdown and phase transitions
       timerRef.current = setInterval(() => {
-        timeLeft -= 1;
-        setPhaseTimeLeft(timeLeft);
+        setPhaseTimeLeft(current => {
+          const newTimeLeft = current - 1;
 
-        // Update progress
-        progressRef.current += 1;
-        const totalDuration = pattern.inhale + (pattern.hold || 0) + pattern.exhale + (pattern.holdEmpty || 0);
-        onPhaseProgress(progressRef.current % totalDuration);
+          if (newTimeLeft <= 0) {
+            const nextPhase = getNextPhase();
+            setPhase(nextPhase);
 
-        // Check for phase transition
-        if (timeLeft <= 0) {
-          const nextPhase = getNextPhase();
-          setPhase(nextPhase);
+            // If transitioning back to inhale, complete the round
+            if (nextPhase === "inhale" && phase === (pattern.holdEmpty ? "holdEmpty" : "exhale")) {
+              onRoundComplete();
+              progressRef.current = 0;
+            }
 
-          // If transitioning back to inhale, complete the round
-          if (nextPhase === "inhale" && phase === (pattern.holdEmpty ? "holdEmpty" : "exhale")) {
-            onRoundComplete();
-            progressRef.current = 0;
+            // Start new phase
+            const newPhaseDuration = (() => {
+              switch (nextPhase) {
+                case "inhale": return pattern.inhale;
+                case "hold": return pattern.hold || 0;
+                case "exhale": return pattern.exhale;
+                case "holdEmpty": return pattern.holdEmpty || 0;
+              }
+            })();
+            return newPhaseDuration;
           }
 
-          // Set up next phase
-          timeLeft = getCurrentPhaseDuration();
-          setPhaseTimeLeft(timeLeft);
-        }
+          // Update progress
+          progressRef.current += 1;
+          const totalDuration = pattern.inhale + (pattern.hold || 0) + pattern.exhale + (pattern.holdEmpty || 0);
+          onPhaseProgress(progressRef.current % totalDuration);
+
+          return newTimeLeft;
+        });
       }, 1000);
     };
 
@@ -145,7 +169,7 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
           {phase.charAt(0).toUpperCase() + phase.slice(1)}
         </div>
         <div className="text-4xl font-medium text-primary">
-          {phaseTimeLeft > 0 ? phaseTimeLeft : ""}
+          {phaseTimeLeft}
         </div>
       </div>
     </div>
