@@ -12,7 +12,8 @@ const container = {
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1
+      staggerChildren: 0.1,
+      delayChildren: 0.2
     }
   }
 };
@@ -25,7 +26,7 @@ const item = {
 export function MoodSelector({ onSelect }: Props) {
   return (
     <motion.div 
-      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
       variants={container}
       initial="hidden"
       animate="show"
@@ -37,16 +38,19 @@ export function MoodSelector({ onSelect }: Props) {
           <motion.div
             key={mood.id}
             variants={item}
-            whileHover={{ scale: 1.02 }}
+            whileHover={{ scale: 1.02, y: -4 }}
             whileTap={{ scale: 0.98 }}
           >
             <Button
               variant="outline"
-              className="w-full h-28 flex flex-col items-center justify-center gap-3 bg-card/50 backdrop-blur-sm hover:bg-primary/5 hover:border-primary/30 transition-all duration-300"
+              className="w-full h-32 flex flex-col items-center justify-center gap-4 bg-gradient-to-b from-card/50 to-card border-primary/10 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 group"
               onClick={() => onSelect(mood.id)}
             >
-              <Icon className="w-8 h-8 text-primary" />
-              <span className="text-lg font-medium">{mood.label}</span>
+              <div className="relative">
+                <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100" />
+                <Icon className="w-10 h-10 text-primary relative z-10" />
+              </div>
+              <span className="text-lg font-medium relative z-10">{mood.label}</span>
             </Button>
           </motion.div>
         );
