@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Exercise } from "@/lib/exercises";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 interface Props {
   exercise: Exercise;
@@ -13,8 +13,18 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
   const [progress, setProgress] = useState(0);
   const [phaseTimeLeft, setPhaseTimeLeft] = useState(0);
 
+  // Use refs to avoid recreating the interval on prop changes
+  const timerRef = useRef<NodeJS.Timer | null>(null);
+  const currentStepRef = useRef(0);
+
   useEffect(() => {
-    if (!isActive) return;
+    if (!isActive) {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      return;
+    }
 
     const { pattern } = exercise;
     const totalTime = 
@@ -25,11 +35,10 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
 
     const interval = 50; // 50ms intervals for smooth animation
     const steps = totalTime * (1000 / interval);
-    let currentStep = 0;
 
-    const timer = setInterval(() => {
-      currentStep++;
-      const progress = currentStep / steps;
+    timerRef.current = setInterval(() => {
+      currentStepRef.current++;
+      const progress = currentStepRef.current / steps;
       setProgress(progress);
 
       // Determine current phase and its duration
@@ -38,7 +47,7 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
       const exhaleDuration = pattern.exhale;
       const holdEmptyDuration = pattern.holdEmpty || 0;
 
-      const timeInPhase = (currentStep * interval) / 1000; // Current time in seconds
+      const timeInPhase = (currentStepRef.current * interval) / 1000; // Current time in seconds
 
       if (progress < pattern.inhale / totalTime) {
         setPhase("inhale");
@@ -54,14 +63,19 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
         setPhaseTimeLeft(Math.ceil(holdEmptyDuration - (timeInPhase - inhaleDuration - holdDuration - exhaleDuration)));
       }
 
-      if (currentStep >= steps) {
+      if (currentStepRef.current >= steps) {
+        currentStepRef.current = 0;
         onRoundComplete();
-        currentStep = 0;
       }
     }, interval);
 
-    return () => clearInterval(timer);
-  }, [exercise, isActive, onRoundComplete]);
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [isActive, exercise, onRoundComplete]); // Only depend on these props
 
   const circleVariants = {
     inhale: {
