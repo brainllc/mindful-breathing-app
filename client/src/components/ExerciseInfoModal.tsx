@@ -15,6 +15,49 @@ interface Props {
 }
 
 export function ExerciseInfoModal({ exercise }: Props) {
+  const getTechniqueSteps = (exerciseId: string): string[] => {
+    switch (exerciseId) {
+      case "box-breathing":
+        return [
+          "Find a comfortable seated position with your back straight",
+          "Inhale slowly through your nose for 4 seconds, filling your lungs completely",
+          "Hold your breath for 4 seconds",
+          "Exhale steadily through your mouth for 4 seconds",
+          "Hold your breath out for 4 seconds",
+          "Repeat this cycle for the desired number of rounds"
+        ];
+      case "4-7-8":
+        return [
+          "Sit comfortably with your back straight",
+          "Place the tip of your tongue against the ridge behind your upper front teeth",
+          "Exhale completely through your mouth, making a whoosh sound",
+          "Close your mouth and inhale quietly through your nose for 4 seconds",
+          "Hold your breath for 7 seconds",
+          "Exhale completely through your mouth for 8 seconds",
+          "Repeat this cycle for the recommended rounds"
+        ];
+      case "wim-hof":
+        return [
+          "Get into a comfortable position",
+          "Take 30-40 deep breaths, inhaling through the nose and exhaling through the mouth",
+          "On the last exhale, let all air out and hold for as long as possible",
+          "When you need to breathe, take a deep breath and hold for 15 seconds",
+          "Repeat for 3-4 rounds"
+        ];
+      default:
+        return [
+          "Find a quiet, comfortable place to sit or lie down",
+          `Inhale for ${exercise.pattern.inhale} seconds`,
+          exercise.pattern.hold ? `Hold your breath for ${exercise.pattern.hold} seconds` : null,
+          `Exhale for ${exercise.pattern.exhale} seconds`,
+          exercise.pattern.holdEmpty ? `Hold your breath out for ${exercise.pattern.holdEmpty} seconds` : null,
+          "Repeat for the desired number of rounds"
+        ].filter(Boolean) as string[];
+    }
+  };
+
+  const techniqueSteps = getTechniqueSteps(exercise.id);
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -40,54 +83,13 @@ export function ExerciseInfoModal({ exercise }: Props) {
               <h3>Technique</h3>
             </div>
             <div className="grid grid-cols-1 gap-3 pl-7">
-              {exercise.id === "box-breathing" && (
-                <>
-                  <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
-                    <p className="text-sm text-muted-foreground">1. Find a comfortable seated position with your back straight</p>
-                  </div>
-                  <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
-                    <p className="text-sm text-muted-foreground">2. Inhale slowly through your nose for 4 seconds, filling your lungs completely</p>
-                  </div>
-                  <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
-                    <p className="text-sm text-muted-foreground">3. Hold your breath for 4 seconds</p>
-                  </div>
-                  <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
-                    <p className="text-sm text-muted-foreground">4. Exhale steadily through your mouth for 4 seconds</p>
-                  </div>
-                  <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
-                    <p className="text-sm text-muted-foreground">5. Hold your breath out for 4 seconds</p>
-                  </div>
-                  <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
-                    <p className="text-sm text-muted-foreground">6. Repeat this cycle for the desired number of rounds</p>
-                  </div>
-                </>
-              )}
-              {exercise.id === "4-7-8" && (
-                <>
-                  <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
-                    <p className="text-sm text-muted-foreground">1. Sit comfortably with your back straight</p>
-                  </div>
-                  <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
-                    <p className="text-sm text-muted-foreground">2. Place the tip of your tongue against the ridge behind your upper front teeth</p>
-                  </div>
-                  <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
-                    <p className="text-sm text-muted-foreground">3. Exhale completely through your mouth, making a whoosh sound</p>
-                  </div>
-                  <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
-                    <p className="text-sm text-muted-foreground">4. Close your mouth and inhale quietly through your nose for 4 seconds</p>
-                  </div>
-                  <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
-                    <p className="text-sm text-muted-foreground">5. Hold your breath for 7 seconds</p>
-                  </div>
-                  <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
-                    <p className="text-sm text-muted-foreground">6. Exhale completely through your mouth for 8 seconds</p>
-                  </div>
-                  <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
-                    <p className="text-sm text-muted-foreground">7. Repeat this cycle for the recommended rounds</p>
-                  </div>
-                </>
-              )}
-              {/* Add instructions for other exercises */}
+              {techniqueSteps.map((step, index) => (
+                <div key={index} className="p-3 rounded-lg border border-border/50 bg-muted/30">
+                  <p className="text-sm text-muted-foreground">
+                    {index + 1}. {step}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -115,22 +117,22 @@ export function ExerciseInfoModal({ exercise }: Props) {
               <h3>Pattern Details</h3>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pl-7">
-              <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
+              <div className="p-3 rounded-lg border border-border/50 bg-muted/30 text-center">
                 <p className="text-xs text-muted-foreground uppercase">Inhale</p>
                 <p className="text-lg font-medium text-primary mt-1">{exercise.pattern.inhale}s</p>
               </div>
               {exercise.pattern.hold && (
-                <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
+                <div className="p-3 rounded-lg border border-border/50 bg-muted/30 text-center">
                   <p className="text-xs text-muted-foreground uppercase">Hold</p>
                   <p className="text-lg font-medium text-primary mt-1">{exercise.pattern.hold}s</p>
                 </div>
               )}
-              <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
+              <div className="p-3 rounded-lg border border-border/50 bg-muted/30 text-center">
                 <p className="text-xs text-muted-foreground uppercase">Exhale</p>
                 <p className="text-lg font-medium text-primary mt-1">{exercise.pattern.exhale}s</p>
               </div>
               {exercise.pattern.holdEmpty && (
-                <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
+                <div className="p-3 rounded-lg border border-border/50 bg-muted/30 text-center">
                   <p className="text-xs text-muted-foreground uppercase">Hold Empty</p>
                   <p className="text-lg font-medium text-primary mt-1">{exercise.pattern.holdEmpty}s</p>
                 </div>
