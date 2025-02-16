@@ -37,7 +37,7 @@ export default function Home() {
           </motion.div>
 
           <Tabs defaultValue="mood" className="max-w-5xl mx-auto">
-            <TabsList className="w-full max-w-md mx-auto grid grid-cols-2 mb-16">
+            <TabsList className="w-full max-w-md mx-auto grid grid-cols-2 mb-16 bg-transparent">
               <TabsTrigger 
                 value="mood" 
                 className="text-lg px-8 py-4 data-[state=active]:text-primary hover:text-primary/80 transition-colors"
