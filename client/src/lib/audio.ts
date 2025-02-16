@@ -22,16 +22,22 @@ class AudioService {
           this.gainNode.gain.value = vol;
         }
       });
+      console.log('Audio context initialized successfully');
     } catch (error) {
-      console.error('Web Audio API is not supported in this browser');
+      console.error('Failed to initialize Web Audio API:', error);
     }
   }
 
   private async loadMeditationMusic() {
     try {
+      console.log('Attempting to load meditation music...');
       const response = await fetch('/audio/meditation.mp3');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const arrayBuffer = await response.arrayBuffer();
       this.musicBuffer = await this.audioContext!.decodeAudioData(arrayBuffer);
+      console.log('Meditation music loaded successfully');
     } catch (error) {
       console.error('Failed to load meditation music:', error);
     }
@@ -39,33 +45,51 @@ class AudioService {
 
   playMusic() {
     if (!this.audioContext || !this.gainNode || !this.musicBuffer) {
-      console.warn('Audio system not ready');
+      console.warn('Audio system not ready:', {
+        context: !!this.audioContext,
+        gainNode: !!this.gainNode,
+        buffer: !!this.musicBuffer
+      });
       return;
+    }
+
+    // Resume the audio context if it's suspended
+    if (this.audioContext.state === 'suspended') {
+      console.log('Resuming audio context...');
+      this.audioContext.resume();
     }
 
     // Stop any currently playing music
     this.stopMusic();
 
-    // Create and configure new source
-    this.musicSource = this.audioContext.createBufferSource();
-    this.musicSource.buffer = this.musicBuffer;
-    this.musicSource.loop = true; // Enable looping
+    try {
+      console.log('Creating and starting new music source...');
+      // Create and configure new source
+      this.musicSource = this.audioContext.createBufferSource();
+      this.musicSource.buffer = this.musicBuffer;
+      this.musicSource.loop = true; // Enable looping
 
-    // Apply volume
-    this.musicSource.connect(this.gainNode);
+      // Apply volume
+      this.musicSource.connect(this.gainNode);
 
-    // Start playback
-    this.musicSource.start();
+      // Start playback
+      this.musicSource.start();
+      console.log('Music playback started successfully');
+    } catch (error) {
+      console.error('Failed to start music playback:', error);
+    }
   }
 
   stopMusic() {
     if (this.musicSource) {
       try {
         this.musicSource.stop();
+        this.musicSource.disconnect();
+        console.log('Music stopped successfully');
       } catch (e) {
         // Ignore errors from stopping already stopped sources
+        console.log('Note: Music was already stopped');
       }
-      this.musicSource.disconnect();
       this.musicSource = null;
     }
   }
@@ -79,7 +103,10 @@ class AudioService {
   }
 
   resume() {
-    this.audioContext?.resume();
+    if (this.audioContext?.state === 'suspended') {
+      console.log('Manually resuming audio context...');
+      this.audioContext.resume();
+    }
   }
 }
 
