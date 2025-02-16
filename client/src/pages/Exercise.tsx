@@ -107,13 +107,14 @@ export default function Exercise() {
   // Calculate total duration of a single round in seconds
   const roundDuration = exercise.pattern.inhale + 
                        (exercise.pattern.hold || 0) + 
-                       exercise.pattern.exhale;
+                       exercise.pattern.exhale +
+                       (exercise.pattern.holdEmpty || 0);
 
   // Calculate total duration of all rounds in seconds
   const totalDuration = roundDuration * totalRounds;
 
-  // Calculate progress based on elapsed time
-  const totalProgress = Math.min((phaseProgress / totalDuration) * 100, 100);
+  // Calculate progress based on current round and phase progress
+  const totalProgress = ((currentRound / totalRounds) + (phaseProgress / totalRounds)) * 100;
 
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background dark:from-primary/10">
