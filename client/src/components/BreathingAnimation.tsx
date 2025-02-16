@@ -25,6 +25,7 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
       totalElapsedTimeRef.current = 0;
       setPhase("inhale");
       setPhaseTimeLeft(exercise.pattern.inhale);
+      onPhaseProgress(0); // Reset progress when stopping
       return;
     }
 
@@ -62,6 +63,7 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
 
           // Increment total elapsed time
           totalElapsedTimeRef.current += 1;
+
           // Send overall progress
           onPhaseProgress(totalElapsedTimeRef.current);
 
@@ -99,6 +101,7 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
       }
       audioService.stopMusic();
       totalElapsedTimeRef.current = 0;
+      onPhaseProgress(0); // Reset progress when cleaning up
     };
   }, [isActive, exercise, phase, onRoundComplete, onPhaseProgress]);
 
