@@ -2,13 +2,14 @@ import { BehaviorSubject } from 'rxjs';
 
 class AudioService {
   private audioContext: AudioContext | null = null;
-  private oscillator: OscillatorNode | null = null;
   private gainNode: GainNode | null = null;
-  private isPlaying = false;
-  private volume = new BehaviorSubject<number>(0.3); // Lower default volume
+  private volume = new BehaviorSubject<number>(0.3);
+  private numberAudioBuffers: { [key: number]: AudioBuffer } = {};
+  private currentSource: AudioBufferSourceNode | null = null;
 
   constructor() {
     this.initAudioContext();
+    this.loadNumberAudios();
   }
 
   private initAudioContext() {
@@ -26,91 +27,77 @@ class AudioService {
     }
   }
 
-  playBreathingTone(frequency: number = 174) { // Lower base frequency for gentler sound
-    if (!this.audioContext || !this.gainNode) return;
+  private async loadNumberAudios() {
+    // In a real implementation, we would load pre-recorded number audio files
+    // For now, we'll use a simple beep sound as a placeholder
+    try {
+      const sampleRate = 44100;
+      const duration = 0.3; // seconds
+      const numberOfSamples = sampleRate * duration;
+      const buffer = this.audioContext!.createBuffer(1, numberOfSamples, sampleRate);
+      const data = buffer.getChannelData(0);
 
-    // Stop any existing tone
-    this.stopBreathingTone();
+      for (let i = 0; i < numberOfSamples; i++) {
+        // Generate a simple sine wave
+        data[i] = Math.sin(440 * Math.PI * 2 * i / sampleRate) * 0.5;
+      }
 
-    // Create and configure oscillator
-    this.oscillator = this.audioContext.createOscillator();
-    this.oscillator.type = 'sine';
-    this.oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
-
-    // Create a low-pass filter for smoother sound
-    const filter = this.audioContext.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = 1000;
-    filter.Q.value = 1;
-
-    // Add very subtle modulation for organic feel
-    const modulator = this.audioContext.createOscillator();
-    const modulatorGain = this.audioContext.createGain();
-    modulator.frequency.setValueAtTime(0.8, this.audioContext.currentTime);
-    modulatorGain.gain.setValueAtTime(0.5, this.audioContext.currentTime);
-    modulator.connect(modulatorGain);
-    modulatorGain.connect(this.oscillator.frequency);
-
-    // Connect through filter
-    this.oscillator.connect(filter);
-    filter.connect(this.gainNode);
-
-    // Very gentle attack
-    this.gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
-    this.gainNode.gain.linearRampToValueAtTime(
-      this.volume.value * 0.3, // Reduce overall volume
-      this.audioContext.currentTime + 0.5 // Longer fade-in
-    );
-
-    this.oscillator.start();
-    modulator.start();
-    this.isPlaying = true;
-  }
-
-  stopBreathingTone() {
-    if (this.oscillator && this.gainNode && this.isPlaying) {
-      // Gentle release
-      this.gainNode.gain.linearRampToValueAtTime(
-        0,
-        this.audioContext.currentTime + 0.5 // Longer fade-out
-      );
-
-      setTimeout(() => {
-        this.oscillator?.stop();
-        this.oscillator?.disconnect();
-        this.oscillator = null;
-      }, 500);
-
-      this.isPlaying = false;
+      // Use the same buffer for all numbers for now
+      // In production, we would load different audio files for each number
+      for (let i = 1; i <= 10; i++) {
+        this.numberAudioBuffers[i] = buffer;
+      }
+    } catch (error) {
+      console.error('Failed to load number audio:', error);
     }
   }
 
-  playTransitionBell() {
-    if (!this.audioContext || !this.gainNode) return;
+  playNumber(number: number) {
+    if (!this.audioContext || !this.gainNode || !this.numberAudioBuffers[number]) return;
 
-    const bellOscillator = this.audioContext.createOscillator();
-    const bellGain = this.audioContext.createGain();
+    // Stop any currently playing sound
+    if (this.currentSource) {
+      this.currentSource.stop();
+      this.currentSource.disconnect();
+    }
 
-    // Use a gentler frequency
-    bellOscillator.type = 'sine';
-    bellOscillator.frequency.setValueAtTime(196, this.audioContext.currentTime); // G3 - much lower and gentler
+    // Create and configure new source
+    this.currentSource = this.audioContext.createBufferSource();
+    this.currentSource.buffer = this.numberAudioBuffers[number];
 
-    // Very subtle volume
-    bellGain.gain.setValueAtTime(0, this.audioContext.currentTime);
-    bellGain.gain.linearRampToValueAtTime(0.1 * this.volume.value, this.audioContext.currentTime + 0.1);
-    bellGain.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 2);
+    // Add a slight reverb effect
+    const convolver = this.audioContext.createConvolver();
+    const reverbTime = 1;
+    const decay = 0.1;
+    const rate = 44100;
+    const length = rate * reverbTime;
+    const impulse = this.audioContext.createBuffer(2, length, rate);
+    const left = impulse.getChannelData(0);
+    const right = impulse.getChannelData(1);
 
-    // Add a filter for softer sound
-    const filter = this.audioContext.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = 800;
+    for (let i = 0; i < length; i++) {
+      left[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
+      right[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
+    }
 
-    bellOscillator.connect(bellGain);
-    bellGain.connect(filter);
-    filter.connect(this.audioContext.destination);
+    convolver.buffer = impulse;
 
-    bellOscillator.start();
-    bellOscillator.stop(this.audioContext.currentTime + 2);
+    // Connect nodes
+    this.currentSource.connect(convolver);
+    convolver.connect(this.gainNode);
+
+    // Play with slight fade in/out
+    this.gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+    this.gainNode.gain.linearRampToValueAtTime(
+      this.volume.value,
+      this.audioContext.currentTime + 0.05
+    );
+    this.gainNode.gain.linearRampToValueAtTime(
+      0,
+      this.audioContext.currentTime + 0.3
+    );
+
+    this.currentSource.start();
   }
 
   setVolume(value: number) {

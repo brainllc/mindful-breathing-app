@@ -28,13 +28,12 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
       pattern.exhale +
       (pattern.holdEmpty || 0);
 
-    const interval = 50; // 50ms intervals for smooth animation
-    const steps = totalTime * (1000 / interval);
+    const interval = 1000; // 1 second intervals for counting
+    const steps = totalTime;
 
     intervalRef.current = window.setInterval(() => {
       currentStepRef.current++;
       const progress = currentStepRef.current / steps;
-      setProgress(progress);
 
       // Determine current phase and its duration
       const inhaleDuration = pattern.inhale;
@@ -42,40 +41,41 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
       const exhaleDuration = pattern.exhale;
       const holdEmptyDuration = pattern.holdEmpty || 0;
 
-      const timeInPhase = (currentStepRef.current * interval) / 1000; // Current time in seconds
+      const timeInPhase = currentStepRef.current;
       const previousPhase = phase;
 
+      // Play the current number based on which phase we're in
       if (progress < pattern.inhale / totalTime) {
         setPhase("inhale");
-        setPhaseTimeLeft(Math.ceil(inhaleDuration - timeInPhase));
+        const timeLeft = Math.ceil(inhaleDuration - (timeInPhase));
+        setPhaseTimeLeft(timeLeft);
 
-        // Play inhale sound when phase changes
-        if (previousPhase !== "inhale") {
-          audioService.playBreathingTone(174); // G3 - gentle, calming frequency
+        if (timeLeft <= 10) { // Only count the last 10 seconds
+          audioService.playNumber(timeLeft);
         }
       } else if (progress < (pattern.inhale + (pattern.hold || 0)) / totalTime) {
         setPhase("hold");
-        setPhaseTimeLeft(Math.ceil(holdDuration - (timeInPhase - inhaleDuration)));
+        const timeLeft = Math.ceil(holdDuration - (timeInPhase - inhaleDuration));
+        setPhaseTimeLeft(timeLeft);
 
-        // Play hold sound
-        if (previousPhase !== "hold") {
-          audioService.stopBreathingTone();
+        if (timeLeft <= 10) {
+          audioService.playNumber(timeLeft);
         }
       } else if (progress < (pattern.inhale + (pattern.hold || 0) + pattern.exhale) / totalTime) {
         setPhase("exhale");
-        setPhaseTimeLeft(Math.ceil(exhaleDuration - (timeInPhase - inhaleDuration - holdDuration)));
+        const timeLeft = Math.ceil(exhaleDuration - (timeInPhase - inhaleDuration - holdDuration));
+        setPhaseTimeLeft(timeLeft);
 
-        // Play exhale sound
-        if (previousPhase !== "exhale") {
-          audioService.playBreathingTone(146.83); // D3 - slightly lower for exhale
+        if (timeLeft <= 10) {
+          audioService.playNumber(timeLeft);
         }
       } else {
         setPhase("holdEmpty");
-        setPhaseTimeLeft(Math.ceil(holdEmptyDuration - (timeInPhase - inhaleDuration - holdDuration - exhaleDuration)));
+        const timeLeft = Math.ceil(holdEmptyDuration - (timeInPhase - inhaleDuration - holdDuration - exhaleDuration));
+        setPhaseTimeLeft(timeLeft);
 
-        // Play hold empty sound
-        if (previousPhase !== "holdEmpty") {
-          audioService.stopBreathingTone();
+        if (timeLeft <= 10) {
+          audioService.playNumber(timeLeft);
         }
       }
 
@@ -91,7 +91,6 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
         window.clearInterval(intervalRef.current);
         intervalRef.current = undefined;
       }
-      audioService.stopBreathingTone();
     };
   }, [isActive, exercise, onRoundComplete]);
 
