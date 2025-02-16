@@ -40,19 +40,22 @@ export default function Home() {
             <TabsList className="w-full max-w-md mx-auto grid grid-cols-2 mb-16">
               <TabsTrigger 
                 value="mood" 
-                className="text-lg py-4 data-[state=active]:bg-primary/10 hover:bg-primary/5"
+                className="text-lg px-8 py-4 data-[state=active]:bg-primary/10 hover:bg-primary/5 transition-colors"
               >
-                Find by Mood
+                <span className="relative">Find by Mood</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="all" 
-                className="text-lg py-4 data-[state=active]:bg-primary/10 hover:bg-primary/5"
+                className="text-lg px-8 py-4 data-[state=active]:bg-primary/10 hover:bg-primary/5 transition-colors"
               >
-                All Exercises
+                <span className="relative">All Exercises</span>
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="mood" className="focus-visible:outline-none">
+            <TabsContent 
+              value="mood" 
+              className="focus-visible:outline-none space-y-16 px-4"
+            >
               <div className="space-y-16">
                 <motion.div 
                   className="space-y-8"
@@ -90,7 +93,10 @@ export default function Home() {
               </div>
             </TabsContent>
 
-            <TabsContent value="all" className="focus-visible:outline-none">
+            <TabsContent 
+              value="all" 
+              className="focus-visible:outline-none px-4"
+            >
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {exercises.map((exercise, index) => (
                   <ExerciseCard 
