@@ -6,7 +6,7 @@ import { BreathingAnimation } from "@/components/BreathingAnimation";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Clock, CheckCircle } from "lucide-react";
+import { ArrowLeft, Clock, Plus, Minus } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Exercise() {
@@ -32,6 +32,10 @@ export default function Exercise() {
     } else {
       setCurrentRound(prev => prev + 1);
     }
+  };
+
+  const adjustRounds = (amount: number) => {
+    setTotalRounds(prev => Math.min(Math.max(prev + amount, 1), 10));
   };
 
   const progress = (currentRound / totalRounds) * 100;
@@ -95,6 +99,28 @@ export default function Exercise() {
                     onRoundComplete={handleRoundComplete}
                   />
 
+                  <div className="flex items-center justify-center gap-4">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => adjustRounds(-1)}
+                      className="rounded-full"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </Button>
+                    <span className="text-lg font-medium text-primary">
+                      {totalRounds} Rounds
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => adjustRounds(1)}
+                      className="rounded-full"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+
                   <Button 
                     variant="ghost"
                     className="w-full max-w-sm mx-auto block"
@@ -111,47 +137,23 @@ export default function Exercise() {
                   exit={{ opacity: 0 }}
                   className="space-y-16"
                 >
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                    <div className="relative">
-                      <div className="bg-card p-6 rounded-lg border border-primary/10">
-                        <h2 className="text-xl font-medium mb-6">Configure Session</h2>
-                        <RoundConfig
-                          defaultRounds={exercise.defaultRounds}
-                          onStart={(rounds) => {
-                            setTotalRounds(rounds);
-                            setIsStarted(true);
-                          }}
-                          isStarted={isStarted}
-                        />
-                      </div>
-                    </div>
+                  <div className="max-w-xl mx-auto space-y-12">
+                    <RoundConfig
+                      defaultRounds={totalRounds}
+                      onStart={(rounds) => {
+                        setTotalRounds(rounds);
+                      }}
+                      isStarted={isStarted}
+                    />
 
-                    <div className="space-y-6">
-                      <h2 className="text-xl font-medium">Benefits</h2>
-                      <ul className="space-y-4">
-                        {exercise.benefits.map((benefit, index) => (
-                          <motion.li 
-                            key={index}
-                            className="flex items-start gap-3"
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                          >
-                            <CheckCircle className="w-5 h-5 mt-0.5 text-primary/60 shrink-0" />
-                            <span className="text-muted-foreground">{benefit}</span>
-                          </motion.li>
-                        ))}
-                      </ul>
-                    </div>
+                    <Button 
+                      size="lg"
+                      className="w-full"
+                      onClick={handleStart}
+                    >
+                      Start Breathing
+                    </Button>
                   </div>
-
-                  <Button 
-                    size="lg"
-                    className="w-full max-w-md mx-auto block"
-                    onClick={handleStart}
-                  >
-                    Start Breathing
-                  </Button>
                 </motion.div>
               )}
             </AnimatePresence>

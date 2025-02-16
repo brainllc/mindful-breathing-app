@@ -11,6 +11,7 @@ interface Props {
 export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Props) {
   const [phase, setPhase] = useState<"inhale" | "hold" | "exhale" | "holdEmpty">("inhale");
   const [progress, setProgress] = useState(0);
+  const [secondsLeft, setSecondsLeft] = useState(0);
 
   useEffect(() => {
     if (!isActive) return;
@@ -30,6 +31,10 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
       currentStep++;
       const progress = currentStep / steps;
       setProgress(progress);
+
+      // Calculate seconds left
+      const timeLeft = Math.ceil((steps - currentStep) * (interval / 1000));
+      setSecondsLeft(timeLeft);
 
       // Determine current phase
       const inhaleDuration = pattern.inhale / totalTime;
@@ -90,8 +95,13 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
         animate={phase}
         variants={circleVariants}
       />
-      <div className="absolute text-2xl font-light text-primary">
-        {phase.charAt(0).toUpperCase() + phase.slice(1)}
+      <div className="absolute flex flex-col items-center space-y-2">
+        <div className="text-2xl font-light text-primary">
+          {phase.charAt(0).toUpperCase() + phase.slice(1)}
+        </div>
+        <div className="text-xl font-medium text-primary/80">
+          {secondsLeft}s
+        </div>
       </div>
     </div>
   );

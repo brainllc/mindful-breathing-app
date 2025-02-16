@@ -1,6 +1,5 @@
-import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
 
 interface Props {
   defaultRounds: number;
@@ -9,27 +8,26 @@ interface Props {
 }
 
 export function RoundConfig({ defaultRounds, onStart, isStarted }: Props) {
-  const [rounds, setRounds] = useState(defaultRounds);
+  const handleValueChange = (value: number[]) => {
+    onStart(value[0]);
+  };
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="rounds" className="text-muted-foreground">
-          Number of Rounds
-        </Label>
-        <Input
-          id="rounds"
-          type="number"
-          value={rounds}
-          onChange={(e) => setRounds(Number(e.target.value))}
+    <div className="space-y-4 max-w-md mx-auto">
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <Label className="text-muted-foreground">Number of Rounds</Label>
+          <span className="text-2xl font-medium text-primary">{defaultRounds}</span>
+        </div>
+        <Slider
+          defaultValue={[defaultRounds]}
           min={1}
           max={10}
+          step={1}
           disabled={isStarted}
+          onValueChange={handleValueChange}
           className="w-full"
         />
-        <p className="text-xs text-muted-foreground">
-          Choose between 1-10 rounds for your session
-        </p>
       </div>
     </div>
   );
