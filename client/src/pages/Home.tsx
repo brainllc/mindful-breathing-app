@@ -90,7 +90,7 @@ export default function Home() {
                     transition={{ duration: 0.3 }}
                     className="space-y-8"
                   >
-                    <div className="flex items-center justify-between mb-12">
+                    <div className="space-y-8">
                       <Button
                         variant="ghost"
                         className="text-primary hover:text-primary/80"
@@ -99,7 +99,7 @@ export default function Home() {
                         <ArrowLeft className="w-4 h-4 mr-2" />
                         Back to Moods
                       </Button>
-                      <h3 className="text-2xl font-medium">
+                      <h3 className="text-2xl font-medium text-center">
                         Exercises for when you're feeling {selectedMoodLabel}
                       </h3>
                     </div>
