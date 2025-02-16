@@ -13,81 +13,19 @@ interface Props {
 export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhaseProgress }: Props) {
   const [phase, setPhase] = useState<"inhale" | "hold" | "exhale" | "holdEmpty">("inhale");
   const [phaseTimeLeft, setPhaseTimeLeft] = useState(0);
-  const startTimeRef = useRef<number>(0);
-  const phaseStartTimeRef = useRef<number>(0);
-  const animationFrameRef = useRef<number | null>(null);
-  const roundRef = useRef<number>(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const phaseTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!isActive) {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
+      // Clear all intervals when not active
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (phaseTimerRef.current) clearTimeout(phaseTimerRef.current);
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
       return;
     }
 
-    const { pattern } = exercise;
-    const totalDuration = pattern.inhale + (pattern.hold || 0) + pattern.exhale + (pattern.holdEmpty || 0);
-
-    const getPhaseDuration = (currentPhase: typeof phase) => {
-      switch (currentPhase) {
-        case "inhale": return pattern.inhale;
-        case "hold": return pattern.hold || 0;
-        case "exhale": return pattern.exhale;
-        case "holdEmpty": return pattern.holdEmpty || 0;
-        default: return 0;
-      }
-    };
-
-    const getNextPhase = (currentPhase: typeof phase): typeof phase => {
-      switch (currentPhase) {
-        case "inhale": return pattern.hold ? "hold" : "exhale";
-        case "hold": return "exhale";
-        case "exhale": return pattern.holdEmpty ? "holdEmpty" : "inhale";
-        case "holdEmpty": return "inhale";
-        default: return "inhale";
-      }
-    };
-
-    const animate = (timestamp: number) => {
-      if (!startTimeRef.current) {
-        startTimeRef.current = timestamp;
-        phaseStartTimeRef.current = timestamp;
-      }
-
-      const elapsedInPhase = (timestamp - phaseStartTimeRef.current) / 1000;
-      const totalElapsed = (timestamp - startTimeRef.current) / 1000;
-      const currentPhaseDuration = getPhaseDuration(phase);
-
-      // Update phase time left
-      const timeLeft = Math.max(0, Math.ceil(currentPhaseDuration - elapsedInPhase));
-      setPhaseTimeLeft(timeLeft);
-
-      // Calculate and update overall progress
-      const progress = totalElapsed % totalDuration;
-      onPhaseProgress(progress);
-
-      // Check for phase transition
-      if (elapsedInPhase >= currentPhaseDuration) {
-        const nextPhase = getNextPhase(phase);
-        setPhase(nextPhase);
-        phaseStartTimeRef.current = timestamp;
-
-        // If we're completing a round
-        if (nextPhase === "inhale" && phase === (pattern.holdEmpty ? "holdEmpty" : "exhale")) {
-          roundRef.current += 1;
-          onRoundComplete();
-          startTimeRef.current = timestamp;
-        }
-      }
-
-      // Continue animation
-      if (isActive) {
-        animationFrameRef.current = requestAnimationFrame(animate);
-      }
-    };
-
-    // Start exercise
     const startExercise = async () => {
       try {
         await audioService.playMusic();
@@ -95,23 +33,93 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
         console.error('Failed to start meditation music:', error);
       }
 
-      // Reset state
-      startTimeRef.current = 0;
-      phaseStartTimeRef.current = 0;
-      roundRef.current = 0;
-      setPhase("inhale");
+      const { pattern } = exercise;
+      let currentPhase = "inhale";
+      let totalProgress = 0;
 
-      // Start animation loop
-      animationFrameRef.current = requestAnimationFrame(animate);
+      // Set up progress updates (every 100ms)
+      progressIntervalRef.current = setInterval(() => {
+        const phaseDuration = (() => {
+          switch (currentPhase) {
+            case "inhale": return pattern.inhale;
+            case "hold": return pattern.hold || 0;
+            case "exhale": return pattern.exhale;
+            case "holdEmpty": return pattern.holdEmpty || 0;
+            default: return 0;
+          }
+        })();
+
+        const totalDuration = pattern.inhale + 
+                            (pattern.hold || 0) + 
+                            pattern.exhale + 
+                            (pattern.holdEmpty || 0);
+
+        totalProgress = (totalProgress + 0.1) % totalDuration;
+        onPhaseProgress(totalProgress);
+      }, 100);
+
+      // Function to schedule next phase
+      const scheduleNextPhase = () => {
+        const duration = (() => {
+          switch (currentPhase) {
+            case "inhale": return pattern.inhale;
+            case "hold": return pattern.hold || 0;
+            case "exhale": return pattern.exhale;
+            case "holdEmpty": return pattern.holdEmpty || 0;
+            default: return 0;
+          }
+        })() * 1000; // Convert to milliseconds
+
+        // Update countdown every second
+        let timeLeft = Math.ceil(duration / 1000);
+        setPhaseTimeLeft(timeLeft);
+
+        intervalRef.current = setInterval(() => {
+          timeLeft--;
+          setPhaseTimeLeft(Math.max(0, timeLeft));
+        }, 1000);
+
+        // Schedule phase transition
+        phaseTimerRef.current = setTimeout(() => {
+          if (intervalRef.current) clearInterval(intervalRef.current);
+
+          // Determine next phase
+          switch (currentPhase) {
+            case "inhale":
+              currentPhase = pattern.hold ? "hold" : "exhale";
+              break;
+            case "hold":
+              currentPhase = "exhale";
+              break;
+            case "exhale":
+              currentPhase = pattern.holdEmpty ? "holdEmpty" : "inhale";
+              if (!pattern.holdEmpty) {
+                onRoundComplete();
+              }
+              break;
+            case "holdEmpty":
+              currentPhase = "inhale";
+              onRoundComplete();
+              break;
+          }
+
+          setPhase(currentPhase);
+          scheduleNextPhase();
+        }, duration);
+      };
+
+      // Start the first phase
+      setPhase(currentPhase);
+      scheduleNextPhase();
     };
 
     startExercise();
 
-    // Cleanup
+    // Cleanup function
     return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (phaseTimerRef.current) clearTimeout(phaseTimerRef.current);
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
       audioService.stopMusic();
     };
   }, [isActive, exercise, onRoundComplete, onPhaseProgress]);
