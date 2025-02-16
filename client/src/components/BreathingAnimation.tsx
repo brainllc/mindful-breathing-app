@@ -15,6 +15,7 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
   const [phaseTimeLeft, setPhaseTimeLeft] = useState(exercise.pattern.inhale);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const elapsedTimeRef = useRef(0);
+  const lastUpdateRef = useRef(Date.now());
 
   useEffect(() => {
     if (!isActive) {
@@ -49,14 +50,19 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
         clearInterval(timerRef.current);
       }
 
-      // Start the timer
+      // Start the timer with a shorter interval for smoother progress
       timerRef.current = setInterval(() => {
-        // Track elapsed time for progress
-        elapsedTimeRef.current += 1;
+        const now = Date.now();
+        const deltaTime = (now - lastUpdateRef.current) / 1000; // Convert to seconds
+        lastUpdateRef.current = now;
+
+        // Update elapsed time and progress smoothly
+        elapsedTimeRef.current += deltaTime;
         onPhaseProgress(elapsedTimeRef.current);
 
+        // Update phase countdown
         setPhaseTimeLeft(current => {
-          const newTimeLeft = current - 1;
+          const newTimeLeft = current - deltaTime;
 
           if (newTimeLeft <= 0) {
             const nextPhase = getNextPhase();
@@ -79,7 +85,7 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
 
           return newTimeLeft;
         });
-      }, 1000);
+      }, 50); // Update every 50ms for smooth animation
     };
 
     startBreathing();
@@ -128,7 +134,7 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
           {phase.charAt(0).toUpperCase() + phase.slice(1)}
         </div>
         <div className="text-4xl font-medium text-primary">
-          {phaseTimeLeft}
+          {Math.ceil(phaseTimeLeft)}
         </div>
       </div>
     </div>
