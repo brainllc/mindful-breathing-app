@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Exercise } from "@/lib/exercises";
 import { useEffect, useState, useRef } from "react";
+import { audioService } from "@/lib/audio";
 
 interface Props {
   exercise: Exercise;
@@ -18,13 +19,7 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
   const currentStepRef = useRef(0);
 
   useEffect(() => {
-    if (!isActive) {
-      if (intervalRef.current) {
-        window.clearInterval(intervalRef.current);
-        intervalRef.current = undefined;
-      }
-      return;
-    }
+    if (!isActive) return;
 
     const { pattern } = exercise;
     const totalTime = 
@@ -48,19 +43,42 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
       const holdEmptyDuration = pattern.holdEmpty || 0;
 
       const timeInPhase = (currentStepRef.current * interval) / 1000; // Current time in seconds
+      const previousPhase = phase;
 
       if (progress < pattern.inhale / totalTime) {
         setPhase("inhale");
         setPhaseTimeLeft(Math.ceil(inhaleDuration - timeInPhase));
+
+        // Play inhale sound when phase changes
+        if (previousPhase !== "inhale") {
+          audioService.playBreathingTone(432); // A calming frequency
+        }
       } else if (progress < (pattern.inhale + (pattern.hold || 0)) / totalTime) {
         setPhase("hold");
         setPhaseTimeLeft(Math.ceil(holdDuration - (timeInPhase - inhaleDuration)));
+
+        // Play hold sound
+        if (previousPhase !== "hold") {
+          audioService.playTransitionBell();
+          audioService.stopBreathingTone();
+        }
       } else if (progress < (pattern.inhale + (pattern.hold || 0) + pattern.exhale) / totalTime) {
         setPhase("exhale");
         setPhaseTimeLeft(Math.ceil(exhaleDuration - (timeInPhase - inhaleDuration - holdDuration)));
+
+        // Play exhale sound
+        if (previousPhase !== "exhale") {
+          audioService.playBreathingTone(288); // Lower frequency for exhale
+        }
       } else {
         setPhase("holdEmpty");
         setPhaseTimeLeft(Math.ceil(holdEmptyDuration - (timeInPhase - inhaleDuration - holdDuration - exhaleDuration)));
+
+        // Play hold empty sound
+        if (previousPhase !== "holdEmpty") {
+          audioService.playTransitionBell();
+          audioService.stopBreathingTone();
+        }
       }
 
       if (currentStepRef.current >= steps) {
@@ -75,8 +93,9 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
         window.clearInterval(intervalRef.current);
         intervalRef.current = undefined;
       }
+      audioService.stopBreathingTone();
     };
-  }, [isActive, exercise, onRoundComplete]); // Only depend on these props
+  }, [isActive, exercise, onRoundComplete]);
 
   const circleVariants = {
     inhale: {

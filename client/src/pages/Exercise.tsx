@@ -12,6 +12,7 @@ import { SafetyDisclaimer } from "@/components/SafetyDisclaimer";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { ExerciseInfoModal } from "@/components/ExerciseInfoModal";
+import { AudioControls } from "@/components/AudioControls";
 
 export default function Exercise() {
   const [, params] = useRoute("/exercise/:id");
@@ -189,7 +190,8 @@ export default function Exercise() {
                     </Button>
                   </div>
 
-                  <div className="flex justify-center gap-4">
+                  <div className="flex justify-center gap-4 items-center">
+                    <AudioControls />
                     <Button
                       variant="outline"
                       onClick={togglePause}
