@@ -4,7 +4,7 @@ class AudioService {
   private volume = new BehaviorSubject<number>(0.3);
   private audioContext: AudioContext | null = null;
   private gainNode: GainNode | null = null;
-  private oscillator: OscillatorNode | null = null;
+  private oscillators: OscillatorNode[] = [];
   private initialized = false;
 
   constructor() {
@@ -55,22 +55,45 @@ class AudioService {
       // Stop any currently playing sound
       this.stopMusic();
 
-      // Create and configure oscillator for a soft, meditation-like tone
-      this.oscillator = this.audioContext.createOscillator();
-      this.oscillator.type = 'sine';
-      this.oscillator.frequency.value = 432; // Frequency in Hz
+      // Create a master gain node for fade effects
+      const masterGain = this.audioContext.createGain();
+      masterGain.connect(this.gainNode);
+      masterGain.gain.setValueAtTime(0, this.audioContext.currentTime);
+      masterGain.gain.linearRampToValueAtTime(1, this.audioContext.currentTime + 2);
 
-      // Create a low-pass filter for a softer sound
-      const filter = this.audioContext.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.value = 1000;
+      // Create multiple oscillators for a rich meditation sound
+      const frequencies = [
+        256.87, // Root note (C4)
+        384.87, // Perfect fifth
+        512.87  // Octave
+      ];
 
-      // Connect the nodes
-      this.oscillator.connect(filter);
-      filter.connect(this.gainNode);
+      frequencies.forEach((freq, index) => {
+        // Create oscillator
+        const oscillator = this.audioContext.createOscillator();
+        oscillator.type = 'sine';
+        oscillator.frequency.value = freq;
 
-      // Start the oscillator
-      this.oscillator.start();
+        // Create individual gain node for this oscillator
+        const oscGain = this.audioContext.createGain();
+        oscGain.gain.value = 0.15; // Reduce individual gains for better mixing
+
+        // Create a lowpass filter for smoother sound
+        const filter = this.audioContext.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 1000;
+        filter.Q.value = 1;
+
+        // Connect the audio chain
+        oscillator.connect(filter);
+        filter.connect(oscGain);
+        oscGain.connect(masterGain);
+
+        // Start the oscillator
+        oscillator.start();
+        this.oscillators.push(oscillator);
+      });
+
       console.log('Started meditation sound');
     } catch (error) {
       console.error('Failed to start meditation sound:', error);
@@ -78,15 +101,24 @@ class AudioService {
   }
 
   stopMusic() {
-    if (this.oscillator) {
+    if (this.oscillators.length > 0) {
       try {
-        this.oscillator.stop();
-        this.oscillator.disconnect();
+        // Fade out before stopping
+        const stopTime = this.audioContext?.currentTime || 0;
+        this.oscillators.forEach(osc => {
+          const gain = osc.connect(this.gainNode).gain;
+          gain.setValueAtTime(gain.value, stopTime);
+          gain.linearRampToValueAtTime(0, stopTime + 0.5);
+          setTimeout(() => {
+            osc.stop();
+            osc.disconnect();
+          }, 500);
+        });
+        this.oscillators = [];
         console.log('Sound stopped successfully');
       } catch (e) {
         console.log('Note: Sound was already stopped');
       }
-      this.oscillator = null;
     }
   }
 
