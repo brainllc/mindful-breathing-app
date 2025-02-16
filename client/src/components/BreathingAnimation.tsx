@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Exercise } from "@/lib/exercises";
 import { useEffect, useState, useRef } from "react";
 
@@ -13,15 +13,15 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
   const [progress, setProgress] = useState(0);
   const [phaseTimeLeft, setPhaseTimeLeft] = useState(0);
 
-  // Use refs to avoid recreating the interval on prop changes
-  const timerRef = useRef<NodeJS.Timer | null>(null);
+  // Use refs to track the interval ID and current step
+  const intervalRef = useRef<number>();
   const currentStepRef = useRef(0);
 
   useEffect(() => {
     if (!isActive) {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
+      if (intervalRef.current) {
+        window.clearInterval(intervalRef.current);
+        intervalRef.current = undefined;
       }
       return;
     }
@@ -36,7 +36,7 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
     const interval = 50; // 50ms intervals for smooth animation
     const steps = totalTime * (1000 / interval);
 
-    timerRef.current = setInterval(() => {
+    intervalRef.current = window.setInterval(() => {
       currentStepRef.current++;
       const progress = currentStepRef.current / steps;
       setProgress(progress);
@@ -69,10 +69,11 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
       }
     }, interval);
 
+    // Cleanup function
     return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
+      if (intervalRef.current) {
+        window.clearInterval(intervalRef.current);
+        intervalRef.current = undefined;
       }
     };
   }, [isActive, exercise, onRoundComplete]); // Only depend on these props
