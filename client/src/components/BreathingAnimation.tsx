@@ -63,7 +63,6 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
 
           // Increment total elapsed time
           totalElapsedTimeRef.current += 1;
-
           // Send overall progress
           onPhaseProgress(totalElapsedTimeRef.current);
 
