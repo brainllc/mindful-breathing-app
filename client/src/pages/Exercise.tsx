@@ -6,23 +6,57 @@ import { BreathingAnimation } from "@/components/BreathingAnimation";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Clock, Plus, Minus } from "lucide-react";
+import { ArrowLeft, Clock, Plus, Minus, AlertTriangle } from "lucide-react";
 import { Link } from "wouter";
+import { SafetyDisclaimer } from "@/components/SafetyDisclaimer";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Exercise() {
   const [, params] = useRoute("/exercise/:id");
   const exercise = exercises.find(e => e.id === params?.id);
+  const { toast } = useToast();
 
   const [isStarted, setIsStarted] = useState(false);
   const [currentRound, setCurrentRound] = useState(0);
   const [totalRounds, setTotalRounds] = useState(exercise?.defaultRounds || 4);
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
+  const [hasAcceptedDisclaimer, setHasAcceptedDisclaimer] = useState(false);
 
   if (!exercise) {
     return <div>Exercise not found</div>;
   }
 
   const handleStart = () => {
+    if (!hasAcceptedDisclaimer) {
+      setShowDisclaimer(true);
+      return;
+    }
     setIsStarted(true);
+  };
+
+  const handleDisclaimerAccept = () => {
+    setHasAcceptedDisclaimer(true);
+    setShowDisclaimer(false);
+    setIsStarted(true);
+  };
+
+  const handleDisclaimerDecline = () => {
+    setShowDisclaimer(false);
+    toast({
+      title: "Safety First",
+      description: "Please consult with a healthcare provider before starting any breathing exercises.",
+    });
+  };
+
+  const handleEmergencyStop = () => {
+    setIsStarted(false);
+    setCurrentRound(0);
+    toast({
+      title: "Exercise Stopped",
+      description: "Take a moment to rest. If you experience any discomfort, please seek medical attention.",
+      variant: "destructive",
+    });
   };
 
   const handleRoundComplete = () => {
@@ -48,6 +82,12 @@ export default function Exercise() {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background dark:from-primary/10">
+      <SafetyDisclaimer 
+        isOpen={showDisclaimer} 
+        onAccept={handleDisclaimerAccept}
+        onDecline={handleDisclaimerDecline}
+      />
+
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-40 dark:opacity-20" />
 
       <div className="container relative mx-auto px-4 py-12">
@@ -61,6 +101,15 @@ export default function Exercise() {
               Back to Exercises
             </Button>
           </Link>
+
+          {/* Safety Alert */}
+          <Alert className="mb-8 border-yellow-500/50 bg-yellow-500/10">
+            <AlertTriangle className="h-4 w-4 text-yellow-500" />
+            <AlertDescription className="text-sm text-yellow-500">
+              Please stop immediately if you experience any discomfort. 
+              These exercises are not a substitute for medical advice.
+            </AlertDescription>
+          </Alert>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
