@@ -40,13 +40,13 @@ export default function Home() {
             <TabsList className="w-full max-w-md mx-auto grid grid-cols-2 mb-16">
               <TabsTrigger 
                 value="mood" 
-                className="text-lg px-8 py-4 data-[state=active]:text-primary hover:text-primary/80 transition-colors relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary after:transform after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform"
+                className="text-lg px-8 py-4 data-[state=active]:text-primary hover:text-primary/80 transition-colors"
               >
                 <span className="relative">Find by Mood</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="all" 
-                className="text-lg px-8 py-4 data-[state=active]:text-primary hover:text-primary/80 transition-colors relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary after:transform after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform"
+                className="text-lg px-8 py-4 data-[state=active]:text-primary hover:text-primary/80 transition-colors"
               >
                 <span className="relative">All Exercises</span>
               </TabsTrigger>
