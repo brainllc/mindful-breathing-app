@@ -14,7 +14,22 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
   const [phase, setPhase] = useState<"inhale" | "hold" | "exhale">("inhale");
   const [phaseTimeLeft, setPhaseTimeLeft] = useState(exercise.pattern.inhale);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const progressRef = useRef(0);
+  const currentRoundDurationRef = useRef(0);
+
+  // Calculate phase duration
+  const getPhaseDuration = (phase: string) => {
+    switch (phase) {
+      case "inhale": return exercise.pattern.inhale;
+      case "hold": return exercise.pattern.hold || 0;
+      case "exhale": return exercise.pattern.exhale;
+      default: return 0;
+    }
+  };
+
+  // Calculate total duration of a single round
+  const roundDuration = exercise.pattern.inhale + 
+    (exercise.pattern.hold || 0) + 
+    exercise.pattern.exhale;
 
   useEffect(() => {
     if (!isActive) {
@@ -22,6 +37,7 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
+      currentRoundDurationRef.current = 0;
       return;
     }
 
@@ -32,15 +48,23 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
         console.error('Failed to start meditation music:', error);
       }
 
-      // Start the timer with a shorter interval for smoother progress
       timerRef.current = setInterval(() => {
-        // Update progress
-        progressRef.current += 0.05; // 50ms in seconds
-        onPhaseProgress(progressRef.current);
-
-        // Update phase countdown
         setPhaseTimeLeft(current => {
-          const newTimeLeft = Math.max(0, current - 0.05); // Prevent negative values
+          const newTimeLeft = Math.max(0, current - 0.05);
+
+          // Update progress based on completed duration within the current round
+          const phaseDuration = getPhaseDuration(phase);
+          const phaseProgress = phaseDuration - newTimeLeft;
+          currentRoundDurationRef.current = (() => {
+            switch (phase) {
+              case "inhale": return phaseProgress;
+              case "hold": return exercise.pattern.inhale + phaseProgress;
+              case "exhale": return exercise.pattern.inhale + (exercise.pattern.hold || 0) + phaseProgress;
+              default: return 0;
+            }
+          })();
+
+          onPhaseProgress(currentRoundDurationRef.current / roundDuration);
 
           if (newTimeLeft === 0) {
             const nextPhase = (() => {
@@ -55,17 +79,12 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
 
             // If transitioning back to inhale, complete the round
             if (nextPhase === "inhale" && phase === "exhale") {
+              currentRoundDurationRef.current = 0;
               onRoundComplete();
             }
 
             // Return duration for next phase
-            return (() => {
-              switch (nextPhase) {
-                case "inhale": return exercise.pattern.inhale;
-                case "hold": return exercise.pattern.hold || 0;
-                case "exhale": return exercise.pattern.exhale;
-              }
-            })();
+            return getPhaseDuration(nextPhase);
           }
 
           return newTimeLeft;
@@ -82,7 +101,7 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
       }
       audioService.stopMusic();
     };
-  }, [isActive, exercise, phase, onRoundComplete, onPhaseProgress]);
+  }, [isActive, exercise, phase, onRoundComplete, onPhaseProgress, roundDuration]);
 
   const circleVariants = {
     inhale: {
