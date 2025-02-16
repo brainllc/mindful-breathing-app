@@ -20,7 +20,7 @@ export function AudioControls() {
   };
 
   return (
-    <div className="absolute top-4 right-4 flex items-center gap-2 w-32">
+    <div className="flex items-center justify-center gap-2 w-full max-w-[200px] mx-auto mt-8 mb-12">
       <Button
         variant="ghost"
         size="sm"
