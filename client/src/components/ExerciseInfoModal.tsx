@@ -61,8 +61,8 @@ export function ExerciseInfoModal({ exercise }: Props) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary">
-          <Info className="w-4 h-4 mr-1" />
+        <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary gap-1">
+          <Info className="w-4 h-4" />
           Learn about this exercise
         </Button>
       </DialogTrigger>
