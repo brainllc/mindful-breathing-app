@@ -2,55 +2,72 @@ import { BehaviorSubject } from 'rxjs';
 
 class AudioService {
   private volume = new BehaviorSubject<number>(0.3);
-  private speechSynthesis: SpeechSynthesis;
-  private currentUtterance: SpeechSynthesisUtterance | null = null;
+  private audioContext: AudioContext | null = null;
+  private gainNode: GainNode | null = null;
+  private musicSource: AudioBufferSourceNode | null = null;
+  private musicBuffer: AudioBuffer | null = null;
 
   constructor() {
-    this.speechSynthesis = window.speechSynthesis;
-    // Initialize speech synthesis
-    this.initSpeechSynthesis();
+    this.initAudioContext();
+    this.loadMeditationMusic();
   }
 
-  private initSpeechSynthesis() {
-    // Force load voices
-    window.speechSynthesis.getVoices();
+  private initAudioContext() {
+    try {
+      this.audioContext = new AudioContext();
+      this.gainNode = this.audioContext.createGain();
+      this.gainNode.connect(this.audioContext.destination);
+      this.volume.subscribe(vol => {
+        if (this.gainNode) {
+          this.gainNode.gain.value = vol;
+        }
+      });
+    } catch (error) {
+      console.error('Web Audio API is not supported in this browser');
+    }
   }
 
-  private getPreferredVoice(): SpeechSynthesisVoice | null {
-    const voices = this.speechSynthesis.getVoices();
-    // Try to find a natural-sounding English voice
-    return (
-      voices.find(
-        (voice) =>
-          voice.lang.startsWith('en') && voice.localService
-      ) || voices[0]
-    );
+  private async loadMeditationMusic() {
+    try {
+      const response = await fetch('/audio/meditation.mp3');
+      const arrayBuffer = await response.arrayBuffer();
+      this.musicBuffer = await this.audioContext!.decodeAudioData(arrayBuffer);
+    } catch (error) {
+      console.error('Failed to load meditation music:', error);
+    }
   }
 
-  playNumber(number: number) {
-    if (!this.speechSynthesis) return;
-
-    // Cancel any ongoing speech
-    if (this.currentUtterance) {
-      this.speechSynthesis.cancel();
+  playMusic() {
+    if (!this.audioContext || !this.gainNode || !this.musicBuffer) {
+      console.warn('Audio system not ready');
+      return;
     }
 
-    // Create new utterance
-    this.currentUtterance = new SpeechSynthesisUtterance(number.toString());
+    // Stop any currently playing music
+    this.stopMusic();
 
-    // Configure voice settings
-    const voice = this.getPreferredVoice();
-    if (voice) {
-      this.currentUtterance.voice = voice;
+    // Create and configure new source
+    this.musicSource = this.audioContext.createBufferSource();
+    this.musicSource.buffer = this.musicBuffer;
+    this.musicSource.loop = true; // Enable looping
+
+    // Apply volume
+    this.musicSource.connect(this.gainNode);
+
+    // Start playback
+    this.musicSource.start();
+  }
+
+  stopMusic() {
+    if (this.musicSource) {
+      try {
+        this.musicSource.stop();
+      } catch (e) {
+        // Ignore errors from stopping already stopped sources
+      }
+      this.musicSource.disconnect();
+      this.musicSource = null;
     }
-
-    // Set properties
-    this.currentUtterance.volume = this.volume.value;
-    this.currentUtterance.rate = 1.0;
-    this.currentUtterance.pitch = 1.0;
-
-    // Speak the number
-    this.speechSynthesis.speak(this.currentUtterance);
   }
 
   setVolume(value: number) {
@@ -62,9 +79,7 @@ class AudioService {
   }
 
   resume() {
-    if (this.speechSynthesis?.paused) {
-      this.speechSynthesis.resume();
-    }
+    this.audioContext?.resume();
   }
 }
 

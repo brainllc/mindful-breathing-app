@@ -10,8 +10,7 @@ interface Props {
 }
 
 export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Props) {
-  const [phase, setPhase] = useState<"inhale" | "hold" | "exhale" | "holdEmpty">("inhale");
-  const [progress, setProgress] = useState(0);
+  const [phase, setPhase] = useState<"inhale" | "hold" | "exhale">("inhale");
   const [phaseTimeLeft, setPhaseTimeLeft] = useState(0);
 
   // Use refs to track the interval ID and current step
@@ -21,12 +20,14 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
   useEffect(() => {
     if (!isActive) return;
 
+    // Start playing meditation music when exercise becomes active
+    audioService.playMusic();
+
     const { pattern } = exercise;
     const totalTime =
       pattern.inhale +
       (pattern.hold || 0) +
-      pattern.exhale +
-      (pattern.holdEmpty || 0);
+      pattern.exhale;
 
     const interval = 1000; // 1 second intervals for counting
     const steps = totalTime;
@@ -39,44 +40,22 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
       const inhaleDuration = pattern.inhale;
       const holdDuration = pattern.hold || 0;
       const exhaleDuration = pattern.exhale;
-      const holdEmptyDuration = pattern.holdEmpty || 0;
 
       const timeInPhase = currentStepRef.current;
-      const previousPhase = phase;
 
-      // Play the current number based on which phase we're in
+      // Calculate phase and remaining time
       if (progress < pattern.inhale / totalTime) {
         setPhase("inhale");
-        const timeLeft = Math.ceil(inhaleDuration - (timeInPhase));
+        const timeLeft = Math.ceil(inhaleDuration - timeInPhase);
         setPhaseTimeLeft(timeLeft);
-
-        if (timeLeft <= 10) { // Only count the last 10 seconds
-          audioService.playNumber(timeLeft);
-        }
       } else if (progress < (pattern.inhale + (pattern.hold || 0)) / totalTime) {
         setPhase("hold");
         const timeLeft = Math.ceil(holdDuration - (timeInPhase - inhaleDuration));
         setPhaseTimeLeft(timeLeft);
-
-        if (timeLeft <= 10) {
-          audioService.playNumber(timeLeft);
-        }
-      } else if (progress < (pattern.inhale + (pattern.hold || 0) + pattern.exhale) / totalTime) {
+      } else {
         setPhase("exhale");
         const timeLeft = Math.ceil(exhaleDuration - (timeInPhase - inhaleDuration - holdDuration));
         setPhaseTimeLeft(timeLeft);
-
-        if (timeLeft <= 10) {
-          audioService.playNumber(timeLeft);
-        }
-      } else {
-        setPhase("holdEmpty");
-        const timeLeft = Math.ceil(holdEmptyDuration - (timeInPhase - inhaleDuration - holdDuration - exhaleDuration));
-        setPhaseTimeLeft(timeLeft);
-
-        if (timeLeft <= 10) {
-          audioService.playNumber(timeLeft);
-        }
       }
 
       if (currentStepRef.current >= steps) {
@@ -91,6 +70,8 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
         window.clearInterval(intervalRef.current);
         intervalRef.current = undefined;
       }
+      // Stop music when component is unmounted or exercise becomes inactive
+      audioService.stopMusic();
     };
   }, [isActive, exercise, onRoundComplete]);
 
@@ -109,11 +90,6 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
       scale: 1,
       opacity: 0.5,
       transition: { duration: exercise.pattern.exhale }
-    },
-    holdEmpty: {
-      scale: 1,
-      opacity: 0.5,
-      transition: { duration: exercise.pattern.holdEmpty || 0 }
     }
   };
 
@@ -134,7 +110,7 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete }: Prop
           {phase.charAt(0).toUpperCase() + phase.slice(1)}
         </div>
         <div className="text-4xl font-medium text-primary">
-          {phaseTimeLeft}
+          {phaseTimeLeft > 0 ? phaseTimeLeft : ""}
         </div>
       </div>
     </div>
