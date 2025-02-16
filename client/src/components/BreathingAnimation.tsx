@@ -14,7 +14,7 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
   const [phase, setPhase] = useState<"inhale" | "hold" | "exhale">("inhale");
   const [phaseTimeLeft, setPhaseTimeLeft] = useState(exercise.pattern.inhale);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const totalTimeRef = useRef(0);
+  const totalElapsedTimeRef = useRef(0);
 
   useEffect(() => {
     if (!isActive) {
@@ -22,7 +22,7 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
-      totalTimeRef.current = 0;
+      totalElapsedTimeRef.current = 0;
       setPhase("inhale");
       setPhaseTimeLeft(exercise.pattern.inhale);
       return;
@@ -60,6 +60,11 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
         setPhaseTimeLeft(current => {
           const newTimeLeft = current - 1;
 
+          // Increment total elapsed time
+          totalElapsedTimeRef.current += 1;
+          // Send overall progress
+          onPhaseProgress(totalElapsedTimeRef.current);
+
           if (newTimeLeft <= 0) {
             const nextPhase = getNextPhase();
             setPhase(nextPhase);
@@ -67,7 +72,6 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
             // If transitioning back to inhale, complete the round
             if (nextPhase === "inhale" && phase === "exhale") {
               onRoundComplete();
-              totalTimeRef.current = 0;
             }
 
             // Start new phase
@@ -80,10 +84,6 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
             })();
             return nextPhaseDuration;
           }
-
-          // Update overall progress
-          totalTimeRef.current += 1;
-          onPhaseProgress(totalTimeRef.current / roundDuration); // Corrected progress calculation
 
           return newTimeLeft;
         });
@@ -98,7 +98,7 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
         timerRef.current = null;
       }
       audioService.stopMusic();
-      totalTimeRef.current = 0;
+      totalElapsedTimeRef.current = 0;
     };
   }, [isActive, exercise, phase, onRoundComplete, onPhaseProgress]);
 
