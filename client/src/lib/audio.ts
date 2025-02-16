@@ -6,6 +6,7 @@ class AudioService {
   private volume = new BehaviorSubject<number>(0.3);
   private numberAudioBuffers: { [key: number]: AudioBuffer } = {};
   private currentSource: AudioBufferSourceNode | null = null;
+  private isPlaying = false;
 
   constructor() {
     this.initAudioContext();
@@ -55,49 +56,61 @@ class AudioService {
   playNumber(number: number) {
     if (!this.audioContext || !this.gainNode || !this.numberAudioBuffers[number]) return;
 
-    // Stop any currently playing sound
-    if (this.currentSource) {
-      this.currentSource.stop();
-      this.currentSource.disconnect();
+    try {
+      // Stop any currently playing sound
+      if (this.currentSource && this.isPlaying) {
+        this.currentSource.stop();
+        this.currentSource.disconnect();
+        this.isPlaying = false;
+      }
+
+      // Create and configure new source
+      this.currentSource = this.audioContext.createBufferSource();
+      this.currentSource.buffer = this.numberAudioBuffers[number];
+
+      // Add a slight reverb effect
+      const convolver = this.audioContext.createConvolver();
+      const reverbTime = 1;
+      const decay = 0.1;
+      const rate = 44100;
+      const length = rate * reverbTime;
+      const impulse = this.audioContext.createBuffer(2, length, rate);
+      const left = impulse.getChannelData(0);
+      const right = impulse.getChannelData(1);
+
+      for (let i = 0; i < length; i++) {
+        left[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
+        right[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
+      }
+
+      convolver.buffer = impulse;
+
+      // Connect nodes
+      this.currentSource.connect(convolver);
+      convolver.connect(this.gainNode);
+
+      // Play with slight fade in/out
+      this.gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+      this.gainNode.gain.linearRampToValueAtTime(
+        this.volume.value,
+        this.audioContext.currentTime + 0.05
+      );
+      this.gainNode.gain.linearRampToValueAtTime(
+        0,
+        this.audioContext.currentTime + 0.3
+      );
+
+      // Set up ended callback to update playing state
+      this.currentSource.onended = () => {
+        this.isPlaying = false;
+      };
+
+      this.currentSource.start();
+      this.isPlaying = true;
+    } catch (error) {
+      console.error('Error playing number audio:', error);
+      this.isPlaying = false;
     }
-
-    // Create and configure new source
-    this.currentSource = this.audioContext.createBufferSource();
-    this.currentSource.buffer = this.numberAudioBuffers[number];
-
-    // Add a slight reverb effect
-    const convolver = this.audioContext.createConvolver();
-    const reverbTime = 1;
-    const decay = 0.1;
-    const rate = 44100;
-    const length = rate * reverbTime;
-    const impulse = this.audioContext.createBuffer(2, length, rate);
-    const left = impulse.getChannelData(0);
-    const right = impulse.getChannelData(1);
-
-    for (let i = 0; i < length; i++) {
-      left[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
-      right[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
-    }
-
-    convolver.buffer = impulse;
-
-    // Connect nodes
-    this.currentSource.connect(convolver);
-    convolver.connect(this.gainNode);
-
-    // Play with slight fade in/out
-    this.gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
-    this.gainNode.gain.linearRampToValueAtTime(
-      this.volume.value,
-      this.audioContext.currentTime + 0.05
-    );
-    this.gainNode.gain.linearRampToValueAtTime(
-      0,
-      this.audioContext.currentTime + 0.3
-    );
-
-    this.currentSource.start();
   }
 
   setVolume(value: number) {
