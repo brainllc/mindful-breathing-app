@@ -17,8 +17,8 @@ export default function Home() {
     : [];
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
-      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background dark:from-primary/10">
+      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-40 dark:opacity-20" />
 
       <div className="relative">
         <div className="container mx-auto px-4 pt-24 pb-16">
@@ -28,7 +28,7 @@ export default function Home() {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="max-w-2xl mx-auto text-center mb-20"
           >
-            <h1 className="text-6xl font-bold tracking-tight mb-8 bg-gradient-to-b from-primary to-primary/70 bg-clip-text text-transparent">
+            <h1 className="text-6xl font-bold tracking-tight mb-8 bg-gradient-to-b from-primary/90 to-primary/70 bg-clip-text text-transparent">
               Mindful Breathing
             </h1>
             <p className="text-xl text-muted-foreground leading-relaxed max-w-xl mx-auto">
@@ -40,13 +40,13 @@ export default function Home() {
             <TabsList className="w-full max-w-md mx-auto grid grid-cols-2 mb-16">
               <TabsTrigger 
                 value="mood" 
-                className="text-lg py-4 data-[state=active]:bg-primary/10"
+                className="text-lg py-4 data-[state=active]:bg-primary/10 hover:bg-primary/5"
               >
                 Find by Mood
               </TabsTrigger>
               <TabsTrigger 
                 value="all" 
-                className="text-lg py-4 data-[state=active]:bg-primary/10"
+                className="text-lg py-4 data-[state=active]:bg-primary/10 hover:bg-primary/5"
               >
                 All Exercises
               </TabsTrigger>

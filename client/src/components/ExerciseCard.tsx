@@ -19,7 +19,7 @@ export function ExerciseCard({ exercise, index }: Props) {
       className="h-full"
     >
       <Card className="h-full overflow-hidden backdrop-blur-sm border-primary/10 hover:border-primary/30 transition-all duration-500 group relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent transition-opacity duration-500 opacity-0 group-hover:opacity-100" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent transition-opacity duration-500 opacity-0 group-hover:opacity-100 dark:from-primary/10" />
 
         <CardHeader className="relative">
           <div className="flex items-center gap-2 text-sm text-primary mb-2">
@@ -55,7 +55,7 @@ export function ExerciseCard({ exercise, index }: Props) {
 
           <Button 
             asChild 
-            className="w-full group relative overflow-hidden bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary"
+            className="w-full group relative overflow-hidden bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary dark:bg-primary/20 dark:hover:bg-primary/30"
             size="lg"
           >
             <Link href={`/exercise/${exercise.id}`}>
