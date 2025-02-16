@@ -105,7 +105,11 @@ export default function Home() {
                     </div>
 
                     {recommendedExercises.length > 0 ? (
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                      <div className={`grid gap-8 ${
+                        recommendedExercises.length === 1 
+                          ? 'max-w-2xl mx-auto' 
+                          : 'grid-cols-1 lg:grid-cols-2'
+                      }`}>
                         {recommendedExercises.map((exercise, index) => (
                           <ExerciseCard 
                             key={exercise.id} 
