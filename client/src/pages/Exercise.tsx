@@ -98,7 +98,6 @@ export default function Exercise() {
                   </div>
 
                   <BreathingAnimation
-                    key={`breathing-${currentRound}`}
                     exercise={exercise}
                     isActive={isStarted}
                     onRoundComplete={handleRoundComplete}
