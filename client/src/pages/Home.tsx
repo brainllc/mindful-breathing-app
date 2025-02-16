@@ -69,7 +69,7 @@ export default function Home() {
                   <MoodSelector onSelect={handleMoodSelect} />
                 </motion.div>
 
-                {selectedMood && (
+                {selectedMood && recommendedExercises.length > 0 && (
                   <motion.div 
                     className="space-y-8"
                     initial={{ opacity: 0, y: 20 }}
@@ -88,6 +88,16 @@ export default function Home() {
                         />
                       ))}
                     </div>
+                  </motion.div>
+                )}
+
+                {selectedMood && recommendedExercises.length === 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-center text-muted-foreground"
+                  >
+                    No exercises found for this mood. Try another mood or check all exercises.
                   </motion.div>
                 )}
               </div>

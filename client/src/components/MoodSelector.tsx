@@ -32,8 +32,7 @@ export function MoodSelector({ onSelect }: Props) {
       animate="show"
     >
       {moods.map((mood) => {
-        const Icon = Icons[mood.icon as keyof typeof Icons] as any;
-
+        const Icon = Icons[mood.icon as keyof typeof Icons];
         return (
           <motion.div
             key={mood.id}
@@ -48,7 +47,7 @@ export function MoodSelector({ onSelect }: Props) {
             >
               <div className="relative">
                 <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100 dark:bg-primary/20" />
-                <Icon className="w-10 h-10 text-primary relative z-10" />
+                {Icon && <Icon className="w-10 h-10 text-primary relative z-10" />}
               </div>
               <span className="text-lg font-medium relative z-10">{mood.label}</span>
             </Button>
