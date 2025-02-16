@@ -14,7 +14,7 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
   const [phase, setPhase] = useState<"inhale" | "hold" | "exhale">("inhale");
   const [phaseTimeLeft, setPhaseTimeLeft] = useState(exercise.pattern.inhale);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const startTimeRef = useRef<number | null>(null);
+  const progressRef = useRef(0);
 
   useEffect(() => {
     if (!isActive) {
@@ -22,7 +22,6 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
-      startTimeRef.current = null;
       return;
     }
 
@@ -33,16 +32,11 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
         console.error('Failed to start meditation music:', error);
       }
 
-      // Initialize start time if not set
-      if (!startTimeRef.current) {
-        startTimeRef.current = Date.now();
-      }
-
-      // Progress timer - runs independently of phase changes
+      // Start the timer with a shorter interval for smoother progress
       timerRef.current = setInterval(() => {
-        const now = Date.now();
-        const elapsedSeconds = (now - (startTimeRef.current || now)) / 1000;
-        onPhaseProgress(elapsedSeconds);
+        // Update progress
+        progressRef.current += 0.05; // 50ms in seconds
+        onPhaseProgress(progressRef.current);
 
         // Update phase countdown
         setPhaseTimeLeft(current => {
