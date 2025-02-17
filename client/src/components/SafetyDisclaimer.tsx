@@ -68,8 +68,11 @@ export function SafetyDisclaimer({ isOpen, onAccept, onDecline }: Props) {
 
         {/* Scrollable Content with Always Visible Scrollbar */}
         <AlertDialogDescription 
-          className="space-y-6 overflow-y-auto pr-4 max-h-[calc(60vh-200px)] scrollbar-visible"
-          style={{ overflowY: 'scroll' }}
+          className="space-y-6 overflow-y-scroll pr-4 max-h-[calc(60vh-200px)]
+                   [&::-webkit-scrollbar]:w-2
+                   [&::-webkit-scrollbar-track]:bg-primary/5
+                   [&::-webkit-scrollbar-thumb]:bg-primary/20
+                   [&::-webkit-scrollbar]:display-block"
           onScroll={handleScroll}
           ref={contentRef}
         >
