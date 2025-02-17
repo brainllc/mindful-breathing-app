@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { AdUnit } from "@/components/AdUnit";
 
 export default function Home() {
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
@@ -91,6 +92,14 @@ export default function Home() {
                       How are you feeling today?
                     </h2>
                     <MoodSelector onSelect={handleMoodSelect} />
+
+                    {/* Ad placement */}
+                    <div className="mt-16">
+                      <AdUnit 
+                        slot="1234567890"  // Replace with your actual ad slot ID
+                        className="mx-auto max-w-[728px] h-[90px] bg-card/50 backdrop-blur-sm rounded-lg overflow-hidden"
+                      />
+                    </div>
                   </motion.section>
                 ) : (
                   <motion.section
