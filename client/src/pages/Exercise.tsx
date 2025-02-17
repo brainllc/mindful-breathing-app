@@ -205,7 +205,7 @@ export default function Exercise() {
 
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-40 dark:opacity-20" />
 
-      <div className="container relative mx-auto px-4 py-12">
+      <div className="container relative mx-auto px-4 pt-12 pb-[50px]">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-12">
             <Link href="/" className="inline-block">
