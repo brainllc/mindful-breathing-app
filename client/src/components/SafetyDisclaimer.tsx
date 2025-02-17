@@ -9,7 +9,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown } from "lucide-react"; // Import ChevronDown icon
+import { ChevronDown } from "lucide-react";
 
 interface Props {
   isOpen: boolean;
@@ -70,27 +70,24 @@ export function SafetyDisclaimer({ isOpen, onAccept, onDecline }: Props) {
           </div>
         </AlertDialogHeader>
 
-        {/* Scroll Container with Visual Indicators */}
-        <div className="relative flex-1 min-h-[200px]">
+        {/* Main Content Area */}
+        <div className="flex-1 min-h-[200px] relative mb-6">
           {/* Scroll Indicator */}
           {isAtTop && (
-            <div className="absolute inset-x-0 bottom-0 z-10 flex justify-center items-center pb-4 animate-bounce pointer-events-none">
+            <div className="absolute inset-x-0 top-0 z-10 flex justify-center items-center pt-2 animate-bounce pointer-events-none">
               <ChevronDown className="h-6 w-6 text-primary/50" />
             </div>
           )}
 
-          {/* Scrollable Content with Gradient Fade */}
+          {/* Scrollable Content */}
           <AlertDialogDescription 
-            className="space-y-6 overflow-y-auto pr-6 max-h-[calc(60vh-100px)] rounded-md relative scroll-smooth
+            className="space-y-6 overflow-y-auto pr-6 max-h-[calc(60vh-200px)] rounded-md relative scroll-smooth
                      scrollbar-thin scrollbar-thumb-primary/10 scrollbar-track-transparent
-                     hover:scrollbar-thumb-primary/20 transition-colors
-                     before:content-[''] before:absolute before:left-0 before:right-6 before:bottom-0 before:h-12 
-                     before:bg-gradient-to-t before:from-background before:to-transparent before:pointer-events-none
-                     before:z-10"
+                     hover:scrollbar-thumb-primary/20 transition-colors"
             onScroll={handleScroll}
             ref={contentRef}
           >
-            <div className="space-y-6 pb-12"> {/* Added padding to ensure content isn't hidden behind gradient */}
+            <div className="space-y-6 relative">
               <p className="text-base">
                 The breathing exercises provided in this application are for general wellness purposes only and are not intended to be a substitute for professional medical advice, diagnosis, or treatment.
               </p>
@@ -124,11 +121,15 @@ export function SafetyDisclaimer({ isOpen, onAccept, onDecline }: Props) {
               <p className="text-base font-medium text-yellow-500">
                 In case of emergency, stop immediately and seek appropriate medical attention.
               </p>
+
+              {/* Gradient Overlay */}
+              <div className="absolute left-0 right-6 bottom-0 h-12 bg-gradient-to-t from-background to-transparent pointer-events-none" />
             </div>
           </AlertDialogDescription>
         </div>
 
-        <AlertDialogFooter className="flex-shrink-0 mt-6">
+        {/* Footer - Now separated from scrollable content */}
+        <AlertDialogFooter className="flex-shrink-0 relative z-20 pt-2 before:absolute before:inset-0 before:-top-8 before:bg-gradient-to-b before:from-transparent before:to-background before:z-[-1]">
           <AlertDialogCancel onClick={onDecline}>
             I Do Not Accept
           </AlertDialogCancel>
