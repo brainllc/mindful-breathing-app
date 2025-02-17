@@ -15,8 +15,7 @@ import { ExerciseInfoModal } from "@/components/ExerciseInfoModal";
 import { ControlsBar } from "@/components/ControlsBar";
 import { audioService } from "@/lib/audio";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { AdUnit } from "@/components/AdUnit"; // Assuming AdUnit component exists
-
+import { AdUnit } from "@/components/AdUnit";
 
 export default function Exercise() {
   const [, params] = useRoute("/exercise/:id");
@@ -30,6 +29,30 @@ export default function Exercise() {
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [hasAcceptedDisclaimer, setHasAcceptedDisclaimer] = useState(false);
   const [phaseProgress, setPhaseProgress] = useState(0);
+
+  // Calculate total duration of a single round in seconds
+  const roundDuration = exercise?.pattern.inhale + 
+                     (exercise?.pattern.hold || 0) + 
+                     exercise?.pattern.exhale +
+                     (exercise?.pattern.holdEmpty || 0) || 0;
+
+  // Calculate total duration of all rounds in seconds
+  const totalDuration = roundDuration * totalRounds;
+
+  // Calculate progress based on current round and phase progress
+  const totalProgress = ((currentRound * roundDuration + (phaseProgress * roundDuration)) / (totalDuration)) * 100;
+
+  const handleRoundComplete = () => {
+    if (currentRound + 1 >= totalRounds) {
+      setIsStarted(false);
+      setIsPaused(false);
+      setCurrentRound(0);
+      setPhaseProgress(0);
+    } else {
+      setCurrentRound(prev => prev + 1);
+      setPhaseProgress(0);
+    }
+  };
 
   useEffect(() => {
     if (exercise) {
@@ -170,29 +193,6 @@ export default function Exercise() {
     });
   };
 
-  const handleRoundComplete = () => {
-    if (currentRound + 1 >= totalRounds) {
-      setIsStarted(false);
-      setIsPaused(false);
-      setCurrentRound(0);
-      setPhaseProgress(0);
-    } else {
-      setCurrentRound(prev => prev + 1);
-      setPhaseProgress(0);
-    }
-  };
-
-  // Calculate total duration of a single round in seconds
-  const roundDuration = exercise.pattern.inhale + 
-                       (exercise.pattern.hold || 0) + 
-                       exercise.pattern.exhale +
-                       (exercise.pattern.holdEmpty || 0);
-
-  // Calculate total duration of all rounds in seconds
-  const totalDuration = roundDuration * totalRounds;
-
-  // Calculate progress based on current round and phase progress
-  const totalProgress = ((currentRound / totalRounds) + (phaseProgress / totalRounds)) * 100;
 
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background dark:from-primary/10">
@@ -293,7 +293,7 @@ export default function Exercise() {
                     {/* Container for breathing animation with proper spacing */}
                     <div className="relative">
                       {/* Fixed height container that accounts for maximum expansion */}
-                      <div className="h-[500px] sm:h-[600px] md:h-[700px] relative">
+                      <div className="h-[600px] sm:h-[700px] md:h-[800px] relative">
                         {/* Center the animation with absolute positioning */}
                         <div className="absolute inset-0 flex items-center justify-center">
                           <BreathingAnimation
@@ -307,7 +307,7 @@ export default function Exercise() {
 
                       {/* Controls bar fixed to bottom of viewport */}
                       <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-t">
-                        <div className="container mx-auto px-4 py-4">
+                        <div className="container mx-auto px-4 py-4 mb-safe">
                           <ControlsBar
                             rounds={totalRounds}
                             onRoundsChange={setTotalRounds}
