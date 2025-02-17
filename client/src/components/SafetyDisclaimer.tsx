@@ -66,15 +66,16 @@ export function SafetyDisclaimer({ isOpen, onAccept, onDecline }: Props) {
           </div>
         </AlertDialogHeader>
 
-        {/* Scrollable Content */}
+        {/* Scrollable Content with Always Visible Scrollbar */}
         <AlertDialogDescription 
-          className="space-y-6 overflow-y-auto pr-4 max-h-[calc(60vh-200px)] scrollbar scrollbar-w-2 scrollbar-thumb-primary/20 scrollbar-track-primary/5"
+          className="space-y-6 overflow-y-auto pr-4 max-h-[calc(60vh-200px)] scrollbar-visible"
+          style={{ overflowY: 'scroll' }}
           onScroll={handleScroll}
           ref={contentRef}
         >
           <div className="space-y-6">
             <p className="text-base">
-              The breathing exercises provided in this application are for general wellness purposes only and are not intended to be a substitute for professional medical advice, diagnosis, or treatment.
+              The breathing exercises provided in this application are for educational purposes only and are not intended to be a substitute for professional medical advice, diagnosis, or treatment.
             </p>
 
             <div className="space-y-2">
