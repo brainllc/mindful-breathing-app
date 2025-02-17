@@ -1,4 +1,6 @@
 import { users, sessions, type User, type InsertUser, type Session, type InsertSession } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -8,64 +10,51 @@ export interface IStorage {
   getSessionsByUser(userId: number): Promise<Session[]>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private sessions: Map<number, Session>;
-  private currentUserId: number;
-  private currentSessionId: number;
-
-  constructor() {
-    this.users = new Map();
-    this.sessions = new Map();
-    this.currentUserId = 1;
-    this.currentSessionId = 1;
-  }
-
+export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const user: User = {
-      ...insertUser,
-      id,
-      currentExercise: null,
-      completedRounds: 0,
-    };
-    this.users.set(id, user);
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
     return user;
   }
 
   async updateUserProgress(id: number, exercise: string, rounds: number): Promise<User> {
-    const user = await this.getUser(id);
-    if (!user) throw new Error("User not found");
-    
-    const updatedUser: User = {
-      ...user,
-      currentExercise: exercise,
-      completedRounds: user.completedRounds + rounds,
-    };
-    this.users.set(id, updatedUser);
-    return updatedUser;
+    const [user] = await db
+      .update(users)
+      .set({
+        currentExercise: exercise,
+        completedRounds: rounds,
+      })
+      .where(eq(users.id, id))
+      .returning();
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    return user;
   }
 
   async createSession(session: InsertSession): Promise<Session> {
-    const id = this.currentSessionId++;
-    const newSession: Session = {
-      ...session,
-      id,
-      completed: false,
-    };
-    this.sessions.set(id, newSession);
+    const [newSession] = await db
+      .insert(sessions)
+      .values(session)
+      .returning();
     return newSession;
   }
 
   async getSessionsByUser(userId: number): Promise<Session[]> {
-    return Array.from(this.sessions.values()).filter(
-      (session) => session.userId === userId
-    );
+    return db
+      .select()
+      .from(sessions)
+      .where(eq(sessions.userId, userId));
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
