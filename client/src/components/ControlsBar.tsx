@@ -27,8 +27,8 @@ export function ControlsBar({ rounds, onRoundsChange, onPause, onEndSession }: P
   };
 
   return (
-    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-8 bg-card/50 backdrop-blur-sm px-6 py-3 rounded-full border border-border/50">
-      <div className="flex items-center gap-4">
+    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex flex-col md:flex-row items-center gap-4 md:gap-8 bg-card/50 backdrop-blur-sm px-4 md:px-6 py-4 md:py-3 rounded-2xl md:rounded-full border border-border/50 w-[calc(100%-2rem)] md:w-auto mx-4 md:mx-0">
+      <div className="flex items-center gap-4 w-full md:w-auto justify-center">
         <Button
           variant="ghost"
           size="icon"
@@ -48,9 +48,9 @@ export function ControlsBar({ rounds, onRoundsChange, onPause, onEndSession }: P
         </Button>
       </div>
 
-      <div className="h-8 w-px bg-border/50" />
+      <div className="h-px md:h-8 w-full md:w-px bg-border/50" />
 
-      <div className="flex items-center gap-2 w-[140px]">
+      <div className="flex items-center gap-2 w-full md:w-[140px] justify-center">
         <Button
           variant="ghost"
           size="sm"
@@ -72,9 +72,9 @@ export function ControlsBar({ rounds, onRoundsChange, onPause, onEndSession }: P
         />
       </div>
 
-      <div className="h-8 w-px bg-border/50" />
+      <div className="h-px md:h-8 w-full md:w-px bg-border/50" />
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 w-full md:w-auto justify-center">
         <Button 
           variant="outline"
           size="sm"
