@@ -205,9 +205,9 @@ export default function Exercise() {
 
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-40 dark:opacity-20" />
 
-      <div className="container relative mx-auto px-4 py-12">
+      <div className="container relative mx-auto px-4 py-6 md:py-12">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-between mb-12">
+          <div className="flex items-center justify-between mb-8">
             <Link href="/" className="inline-block">
               <Button
                 variant="ghost"
@@ -221,7 +221,7 @@ export default function Exercise() {
             {/* Top right ad for desktop */}
             <div className="hidden md:block">
               <AdUnit 
-                slot="3333333333"  // Replace with actual ad slot
+                slot="3333333333"
                 format="auto"
                 responsive={true}
                 className="w-[300px] h-[250px] bg-card/50 backdrop-blur-sm rounded-lg overflow-hidden"
@@ -244,7 +244,7 @@ export default function Exercise() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-12"
+            className="space-y-8"
           >
             <div className="text-center space-y-4">
               <h1 className="text-4xl font-bold bg-gradient-to-b from-primary/90 to-primary/70 bg-clip-text text-transparent">
@@ -265,7 +265,7 @@ export default function Exercise() {
             {/* Mobile banner ad */}
             <div className="md:hidden">
               <AdUnit 
-                slot="2222222222"  // Replace with actual ad slot
+                slot="2222222222"
                 format="auto"
                 responsive={true}
                 className="mx-auto max-w-[320px] h-[100px] bg-card/50 backdrop-blur-sm rounded-lg overflow-hidden"
@@ -290,14 +290,18 @@ export default function Exercise() {
                       <Progress value={totalProgress} className="h-1" />
                     </div>
 
-                    <BreathingAnimation
-                      exercise={exercise}
-                      isActive={isStarted && !isPaused}
-                      onRoundComplete={handleRoundComplete}
-                      onPhaseProgress={setPhaseProgress}
-                    />
+                    {/* Container for breathing animation with min-height */}
+                    <div className="min-h-[300px] sm:min-h-[400px] md:min-h-[500px] relative flex items-center justify-center">
+                      <BreathingAnimation
+                        exercise={exercise}
+                        isActive={isStarted && !isPaused}
+                        onRoundComplete={handleRoundComplete}
+                        onPhaseProgress={setPhaseProgress}
+                      />
+                    </div>
 
-                    {isStarted && (
+                    {/* Controls bar with padding to prevent overlap */}
+                    <div className="pt-4 sm:pt-6 md:pt-8">
                       <ControlsBar
                         rounds={totalRounds}
                         onRoundsChange={setTotalRounds}
@@ -308,7 +312,7 @@ export default function Exercise() {
                           setPhaseProgress(0);
                         }}
                       />
-                    )}
+                    </div>
                   </div>
                 </motion.div>
               ) : (
@@ -345,7 +349,7 @@ export default function Exercise() {
           {!isStarted && (
             <div className="mt-16">
               <AdUnit 
-                slot="1111111111"  // Replace with actual ad slot
+                slot="1111111111"
                 format="auto"
                 responsive={true}
                 className="mx-auto max-w-[728px] h-[90px] bg-card/50 backdrop-blur-sm rounded-lg overflow-hidden"
