@@ -205,7 +205,7 @@ export default function Exercise() {
 
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-40 dark:opacity-20" />
 
-      <div className="container relative mx-auto px-4 py-12">
+      <div className="container relative mx-auto px-4 py-12 pb-32"> {/* Added padding bottom to account for fixed controls */}
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-12">
             <Link href="/" className="inline-block">
@@ -221,7 +221,7 @@ export default function Exercise() {
             {/* Top right ad for desktop */}
             <div className="hidden md:block">
               <AdUnit 
-                slot="3333333333"  // Replace with actual ad slot
+                slot="3333333333"
                 format="auto"
                 responsive={true}
                 className="w-[300px] h-[250px] bg-card/50 backdrop-blur-sm rounded-lg overflow-hidden"
@@ -265,7 +265,7 @@ export default function Exercise() {
             {/* Mobile banner ad */}
             <div className="md:hidden">
               <AdUnit 
-                slot="2222222222"  // Replace with actual ad slot
+                slot="2222222222"
                 format="auto"
                 responsive={true}
                 className="mx-auto max-w-[320px] h-[100px] bg-card/50 backdrop-blur-sm rounded-lg overflow-hidden"
@@ -290,24 +290,33 @@ export default function Exercise() {
                       <Progress value={totalProgress} className="h-1" />
                     </div>
 
-                    <BreathingAnimation
-                      exercise={exercise}
-                      isActive={isStarted && !isPaused}
-                      onRoundComplete={handleRoundComplete}
-                      onPhaseProgress={setPhaseProgress}
-                    />
-
-                    {isStarted && (
-                      <ControlsBar
-                        rounds={totalRounds}
-                        onRoundsChange={setTotalRounds}
-                        onPause={() => setIsPaused(!isPaused)}
-                        onEndSession={() => {
-                          setIsStarted(false);
-                          setCurrentRound(0);
-                          setPhaseProgress(0);
-                        }}
+                    <div className="pb-16"> {/* Added padding bottom for breathing animation */}
+                      <BreathingAnimation
+                        exercise={exercise}
+                        isActive={isStarted && !isPaused}
+                        onRoundComplete={handleRoundComplete}
+                        onPhaseProgress={setPhaseProgress}
                       />
+                    </div>
+
+                    {/* Fixed Controls Bar */}
+                    {isStarted && (
+                      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-t border-border">
+                        <div className="container mx-auto px-4 py-4">
+                          <div className="max-w-4xl mx-auto">
+                            <ControlsBar
+                              rounds={totalRounds}
+                              onRoundsChange={setTotalRounds}
+                              onPause={() => setIsPaused(!isPaused)}
+                              onEndSession={() => {
+                                setIsStarted(false);
+                                setCurrentRound(0);
+                                setPhaseProgress(0);
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
                     )}
                   </div>
                 </motion.div>
@@ -345,7 +354,7 @@ export default function Exercise() {
           {!isStarted && (
             <div className="mt-16">
               <AdUnit 
-                slot="1111111111"  // Replace with actual ad slot
+                slot="1111111111"
                 format="auto"
                 responsive={true}
                 className="mx-auto max-w-[728px] h-[90px] bg-card/50 backdrop-blur-sm rounded-lg overflow-hidden"
