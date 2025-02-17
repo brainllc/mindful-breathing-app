@@ -305,18 +305,20 @@ export default function Exercise() {
                         </div>
                       </div>
 
-                      {/* Controls bar with fixed position below animation */}
-                      <div className="relative z-10 mt-4">
-                        <ControlsBar
-                          rounds={totalRounds}
-                          onRoundsChange={setTotalRounds}
-                          onPause={() => setIsPaused(!isPaused)}
-                          onEndSession={() => {
-                            setIsStarted(false);
-                            setCurrentRound(0);
-                            setPhaseProgress(0);
-                          }}
-                        />
+                      {/* Controls bar fixed to bottom of viewport */}
+                      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-t">
+                        <div className="container mx-auto px-4 py-4">
+                          <ControlsBar
+                            rounds={totalRounds}
+                            onRoundsChange={setTotalRounds}
+                            onPause={() => setIsPaused(!isPaused)}
+                            onEndSession={() => {
+                              setIsStarted(false);
+                              setCurrentRound(0);
+                              setPhaseProgress(0);
+                            }}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
