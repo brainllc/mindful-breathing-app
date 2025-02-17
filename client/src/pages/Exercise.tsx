@@ -15,6 +15,8 @@ import { ExerciseInfoModal } from "@/components/ExerciseInfoModal";
 import { ControlsBar } from "@/components/ControlsBar";
 import { audioService } from "@/lib/audio";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { AdUnit } from "@/components/AdUnit"; // Assuming AdUnit component exists
+
 
 export default function Exercise() {
   const [, params] = useRoute("/exercise/:id");
@@ -205,15 +207,27 @@ export default function Exercise() {
 
       <div className="container relative mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto">
-          <Link href="/" className="inline-block mb-12">
-            <Button
-              variant="ghost"
-              className="text-primary hover:text-primary/80"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Exercises
-            </Button>
-          </Link>
+          <div className="flex items-center justify-between mb-12">
+            <Link href="/" className="inline-block">
+              <Button
+                variant="ghost"
+                className="text-primary hover:text-primary/80"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Exercises
+              </Button>
+            </Link>
+
+            {/* Top right ad for desktop */}
+            <div className="hidden md:block">
+              <AdUnit 
+                slot="3333333333"  // Replace with actual ad slot
+                format="auto"
+                responsive={true}
+                className="w-[300px] h-[250px] bg-card/50 backdrop-blur-sm rounded-lg overflow-hidden"
+              />
+            </div>
+          </div>
 
           {!isStarted && (
             <div className="flex justify-center">
@@ -246,6 +260,16 @@ export default function Exercise() {
                 </div>
                 <ExerciseInfoModal exercise={exercise} />
               </div>
+            </div>
+
+            {/* Mobile banner ad */}
+            <div className="md:hidden">
+              <AdUnit 
+                slot="2222222222"  // Replace with actual ad slot
+                format="auto"
+                responsive={true}
+                className="mx-auto max-w-[320px] h-[100px] bg-card/50 backdrop-blur-sm rounded-lg overflow-hidden"
+              />
             </div>
 
             <AnimatePresence mode="wait">
@@ -316,6 +340,18 @@ export default function Exercise() {
               )}
             </AnimatePresence>
           </motion.div>
+
+          {/* Bottom banner ad - only show when exercise is not active */}
+          {!isStarted && (
+            <div className="mt-16">
+              <AdUnit 
+                slot="1111111111"  // Replace with actual ad slot
+                format="auto"
+                responsive={true}
+                className="mx-auto max-w-[728px] h-[90px] bg-card/50 backdrop-blur-sm rounded-lg overflow-hidden"
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
