@@ -290,29 +290,30 @@ export default function Exercise() {
                       <Progress value={totalProgress} className="h-1" />
                     </div>
 
-                    {/* Container for breathing animation with min-height */}
-                    <div className="min-h-[300px] sm:min-h-[400px] md:min-h-[500px] relative flex items-center justify-center">
-                      <BreathingAnimation
-                        exercise={exercise}
-                        isActive={isStarted && !isPaused}
-                        onRoundComplete={handleRoundComplete}
-                        onPhaseProgress={setPhaseProgress}
-                      />
+                    {/* Container for breathing animation with proper spacing */}
+                    <div className="relative mb-24 sm:mb-32 md:mb-40">
+                      {/* Fixed height container to prevent content shift */}
+                      <div className="h-[300px] sm:h-[400px] md:h-[500px] relative flex items-center justify-center">
+                        <BreathingAnimation
+                          exercise={exercise}
+                          isActive={isStarted && !isPaused}
+                          onRoundComplete={handleRoundComplete}
+                          onPhaseProgress={setPhaseProgress}
+                        />
+                      </div>
                     </div>
 
-                    {/* Controls bar with padding to prevent overlap */}
-                    <div className="pt-4 sm:pt-6 md:pt-8">
-                      <ControlsBar
-                        rounds={totalRounds}
-                        onRoundsChange={setTotalRounds}
-                        onPause={() => setIsPaused(!isPaused)}
-                        onEndSession={() => {
-                          setIsStarted(false);
-                          setCurrentRound(0);
-                          setPhaseProgress(0);
-                        }}
-                      />
-                    </div>
+                    {/* Controls bar - now has space above due to container margin */}
+                    <ControlsBar
+                      rounds={totalRounds}
+                      onRoundsChange={setTotalRounds}
+                      onPause={() => setIsPaused(!isPaused)}
+                      onEndSession={() => {
+                        setIsStarted(false);
+                        setCurrentRound(0);
+                        setPhaseProgress(0);
+                      }}
+                    />
                   </div>
                 </motion.div>
               ) : (
