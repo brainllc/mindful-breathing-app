@@ -290,7 +290,7 @@ export default function Exercise() {
                       <Progress value={totalProgress} className="h-1" />
                     </div>
 
-                    <div className="pb-24"> {/* Added more padding at the bottom */}
+                    <div className="p-4 pb-24"> {/* Added padding at the bottom and sides */}
                       <BreathingAnimation
                         exercise={exercise}
                         isActive={isStarted && !isPaused}
