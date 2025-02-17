@@ -9,6 +9,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useEffect, useRef, useState } from "react";
+import { ChevronDown } from "lucide-react"; // Import ChevronDown icon
 
 interface Props {
   isOpen: boolean;
@@ -18,6 +19,7 @@ interface Props {
 
 export function SafetyDisclaimer({ isOpen, onAccept, onDecline }: Props) {
   const [hasReadAll, setHasReadAll] = useState(false);
+  const [isAtTop, setIsAtTop] = useState(true);
   const contentRef = useRef<HTMLDivElement>(null);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -26,6 +28,7 @@ export function SafetyDisclaimer({ isOpen, onAccept, onDecline }: Props) {
       element.scrollHeight - element.clientHeight - element.scrollTop
     ) < 2;
 
+    setIsAtTop(element.scrollTop === 0);
     if (isAtBottom) {
       setHasReadAll(true);
     }
@@ -35,6 +38,7 @@ export function SafetyDisclaimer({ isOpen, onAccept, onDecline }: Props) {
   useEffect(() => {
     if (isOpen) {
       setHasReadAll(false);
+      setIsAtTop(true);
     }
   }, [isOpen]);
 
@@ -66,48 +70,63 @@ export function SafetyDisclaimer({ isOpen, onAccept, onDecline }: Props) {
           </div>
         </AlertDialogHeader>
 
-        {/* Scrollable Content */}
-        <AlertDialogDescription 
-          className="space-y-6 overflow-y-auto pr-6"
-          onScroll={handleScroll}
-          ref={contentRef}
-        >
-          <div className="space-y-6">
-            <p className="text-base">
-              The breathing exercises provided in this application are for general wellness purposes only and are not intended to be a substitute for professional medical advice, diagnosis, or treatment.
-            </p>
-
-            <div className="space-y-2">
-              <p className="text-base font-medium">
-                By using these breathing exercises, you acknowledge and agree that:
-              </p>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>You are responsible for consulting with your healthcare provider before starting any breathing practice</li>
-                <li>You should immediately stop if you experience dizziness, lightheadedness, shortness of breath, or any discomfort</li>
-                <li>These exercises may not be suitable for everyone, particularly those with certain medical conditions</li>
-                <li>You assume all risks associated with using these breathing techniques</li>
-              </ul>
+        {/* Scroll Container with Visual Indicators */}
+        <div className="relative flex-1 min-h-[200px]">
+          {/* Scroll Indicator */}
+          {isAtTop && (
+            <div className="absolute inset-x-0 bottom-0 z-10 flex justify-center items-center pb-4 animate-bounce pointer-events-none">
+              <ChevronDown className="h-6 w-6 text-primary/50" />
             </div>
+          )}
 
-            <div className="space-y-2">
-              <p className="text-base font-medium">
-                Medical Conditions: Do not use these breathing exercises if you have any of the following without prior medical approval:
+          {/* Scrollable Content with Gradient Fade */}
+          <AlertDialogDescription 
+            className="space-y-6 overflow-y-auto pr-6 max-h-[calc(60vh-100px)] rounded-md relative scroll-smooth
+                     scrollbar-thin scrollbar-thumb-primary/10 scrollbar-track-transparent
+                     hover:scrollbar-thumb-primary/20 transition-colors
+                     before:content-[''] before:absolute before:left-0 before:right-6 before:bottom-0 before:h-12 
+                     before:bg-gradient-to-t before:from-background before:to-transparent before:pointer-events-none
+                     before:z-10"
+            onScroll={handleScroll}
+            ref={contentRef}
+          >
+            <div className="space-y-6 pb-12"> {/* Added padding to ensure content isn't hidden behind gradient */}
+              <p className="text-base">
+                The breathing exercises provided in this application are for general wellness purposes only and are not intended to be a substitute for professional medical advice, diagnosis, or treatment.
               </p>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Respiratory conditions including asthma or COPD</li>
-                <li>Cardiovascular conditions</li>
-                <li>High blood pressure</li>
-                <li>History of aneurysm</li>
-                <li>Pregnancy</li>
-                <li>Any other serious medical condition</li>
-              </ul>
-            </div>
 
-            <p className="text-base font-medium text-yellow-500">
-              In case of emergency, stop immediately and seek appropriate medical attention.
-            </p>
-          </div>
-        </AlertDialogDescription>
+              <div className="space-y-2">
+                <p className="text-base font-medium">
+                  By using these breathing exercises, you acknowledge and agree that:
+                </p>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>You are responsible for consulting with your healthcare provider before starting any breathing practice</li>
+                  <li>You should immediately stop if you experience dizziness, lightheadedness, shortness of breath, or any discomfort</li>
+                  <li>These exercises may not be suitable for everyone, particularly those with certain medical conditions</li>
+                  <li>You assume all risks associated with using these breathing techniques</li>
+                </ul>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-base font-medium">
+                  Medical Conditions: Do not use these breathing exercises if you have any of the following without prior medical approval:
+                </p>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Respiratory conditions including asthma or COPD</li>
+                  <li>Cardiovascular conditions</li>
+                  <li>High blood pressure</li>
+                  <li>History of aneurysm</li>
+                  <li>Pregnancy</li>
+                  <li>Any other serious medical condition</li>
+                </ul>
+              </div>
+
+              <p className="text-base font-medium text-yellow-500">
+                In case of emergency, stop immediately and seek appropriate medical attention.
+              </p>
+            </div>
+          </AlertDialogDescription>
+        </div>
 
         <AlertDialogFooter className="flex-shrink-0 mt-6">
           <AlertDialogCancel onClick={onDecline}>
