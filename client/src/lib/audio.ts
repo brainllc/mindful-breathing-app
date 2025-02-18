@@ -15,57 +15,30 @@ class AudioService {
     }
 
     try {
-      // First verify the audio file is accessible
-      const audioPath = '/meditation.mp3';
-      console.log('Attempting to load audio from:', audioPath);
-
-      const response = await fetch(audioPath);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch audio file: ${response.status} ${response.statusText}`);
-      }
-      console.log('Audio file is accessible');
-
-      // Create new audio element
+      // Create a simple audio element
       this.audioElement = new Audio();
-      this.audioElement.crossOrigin = "anonymous";
-
-      // Test if browser supports MP3
-      const canPlayType = this.audioElement.canPlayType('audio/mpeg');
-      console.log('Browser can play MP3:', canPlayType);
-      if (!canPlayType) {
-        throw new Error('Browser does not support MP3 audio');
-      }
-
-      // Set properties after testing support
-      this.audioElement.src = audioPath;
+      this.audioElement.src = '/meditation.mp3';
       this.audioElement.loop = true;
       this.audioElement.volume = this.volume.value;
-      this.audioElement.preload = 'auto';
 
-      // Load the audio file
-      await new Promise((resolve, reject) => {
+      // Wait for audio to be loaded
+      await new Promise<void>((resolve, reject) => {
         if (!this.audioElement) return reject('No audio element');
 
-        this.audioElement.onerror = (e) => {
-          const error = e instanceof ErrorEvent ? e.message : 'Unknown error';
-          console.error('Audio error:', error);
-          if (this.audioElement?.error) {
-            console.error('MediaError code:', this.audioElement.error.code);
-            console.error('MediaError message:', this.audioElement.error.message);
-          }
-          reject(new Error(`Failed to load audio file`));
-        };
-
         this.audioElement.oncanplaythrough = () => {
-          console.log('Audio file loaded and ready for playback');
-          resolve(null);
+          this.initialized = true;
+          resolve();
         };
 
+        this.audioElement.onerror = () => {
+          const errorMessage = this.audioElement?.error?.message || 'Unknown error';
+          reject(new Error(`Audio initialization failed: ${errorMessage}`));
+        };
+
+        // Start loading
         this.audioElement.load();
       });
 
-      this.initialized = true;
-      console.log('Audio service initialized successfully');
     } catch (error) {
       console.error('Audio initialization failed:', error);
       this.initialized = false;
@@ -74,22 +47,12 @@ class AudioService {
   }
 
   async playMusic() {
-    console.log('Attempting to play music...');
     try {
-      if (!this.initialized) {
+      if (!this.initialized || !this.audioElement) {
         await this.init();
       }
 
-      if (!this.audioElement) {
-        throw new Error('Audio element not initialized');
-      }
-
-      // Attempt to play and handle autoplay restrictions
-      const playPromise = this.audioElement.play();
-      if (playPromise !== undefined) {
-        await playPromise;
-        console.log('Audio playback started successfully');
-      }
+      await this.audioElement?.play();
     } catch (error) {
       console.error('Audio playback failed:', error);
       throw error;
@@ -97,9 +60,7 @@ class AudioService {
   }
 
   stopMusic(fadeOutDuration = 2) {
-    if (!this.audioElement) {
-      return;
-    }
+    if (!this.audioElement) return;
 
     const startVolume = this.audioElement.volume;
     const steps = 20;
@@ -117,16 +78,9 @@ class AudioService {
       } else {
         clearInterval(fade);
         this.audioElement.pause();
-        this.audioElement.currentTime = 0;
         this.audioElement.volume = this.volume.value;
       }
     }, interval);
-  }
-
-  prepareForCompletion(remainingSeconds: number) {
-    if (remainingSeconds <= 2) {
-      this.stopMusic(remainingSeconds);
-    }
   }
 
   setVolume(value: number) {

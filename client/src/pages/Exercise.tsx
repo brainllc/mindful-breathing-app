@@ -124,29 +124,24 @@ export default function Exercise() {
       setIsStarted(true);
       setIsPaused(false);
 
-      try {
-        await audioService.init();
-        await audioService.playMusic();
-      } catch (error) {
-        console.error('Failed to start audio:', error);
-        toast({
-          title: "Audio Issue",
-          description: "Unable to play meditation audio. Please click anywhere on the page to enable sound.",
-          variant: "destructive",
-        });
-      }
+      // Initialize and play audio
+      await audioService.init();
+      await audioService.playMusic();
     } catch (error) {
       console.error('Exercise start error:', error);
       // Continue with exercise even if audio fails
-      setIsStarted(true);
-      setIsPaused(false);
+      toast({
+        title: "Audio Issue",
+        description: "Click anywhere on the page to enable sound for meditation audio.",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleDisclaimerAccept = async () => {
+  const handleDisclaimerAccept = () => {
     setHasAcceptedDisclaimer(true);
     setShowDisclaimer(false);
-    handleStart(); // Directly call handleStart to avoid redundancy
+    handleStart();
   };
 
   const handleDisclaimerDecline = () => {
