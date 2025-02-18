@@ -15,9 +15,8 @@ import { ExerciseInfoModal } from "@/components/ExerciseInfoModal";
 import { ControlsBar } from "@/components/ControlsBar";
 import { audioService } from "@/lib/audio";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { AdUnit } from "@/components/AdUnit"; // Assuming AdUnit component exists
 
-
+// Remove AdUnit import since we'll handle ads differently
 export default function Exercise() {
   const [, params] = useRoute("/exercise/:id");
   const exercise = exercises.find(e => e.id === params?.id);
@@ -83,14 +82,16 @@ export default function Exercise() {
         ]
       };
 
-      let scriptTag = document.querySelector('#structured-data');
-      if (!scriptTag) {
-        scriptTag = document.createElement('script');
-        scriptTag.id = 'structured-data';
-        scriptTag.type = 'application/ld+json';
-        document.head.appendChild(scriptTag);
+      const scriptTag = document.querySelector('#structured-data');
+      if (scriptTag) {
+        scriptTag.textContent = JSON.stringify(structuredData);
+      } else {
+        const newScript = document.createElement('script');
+        newScript.id = 'structured-data';
+        newScript.type = 'application/ld+json';
+        newScript.textContent = JSON.stringify(structuredData);
+        document.head.appendChild(newScript);
       }
-      scriptTag.textContent = JSON.stringify(structuredData);
     }
 
     return () => {
@@ -218,15 +219,6 @@ export default function Exercise() {
                 Back to Exercises
               </Button>
             </Link>
-
-            <div className="hidden md:block">
-              <AdUnit 
-                slot="3333333333"  // Replace with actual ad slot
-                format="auto"
-                responsive={true}
-                className="w-[300px] h-[250px] bg-card/50 backdrop-blur-sm rounded-lg overflow-hidden"
-              />
-            </div>
           </div>
 
           {!isStarted && (
@@ -260,15 +252,6 @@ export default function Exercise() {
                 </div>
                 <ExerciseInfoModal exercise={exercise} />
               </div>
-            </div>
-
-            <div className="md:hidden">
-              <AdUnit 
-                slot="2222222222"  // Replace with actual ad slot
-                format="auto"
-                responsive={true}
-                className="mx-auto max-w-[320px] h-[100px] bg-card/50 backdrop-blur-sm rounded-lg overflow-hidden"
-              />
             </div>
 
             <AnimatePresence mode="wait">
@@ -339,17 +322,6 @@ export default function Exercise() {
               )}
             </AnimatePresence>
           </motion.div>
-
-          {!isStarted && (
-            <div className="mt-16">
-              <AdUnit 
-                slot="1111111111"  // Replace with actual ad slot
-                format="auto"
-                responsive={true}
-                className="mx-auto max-w-[728px] h-[90px] bg-card/50 backdrop-blur-sm rounded-lg overflow-hidden"
-              />
-            </div>
-          )}
         </div>
       </div>
     </div>
