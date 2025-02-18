@@ -15,15 +15,14 @@ class AudioService {
     }
 
     try {
-      // Create audio element with direct source
-      this.audioElement = new Audio('/meditation.mp3');
+      this.audioElement = new Audio();
+      this.audioElement.src = '/meditation.mp3';
       this.audioElement.loop = true;
       this.audioElement.volume = this.volume.value;
 
-      // Force load the audio file
-      await this.audioElement.load();
+      // Force preload
+      this.audioElement.preload = 'auto';
 
-      // Wait for the audio to be ready
       await new Promise((resolve, reject) => {
         if (!this.audioElement) return reject('No audio element');
 
@@ -33,7 +32,7 @@ class AudioService {
 
         const handleCanPlay = () => {
           clearTimeout(timeoutId);
-          console.log('Audio file loaded successfully');
+          console.log('Audio file loaded and ready');
           this.audioElement?.removeEventListener('canplay', handleCanPlay);
           resolve(null);
         };
@@ -48,12 +47,8 @@ class AudioService {
         this.audioElement.addEventListener('canplay', handleCanPlay);
         this.audioElement.addEventListener('error', handleError);
 
-        // If already loaded, resolve immediately
-        if (this.audioElement.readyState >= 3) {
-          clearTimeout(timeoutId);
-          console.log('Audio already loaded');
-          resolve(null);
-        }
+        // Start loading
+        this.audioElement.load();
       });
 
       this.initialized = true;
@@ -77,15 +72,10 @@ class AudioService {
       }
 
       // Attempt to play with user interaction
-      try {
-        const playPromise = this.audioElement.play();
-        if (playPromise !== undefined) {
-          await playPromise;
-          console.log('Audio playback started successfully');
-        }
-      } catch (playError) {
-        console.error('Playback failed:', playError);
-        throw new Error('Failed to start playback. Please interact with the page first.');
+      const playPromise = this.audioElement.play();
+      if (playPromise !== undefined) {
+        await playPromise;
+        console.log('Audio playback started successfully');
       }
     } catch (error) {
       console.error('Audio playback failed:', error);

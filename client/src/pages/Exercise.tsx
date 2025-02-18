@@ -121,17 +121,6 @@ export default function Exercise() {
     }
 
     try {
-      // Try to initialize audio with user interaction
-      const audio = new Audio('/meditation.mp3');
-      audio.volume = 0.5;
-      audio.loop = true;
-
-      // Test if audio can be played
-      await audio.play();
-      audio.pause();
-      audio.currentTime = 0;
-
-      // If audio test successful, start the exercise
       setIsStarted(true);
       setIsPaused(false);
 
@@ -139,23 +128,18 @@ export default function Exercise() {
         await audioService.init();
         await audioService.playMusic();
       } catch (error) {
-        console.error('Audio setup failed:', error);
+        console.error('Failed to start audio:', error);
         toast({
           title: "Audio Issue",
-          description: "Unable to play meditation audio. Please check your browser settings.",
+          description: "Unable to play meditation audio. Please check your browser settings and click to enable sound.",
           variant: "destructive",
         });
       }
     } catch (error) {
-      console.error('Audio test failed:', error);
+      console.error('Exercise start error:', error);
       // Continue with exercise even if audio fails
       setIsStarted(true);
       setIsPaused(false);
-      toast({
-        title: "Audio Permission Required",
-        description: "Please allow audio playback in your browser settings.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -164,39 +148,22 @@ export default function Exercise() {
     setShowDisclaimer(false);
 
     try {
-      // Try to initialize audio with user interaction
-      const audio = new Audio('/meditation.mp3');
-      audio.volume = 0.5;
-      audio.loop = true;
-
-      // Test if audio can be played
-      await audio.play();
-      audio.pause();
-      audio.currentTime = 0;
-
-      // If audio test successful, start the exercise
       setIsStarted(true);
 
       try {
         await audioService.init();
         await audioService.playMusic();
       } catch (error) {
-        console.error('Audio setup failed:', error);
+        console.error('Failed to start audio:', error);
         toast({
           title: "Audio Issue",
-          description: "Unable to play meditation audio. Please check your browser settings.",
+          description: "Unable to play meditation audio. Please check your browser settings and click to enable sound.",
           variant: "destructive",
         });
       }
     } catch (error) {
-      console.error('Audio test failed:', error);
-      // Continue with exercise even if audio fails
+      console.error('Exercise start error:', error);
       setIsStarted(true);
-      toast({
-        title: "Audio Permission Required",
-        description: "Please allow audio playback in your browser settings.",
-        variant: "destructive",
-      });
     }
   };
 
