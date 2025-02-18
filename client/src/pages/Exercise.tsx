@@ -121,17 +121,28 @@ export default function Exercise() {
     }
 
     try {
-      await audioService.init();
-      await audioService.playMusic();
+      // Initialize audio early but don't wait for it
+      audioService.init().catch(error => {
+        console.error('Audio initialization failed:', error);
+        toast({
+          title: "Audio Error",
+          description: "Failed to initialize audio. You may need to allow audio playback in your browser settings.",
+          variant: "destructive",
+        });
+      });
+
+      // Start the exercise immediately
       setIsStarted(true);
       setIsPaused(false);
-    } catch (error) {
-      console.error('Failed to initialize audio:', error);
-      toast({
-        title: "Audio Error",
-        description: "Failed to initialize audio. You may need to allow audio playback in your browser settings.",
-        variant: "destructive",
+
+      // Try to start the audio
+      audioService.playMusic().catch(error => {
+        console.error('Audio playback failed:', error);
+        // Exercise continues even if audio fails
       });
+    } catch (error) {
+      console.error('Exercise start error:', error);
+      // Still start the exercise even if there's an audio error
       setIsStarted(true);
       setIsPaused(false);
     }
@@ -152,6 +163,7 @@ export default function Exercise() {
         description: "Failed to initialize audio. You may need to allow audio playback in your browser settings.",
         variant: "destructive",
       });
+      // Continue with the exercise even without audio
       setIsStarted(true);
     }
   };
