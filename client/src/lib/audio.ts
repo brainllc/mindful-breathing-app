@@ -10,27 +10,36 @@ class AudioService {
   }
 
   async init() {
-    if (this.initialized) {
+    if (this.initialized && this.audioElement) {
       return;
     }
 
     try {
-      // Create audio element
+      // Create audio element with direct source
       this.audioElement = new Audio('/meditation.mp3');
       this.audioElement.loop = true;
       this.audioElement.volume = this.volume.value;
 
-      // Wait for the audio to load
+      // Force load the audio file
+      await this.audioElement.load();
+
+      // Wait for the audio to be ready
       await new Promise((resolve, reject) => {
         if (!this.audioElement) return reject('No audio element');
 
+        const timeoutId = setTimeout(() => {
+          reject(new Error('Audio loading timed out'));
+        }, 5000);
+
         const handleCanPlay = () => {
+          clearTimeout(timeoutId);
           console.log('Audio file loaded successfully');
           this.audioElement?.removeEventListener('canplay', handleCanPlay);
           resolve(null);
         };
 
         const handleError = (e: Event) => {
+          clearTimeout(timeoutId);
           console.error('Audio loading error:', e);
           this.audioElement?.removeEventListener('error', handleError);
           reject(new Error('Failed to load audio file'));
@@ -41,6 +50,7 @@ class AudioService {
 
         // If already loaded, resolve immediately
         if (this.audioElement.readyState >= 3) {
+          clearTimeout(timeoutId);
           console.log('Audio already loaded');
           resolve(null);
         }
@@ -56,6 +66,7 @@ class AudioService {
   }
 
   async playMusic() {
+    console.log('Attempting to play music...');
     try {
       if (!this.initialized) {
         await this.init();
