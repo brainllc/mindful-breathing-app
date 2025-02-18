@@ -289,6 +289,7 @@ export default function Exercise() {
                           setCurrentRound(0);
                           setPhaseProgress(0);
                         }}
+                        isPaused={isPaused}
                       />
                     )}
                   </div>

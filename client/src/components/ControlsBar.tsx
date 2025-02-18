@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Volume2, VolumeX, Minus, Plus, Settings2 } from "lucide-react";
+import { Volume2, VolumeX, Minus, Plus, Settings2, Play, Pause } from "lucide-react";
 import { audioService } from "@/lib/audio";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -10,9 +10,10 @@ interface Props {
   onRoundsChange: (rounds: number) => void;
   onPause: () => void;
   onEndSession: () => void;
+  isPaused?: boolean;
 }
 
-export function ControlsBar({ rounds, onRoundsChange, onPause, onEndSession }: Props) {
+export function ControlsBar({ rounds, onRoundsChange, onPause, onEndSession, isPaused = false }: Props) {
   const [volume, setVolume] = useState(audioService.getVolume());
   const [isMuted, setIsMuted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -94,7 +95,17 @@ export function ControlsBar({ rounds, onRoundsChange, onPause, onEndSession }: P
                   size="sm"
                   onClick={onPause}
                 >
-                  Pause
+                  {isPaused ? (
+                    <>
+                      <Play className="h-4 w-4 mr-2" />
+                      Play
+                    </>
+                  ) : (
+                    <>
+                      <Pause className="h-4 w-4 mr-2" />
+                      Pause
+                    </>
+                  )}
                 </Button>
                 <Button
                   variant="outline"
@@ -167,7 +178,17 @@ export function ControlsBar({ rounds, onRoundsChange, onPause, onEndSession }: P
               size="sm"
               onClick={onPause}
             >
-              Pause
+              {isPaused ? (
+                <>
+                  <Play className="h-4 w-4 mr-2" />
+                  Play
+                </>
+              ) : (
+                <>
+                  <Pause className="h-4 w-4 mr-2" />
+                  Pause
+                </>
+              )}
             </Button>
             <Button
               variant="outline"
