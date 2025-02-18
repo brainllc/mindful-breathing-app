@@ -4,8 +4,7 @@ class AudioService {
   private volume = new BehaviorSubject<number>(0.3);
   private audioContext: AudioContext | null = null;
   private gainNode: GainNode | null = null;
-  private mediaSource: MediaElementAudioSourceNode | null = null;
-  private audioElement: HTMLAudioElement | null = null;
+  private oscillators: OscillatorNode[] = [];
   private initialized = false;
 
   constructor() {
@@ -21,15 +20,6 @@ class AudioService {
       this.gainNode = this.audioContext.createGain();
       this.gainNode.connect(this.audioContext.destination);
       this.gainNode.gain.value = this.volume.value;
-
-      // Create audio element
-      this.audioElement = new Audio('/meditation.mp3');
-      this.audioElement.loop = true;
-      this.audioElement.crossOrigin = 'anonymous';
-
-      // Connect audio element to Web Audio API
-      this.mediaSource = this.audioContext.createMediaElementSource(this.audioElement);
-      this.mediaSource.connect(this.gainNode);
 
       this.volume.subscribe(vol => {
         if (this.gainNode) {
@@ -51,7 +41,7 @@ class AudioService {
         await this.init();
       }
 
-      if (!this.audioContext || !this.audioElement) {
+      if (!this.audioContext || !this.gainNode) {
         console.warn('Audio system not ready');
         return;
       }
@@ -62,49 +52,60 @@ class AudioService {
         await this.audioContext.resume();
       }
 
-      console.log('Attempting to play audio...');
-      const playPromise = this.audioElement.play();
+      // Create calming meditation sounds using multiple oscillators
+      const frequencies = [
+        174.6, // F3 - grounding frequency
+        261.6, // C4 - root frequency
+        329.6, // E4 - harmonic
+      ];
 
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            console.log('Audio started playing successfully');
-            // Fade in
-            if (this.gainNode && this.audioContext) {
-              this.gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
-              this.gainNode.gain.linearRampToValueAtTime(
-                this.volume.value,
-                this.audioContext.currentTime + 2
-              );
-            }
-          })
-          .catch(error => {
-            console.error('Error playing audio:', error);
-          });
-      }
+      // Stop any existing oscillators
+      this.stopMusic();
+
+      frequencies.forEach((freq, index) => {
+        if (this.audioContext && this.gainNode) {
+          const oscillator = this.audioContext.createOscillator();
+          oscillator.type = index === 0 ? 'sine' : 'triangle';
+          oscillator.frequency.setValueAtTime(freq, this.audioContext.currentTime);
+
+          // Create individual gain node for each oscillator
+          const oscGain = this.audioContext.createGain();
+          oscGain.gain.setValueAtTime(0, this.audioContext.currentTime);
+          oscGain.gain.linearRampToValueAtTime(
+            0.15 / frequencies.length, // Divide by number of oscillators for balanced volume
+            this.audioContext.currentTime + 2
+          );
+
+          oscillator.connect(oscGain);
+          oscGain.connect(this.gainNode);
+          oscillator.start();
+          this.oscillators.push(oscillator);
+        }
+      });
+
+      console.log('Meditation sound started playing');
     } catch (error) {
-      console.error('Failed to start meditation music:', error);
+      console.error('Failed to start meditation sound:', error);
     }
   }
 
   stopMusic() {
-    if (this.audioElement && this.audioContext) {
-      // Fade out
-      if (this.gainNode) {
-        const currentTime = this.audioContext.currentTime;
-        this.gainNode.gain.setValueAtTime(this.gainNode.gain.value, currentTime);
-        this.gainNode.gain.linearRampToValueAtTime(0, currentTime + 0.5);
-      }
+    if (this.audioContext) {
+      const currentTime = this.audioContext.currentTime;
 
-      // Stop after fade out
-      setTimeout(() => {
-        if (this.audioElement) {
-          this.audioElement.pause();
-          this.audioElement.currentTime = 0;
+      // Fade out all oscillators
+      this.oscillators.forEach(osc => {
+        if (osc.frequency) {
+          const gainNode = osc.connect(this.audioContext!.createGain());
+          gainNode.gain.setValueAtTime(gainNode.gain.value, currentTime);
+          gainNode.gain.linearRampToValueAtTime(0, currentTime + 0.5);
+          osc.stop(currentTime + 0.5);
         }
-      }, 500);
+      });
 
-      console.log('Music stopped successfully');
+      // Clear oscillators array
+      this.oscillators = [];
+      console.log('Meditation sound stopped');
     }
   }
 
