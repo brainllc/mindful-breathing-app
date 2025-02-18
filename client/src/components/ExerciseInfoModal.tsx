@@ -61,7 +61,7 @@ export function ExerciseInfoModal({ exercise }: Props) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary gap-1">
+        <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80 gap-1">
           <Info className="w-4 h-4" />
           Learn about this exercise
         </Button>
@@ -100,7 +100,7 @@ export function ExerciseInfoModal({ exercise }: Props) {
             </div>
             <div className="grid grid-cols-2 gap-3 pl-7">
               {exercise.benefits.map((benefit, index) => (
-                <div 
+                <div
                   key={index}
                   className="p-3 rounded-lg border border-border/50 bg-muted/30 flex items-center gap-2"
                 >

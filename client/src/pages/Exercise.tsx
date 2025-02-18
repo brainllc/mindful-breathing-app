@@ -246,13 +246,11 @@ export default function Exercise() {
                 {exercise.description}
               </p>
               <div className="flex items-center justify-center gap-2 text-sm">
-                <div className="flex items-center text-foreground">
+                <div className="flex items-center text-muted-foreground">
                   <Clock className="w-4 h-4 mr-1" />
                   <span>{roundDuration}s per round</span>
                 </div>
-                <div className="text-primary hover:text-primary/80">
-                  <ExerciseInfoModal exercise={exercise} />
-                </div>
+                <ExerciseInfoModal exercise={exercise} />
               </div>
             </div>
 
