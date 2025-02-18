@@ -196,7 +196,7 @@ export default function Exercise() {
   const totalProgress = ((currentRound / totalRounds) + (phaseProgress / totalRounds)) * 100;
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background/95 to-background dark:from-primary/10 dark:via-background dark:to-background">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/15 via-background/90 to-background dark:from-primary/10 dark:via-background dark:to-background">
       <ThemeToggle />
       <SafetyDisclaimer 
         isOpen={showDisclaimer} 
