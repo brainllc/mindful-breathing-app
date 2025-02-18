@@ -93,11 +93,9 @@ export default function Exercise() {
       }
     }
 
+    // Cleanup function to stop audio when leaving the page
     return () => {
-      const scriptTag = document.querySelector('#structured-data');
-      if (scriptTag) {
-        scriptTag.remove();
-      }
+      audioService.stopMusic();
     };
   }, [exercise]);
 
@@ -272,7 +270,12 @@ export default function Exercise() {
                     {isStarted && (
                       <ControlsBar
                         rounds={totalRounds}
-                        onRoundsChange={setTotalRounds}
+                        onRoundsChange={(newRounds) => {
+                          // Prevent setting rounds below current round
+                          if (newRounds >= currentRound + 1) {
+                            setTotalRounds(newRounds);
+                          }
+                        }}
                         onPause={() => setIsPaused(!isPaused)}
                         onEndSession={() => {
                           setIsStarted(false);
