@@ -13,7 +13,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { ExerciseInfoModal } from "@/components/ExerciseInfoModal";
 import { ControlsBar } from "@/components/ControlsBar";
-import { audioService } from "@/lib/audio";
+import { AudioPlayer } from "@/components/AudioPlayer";
+//import { audioService } from "@/lib/audio"; // Removed audioService import
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function Exercise() {
@@ -114,28 +115,13 @@ export default function Exercise() {
     return <div>Exercise not found</div>;
   }
 
-  const handleStart = async () => {
+  const handleStart = () => {
     if (!hasAcceptedDisclaimer) {
       setShowDisclaimer(true);
       return;
     }
-
-    try {
-      setIsStarted(true);
-      setIsPaused(false);
-
-      // Initialize and play audio
-      await audioService.init();
-      await audioService.playMusic();
-    } catch (error) {
-      console.error('Exercise start error:', error);
-      // Continue with exercise even if audio fails
-      toast({
-        title: "Audio Issue",
-        description: "Click anywhere on the page to enable sound for meditation audio.",
-        variant: "destructive",
-      });
-    }
+    setIsStarted(true);
+    setIsPaused(false);
   };
 
   const handleDisclaimerAccept = () => {
@@ -166,7 +152,6 @@ export default function Exercise() {
 
   const handleRoundComplete = () => {
     if (currentRound + 1 >= totalRounds) {
-      // This is the last round, prepare for completion
       setIsStarted(false);
       setIsPaused(false);
       setCurrentRound(0);
@@ -179,16 +164,6 @@ export default function Exercise() {
 
   const handlePhaseProgress = (progress: number) => {
     setPhaseProgress(progress);
-
-    // Calculate remaining time in the exercise
-    const totalDuration = roundDuration * totalRounds;
-    const elapsedTime = (currentRound * roundDuration) + (progress * roundDuration);
-    const remainingTime = totalDuration - elapsedTime;
-
-    // If we're in the last 2 seconds of the exercise, start fading out
-    if (currentRound + 1 === totalRounds && remainingTime <= 2) {
-      audioService.prepareForCompletion(remainingTime);
-    }
   };
 
   const roundDuration = exercise.pattern.inhale + 
