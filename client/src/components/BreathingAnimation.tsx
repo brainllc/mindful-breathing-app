@@ -17,7 +17,7 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
     scale: number;
     opacity: number;
   }>({ scale: 1, opacity: 0.5 });
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<number | null>(null);
 
   // Get the duration for a given phase
   const getPhaseDuration = (phase: string) => {
@@ -40,23 +40,25 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
   useEffect(() => {
     if (!isActive) {
       if (timerRef.current) {
-        clearInterval(timerRef.current);
+        window.cancelAnimationFrame(timerRef.current);
         timerRef.current = null;
       }
       return;
     }
 
-    const startBreathing = async () => {
-      try {
-        await audioService.init();
-        await audioService.playMusic();
-      } catch (error) {
-        console.error('Failed to start meditation music:', error);
-      }
+    let lastTime = performance.now();
+    let accumulatedTime = 0;
 
-      timerRef.current = setInterval(() => {
+    const animate = (currentTime: number) => {
+      const deltaTime = (currentTime - lastTime) / 1000; // Convert to seconds
+      lastTime = currentTime;
+      accumulatedTime += deltaTime;
+
+      // Update every 16ms (approximately 60fps)
+      if (accumulatedTime >= 0.016) {
         setPhaseTimeLeft(current => {
-          const newTimeLeft = Math.max(0, current - 0.05);
+          const newTimeLeft = Math.max(0, current - accumulatedTime);
+          accumulatedTime = 0;
 
           // Calculate progress within the current phase
           const currentPhaseDuration = getPhaseDuration(phase);
@@ -117,14 +119,25 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
 
           return newTimeLeft;
         });
-      }, 50); // Update every 50ms for smooth animation
+      }
+
+      timerRef.current = window.requestAnimationFrame(animate);
     };
 
+    const startBreathing = async () => {
+      try {
+        await audioService.init();
+        await audioService.playMusic();
+      } catch (error) {
+        console.error('Failed to start meditation music:', error);
+      }
+      timerRef.current = window.requestAnimationFrame(animate);
+    };
     startBreathing();
 
     return () => {
       if (timerRef.current) {
-        clearInterval(timerRef.current);
+        window.cancelAnimationFrame(timerRef.current);
         timerRef.current = null;
       }
       audioService.stopMusic();
