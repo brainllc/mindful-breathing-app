@@ -147,12 +147,12 @@ export default function Exercise() {
     });
   };
 
-  const handleEmergencyStop = () => {
+  const handleEmergencyStop = async () => {
     setIsStarted(false);
     setIsPaused(false);
     setCurrentRound(0);
     setPhaseProgress(0);
-    audioService.stopMusic();
+    await audioService.stopMusic();
     toast({
       title: "Exercise Stopped",
       description: "Take a moment to rest. If you experience any discomfort, please seek medical attention.",
@@ -160,13 +160,13 @@ export default function Exercise() {
     });
   };
 
-  const handleRoundComplete = () => {
+  const handleRoundComplete = async () => {
     if (currentRound + 1 >= totalRounds) {
       setIsStarted(false);
       setIsPaused(false);
       setCurrentRound(0);
       setPhaseProgress(0);
-      audioService.stopMusic();
+      await audioService.stopMusic();
     } else {
       setCurrentRound(prev => prev + 1);
       setPhaseProgress(0);
