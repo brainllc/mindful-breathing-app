@@ -1,58 +1,59 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Volume2, VolumeX } from "lucide-react";
+import { audioService } from '@/lib/audio';
 
 interface AudioPlayerProps {
   isPlaying: boolean;
 }
 
 export function AudioPlayer({ isPlaying }: AudioPlayerProps) {
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [volume, setVolume] = useState(0.5);
+  const [volume, setVolume] = useState(audioService.getVolume());
   const [isMuted, setIsMuted] = useState(false);
+  const [prevVolume, setPrevVolume] = useState(volume);
 
+  // Subscribe to volume changes from the audio service
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = volume;
-    }
-  }, [volume]);
+    const subscription = audioService.onVolumeChange((newVolume) => {
+      setVolume(newVolume);
+    });
 
-  useEffect(() => {
-    if (!audioRef.current) return;
-    
-    if (isPlaying) {
-      const playPromise = audioRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          console.error("Audio playback failed:", error);
-        });
-      }
-    } else {
-      audioRef.current.pause();
-    }
-  }, [isPlaying]);
+    return () => subscription.unsubscribe();
+  }, []);
 
   const toggleMute = () => {
-    if (!audioRef.current) return;
-    audioRef.current.muted = !audioRef.current.muted;
-    setIsMuted(!isMuted);
+    if (isMuted) {
+      audioService.setVolume(prevVolume);
+      setIsMuted(false);
+    } else {
+      setPrevVolume(volume);
+      audioService.setVolume(0);
+      setIsMuted(true);
+    }
   };
+
+  const handleVolumeChange = (value: number[]) => {
+    const newVolume = value[0] / 100;
+    audioService.setVolume(newVolume);
+    if (newVolume > 0 && isMuted) {
+      setIsMuted(false);
+    }
+  };
+
+  useEffect(() => {
+    audioService.setIsPlaying(isPlaying);
+  }, [isPlaying]);
+
 
   return (
     <div className="fixed bottom-4 right-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4 rounded-lg shadow-lg border flex items-center gap-4 z-50">
-      <audio
-        ref={audioRef}
-        src="/meditation.mp3"
-        loop
-        preload="auto"
-        controls={false}
-      />
       <Button
         variant="ghost"
         size="icon"
         onClick={toggleMute}
         className="h-8 w-8"
+        title={isMuted ? "Unmute" : "Mute"}
       >
         {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
       </Button>
@@ -62,7 +63,8 @@ export function AudioPlayer({ isPlaying }: AudioPlayerProps) {
           min={0}
           max={100}
           step={1}
-          onValueChange={(value) => setVolume(value[0] / 100)}
+          onValueChange={handleVolumeChange}
+          aria-label="Adjust volume"
         />
       </div>
     </div>
