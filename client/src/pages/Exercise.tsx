@@ -121,6 +121,7 @@ export default function Exercise() {
     }
 
     try {
+      console.log('Starting exercise...');
       setIsStarted(true);
       setIsPaused(false);
       await audioService.playMusic();

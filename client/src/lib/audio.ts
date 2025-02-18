@@ -14,26 +14,39 @@ class AudioService {
     if (this.isInitialized) return;
 
     try {
-      this.audioElement = new Audio('/meditation.mp3');
+      console.log("Initializing audio service...");
+      this.audioElement = new Audio('./meditation.mp3');
 
-      // Add event listeners for better debugging
+      // Add comprehensive error handling
       this.audioElement.addEventListener('error', (e) => {
-        console.error('Audio element error:', e);
+        const error = e.target as HTMLAudioElement;
+        console.error('Audio element error:', {
+          error: error.error,
+          networkState: error.networkState,
+          readyState: error.readyState,
+          src: error.src
+        });
+      });
+
+      this.audioElement.addEventListener('loadstart', () => {
+        console.log('Audio file loading started');
       });
 
       this.audioElement.addEventListener('loadeddata', () => {
         console.log('Audio file loaded successfully');
       });
 
-      // Reset the playback rate to normal
-      this.audioElement.playbackRate = 1.0;
+      this.audioElement.addEventListener('canplay', () => {
+        console.log('Audio is ready to play');
+      });
+
       // Enable looping
       this.audioElement.loop = true;
       // Set initial volume
       this.audioElement.volume = this.volume.value;
 
       this.isInitialized = true;
-      console.log('Audio service initialized successfully');
+      console.log('Audio service initialized');
     } catch (error) {
       console.error('Failed to initialize audio service:', error);
     }
@@ -42,6 +55,7 @@ class AudioService {
   async playMusic() {
     try {
       if (!this.isInitialized) {
+        console.log('Reinitializing audio service...');
         this.initialize();
       }
 
@@ -54,6 +68,7 @@ class AudioService {
         this.audioElement.currentTime = 0;
       }
 
+      console.log('Attempting to play audio...');
       // In Chrome, audio won't play until there's user interaction
       const playPromise = this.audioElement.play();
       if (playPromise !== undefined) {
