@@ -15,18 +15,24 @@ class AudioService {
     }
 
     try {
-      this.audioElement = new Audio();
-      this.audioElement.src = '/meditation.mp3';
+      // Create audio element with absolute path
+      const audioPath = window.location.origin + '/meditation.mp3';
+      console.log('Attempting to load audio from:', audioPath);
+
+      this.audioElement = new Audio(audioPath);
       this.audioElement.loop = true;
       this.audioElement.volume = this.volume.value;
-
-      // Force preload
       this.audioElement.preload = 'auto';
+
+      // Test audio format support
+      const canPlay = this.audioElement.canPlayType('audio/mpeg');
+      console.log('Browser can play MP3:', canPlay);
 
       await new Promise((resolve, reject) => {
         if (!this.audioElement) return reject('No audio element');
 
         const timeoutId = setTimeout(() => {
+          console.error('Audio loading timed out');
           reject(new Error('Audio loading timed out'));
         }, 5000);
 
@@ -39,15 +45,18 @@ class AudioService {
 
         const handleError = (e: Event) => {
           clearTimeout(timeoutId);
-          console.error('Audio loading error:', e);
+          const error = e instanceof ErrorEvent ? e.message : 'Unknown error';
+          console.error('Audio loading error:', error);
+          if (this.audioElement?.error) {
+            console.error('MediaError code:', this.audioElement.error.code);
+            console.error('MediaError message:', this.audioElement.error.message);
+          }
           this.audioElement?.removeEventListener('error', handleError);
           reject(new Error('Failed to load audio file'));
         };
 
         this.audioElement.addEventListener('canplay', handleCanPlay);
         this.audioElement.addEventListener('error', handleError);
-
-        // Start loading
         this.audioElement.load();
       });
 

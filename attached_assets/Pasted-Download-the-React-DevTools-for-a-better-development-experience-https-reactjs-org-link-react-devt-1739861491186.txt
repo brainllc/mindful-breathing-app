@@ -1,0 +1,142 @@
+Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+audio.ts:9 Audio service created
+chunk-WERSD76P.js?v=f0a910a1:521 Warning: validateDOMNesting(...): <p> cannot appear as a descendant of <p>.
+    at p
+    at div
+    at p
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RDHMCQ3E.js?v=f0a910a1:41:13
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-HUQ73YIP.js?v=f0a910a1:1326:13
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=f0a910a1:128:11
+    at _c9 (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/src/components/ui/alert-dialog.tsx:148:12)
+    at Slottable (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-TQG5UYZM.js?v=f0a910a1:64:20)
+    at div
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RDHMCQ3E.js?v=f0a910a1:41:13
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-YVUCVALL.js?v=f0a910a1:59:7
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-TQG5UYZM.js?v=f0a910a1:52:11
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-TQG5UYZM.js?v=f0a910a1:33:11
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RDHMCQ3E.js?v=f0a910a1:41:13
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-HUQ73YIP.js?v=f0a910a1:52:5
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-HUQ73YIP.js?v=f0a910a1:1278:13
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-HUQ73YIP.js?v=f0a910a1:1201:58
+    at Presence (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-ICJYMBXH.js?v=f0a910a1:24:11)
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-HUQ73YIP.js?v=f0a910a1:1192:64
+    at Provider (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-4RVVHOT3.js?v=f0a910a1:48:15)
+    at Provider (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-4RVVHOT3.js?v=f0a910a1:27:13)
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=f0a910a1:81:13
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-TQG5UYZM.js?v=f0a910a1:52:11
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-TQG5UYZM.js?v=f0a910a1:33:11
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RDHMCQ3E.js?v=f0a910a1:41:13
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-YVUCVALL.js?v=f0a910a1:258:22
+    at Presence (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-ICJYMBXH.js?v=f0a910a1:24:11)
+    at Provider (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-4RVVHOT3.js?v=f0a910a1:48:15)
+    at DialogPortal (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-HUQ73YIP.js?v=f0a910a1:1155:11)
+    at AlertDialogPortal (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=f0a910a1:63:11)
+    at _c3 (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/src/components/ui/alert-dialog.tsx:48:12)
+    at Provider (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-4RVVHOT3.js?v=f0a910a1:48:15)
+    at Dialog (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-HUQ73YIP.js?v=f0a910a1:1096:5)
+    at AlertDialog (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=f0a910a1:47:11)
+    at SafetyDisclaimer (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/src/components/SafetyDisclaimer.tsx:29:36)
+    at div
+    at Exercise (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/src/pages/Exercise.tsx:37:22)
+    at Route (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=f0a910a1:323:16)
+    at Switch (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=f0a910a1:379:17)
+    at Router
+    at QueryClientProvider (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=f0a910a1:2805:3)
+    at App
+printWarning @ chunk-WERSD76P.js?v=f0a910a1:521Understand this errorAI
+chunk-WERSD76P.js?v=f0a910a1:521 Warning: validateDOMNesting(...): <ul> cannot appear as a descendant of <p>.
+    at ul
+    at div
+    at div
+    at p
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RDHMCQ3E.js?v=f0a910a1:41:13
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-HUQ73YIP.js?v=f0a910a1:1326:13
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=f0a910a1:128:11
+    at _c9 (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/src/components/ui/alert-dialog.tsx:148:12)
+    at Slottable (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-TQG5UYZM.js?v=f0a910a1:64:20)
+    at div
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RDHMCQ3E.js?v=f0a910a1:41:13
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-YVUCVALL.js?v=f0a910a1:59:7
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-TQG5UYZM.js?v=f0a910a1:52:11
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-TQG5UYZM.js?v=f0a910a1:33:11
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RDHMCQ3E.js?v=f0a910a1:41:13
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-HUQ73YIP.js?v=f0a910a1:52:5
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-HUQ73YIP.js?v=f0a910a1:1278:13
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-HUQ73YIP.js?v=f0a910a1:1201:58
+    at Presence (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-ICJYMBXH.js?v=f0a910a1:24:11)
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-HUQ73YIP.js?v=f0a910a1:1192:64
+    at Provider (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-4RVVHOT3.js?v=f0a910a1:48:15)
+    at Provider (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-4RVVHOT3.js?v=f0a910a1:27:13)
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=f0a910a1:81:13
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-TQG5UYZM.js?v=f0a910a1:52:11
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-TQG5UYZM.js?v=f0a910a1:33:11
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RDHMCQ3E.js?v=f0a910a1:41:13
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-YVUCVALL.js?v=f0a910a1:258:22
+    at Presence (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-ICJYMBXH.js?v=f0a910a1:24:11)
+    at Provider (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-4RVVHOT3.js?v=f0a910a1:48:15)
+    at DialogPortal (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-HUQ73YIP.js?v=f0a910a1:1155:11)
+    at AlertDialogPortal (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=f0a910a1:63:11)
+    at _c3 (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/src/components/ui/alert-dialog.tsx:48:12)
+    at Provider (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-4RVVHOT3.js?v=f0a910a1:48:15)
+    at Dialog (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-HUQ73YIP.js?v=f0a910a1:1096:5)
+    at AlertDialog (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=f0a910a1:47:11)
+    at SafetyDisclaimer (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/src/components/SafetyDisclaimer.tsx:29:36)
+    at div
+    at Exercise (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/src/pages/Exercise.tsx:37:22)
+    at Route (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=f0a910a1:323:16)
+    at Switch (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=f0a910a1:379:17)
+    at Router
+    at QueryClientProvider (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=f0a910a1:2805:3)
+    at App
+printWarning @ chunk-WERSD76P.js?v=f0a910a1:521Understand this errorAI
+chunk-WERSD76P.js?v=f0a910a1:521 Warning: validateDOMNesting(...): <div> cannot appear as a descendant of <p>.
+    at div
+    at div
+    at p
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RDHMCQ3E.js?v=f0a910a1:41:13
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-HUQ73YIP.js?v=f0a910a1:1326:13
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=f0a910a1:128:11
+    at _c9 (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/src/components/ui/alert-dialog.tsx:148:12)
+    at Slottable (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-TQG5UYZM.js?v=f0a910a1:64:20)
+    at div
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RDHMCQ3E.js?v=f0a910a1:41:13
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-YVUCVALL.js?v=f0a910a1:59:7
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-TQG5UYZM.js?v=f0a910a1:52:11
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-TQG5UYZM.js?v=f0a910a1:33:11
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RDHMCQ3E.js?v=f0a910a1:41:13
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-HUQ73YIP.js?v=f0a910a1:52:5
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-HUQ73YIP.js?v=f0a910a1:1278:13
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-HUQ73YIP.js?v=f0a910a1:1201:58
+    at Presence (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-ICJYMBXH.js?v=f0a910a1:24:11)
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-HUQ73YIP.js?v=f0a910a1:1192:64
+    at Provider (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-4RVVHOT3.js?v=f0a910a1:48:15)
+    at Provider (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-4RVVHOT3.js?v=f0a910a1:27:13)
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=f0a910a1:81:13
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-TQG5UYZM.js?v=f0a910a1:52:11
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-TQG5UYZM.js?v=f0a910a1:33:11
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RDHMCQ3E.js?v=f0a910a1:41:13
+    at https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-YVUCVALL.js?v=f0a910a1:258:22
+    at Presence (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-ICJYMBXH.js?v=f0a910a1:24:11)
+    at Provider (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-4RVVHOT3.js?v=f0a910a1:48:15)
+    at DialogPortal (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-HUQ73YIP.js?v=f0a910a1:1155:11)
+    at AlertDialogPortal (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=f0a910a1:63:11)
+    at _c3 (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/src/components/ui/alert-dialog.tsx:48:12)
+    at Provider (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-4RVVHOT3.js?v=f0a910a1:48:15)
+    at Dialog (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-HUQ73YIP.js?v=f0a910a1:1096:5)
+    at AlertDialog (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=f0a910a1:47:11)
+    at SafetyDisclaimer (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/src/components/SafetyDisclaimer.tsx:29:36)
+    at div
+    at Exercise (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/src/pages/Exercise.tsx:37:22)
+    at Route (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=f0a910a1:323:16)
+    at Switch (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=f0a910a1:379:17)
+    at Router
+    at QueryClientProvider (https://a30d42ed-15eb-446f-a888-2599a398fa03-00-3htu73w8iwb64.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=f0a910a1:2805:3)
+    at App
+printWarning @ chunk-WERSD76P.js?v=f0a910a1:521Understand this errorAI
+audio.ts:42 Audio loading error: Event
+handleError @ audio.ts:42Understand this errorAI
+audio.ts:57 Audio initialization failed: Error: Failed to load audio file
+    at Audio.handleError (audio.ts:44:18)
+init @ audio.ts:57Understand this errorAI
+Exercise.tsx:157 Failed to start audio: Error: Failed to load audio file
+    at Audio.handleError (audio.ts:44:18)
