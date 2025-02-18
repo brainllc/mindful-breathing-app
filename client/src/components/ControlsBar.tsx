@@ -28,77 +28,6 @@ export function ControlsBar({ rounds, onRoundsChange, onPause, onEndSession }: P
     audioService.setVolume(isMuted ? volume : 0);
   };
 
-  const ControlsContent = () => (
-    <>
-      <div className="space-y-6 w-full">
-        <div className="space-y-2">
-          <div className="text-sm font-medium text-muted-foreground text-center">Number of Rounds</div>
-          <div className="flex items-center gap-4 w-full justify-center">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onRoundsChange(Math.max(1, rounds - 1))}
-              className="h-8 w-8"
-            >
-              <Minus className="h-4 w-4" />
-            </Button>
-            <span className="text-lg font-medium min-w-[4ch] text-center">{rounds}</span>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onRoundsChange(Math.min(50, rounds + 1))}
-              className="h-8 w-8"
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <div className="text-sm font-medium text-muted-foreground">Volume</div>
-          <div className="flex items-center gap-2 w-full justify-center">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleMute}
-              className="text-primary hover:text-primary/80"
-            >
-              {isMuted ? (
-                <VolumeX className="h-4 w-4" />
-              ) : (
-                <Volume2 className="h-4 w-4" />
-              )}
-            </Button>
-            <Slider
-              defaultValue={[volume]}
-              max={1}
-              step={0.01}
-              onValueChange={handleVolumeChange}
-              className="flex-1"
-            />
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4 w-full justify-center">
-          <Button 
-            variant="outline"
-            size="sm"
-            onClick={onPause}
-          >
-            Pause
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onEndSession}
-          >
-            End Session
-          </Button>
-        </div>
-      </div>
-    </>
-  );
-
   return (
     <>
       {/* Mobile View */}
@@ -110,7 +39,72 @@ export function ControlsBar({ rounds, onRoundsChange, onPause, onEndSession }: P
             </Button>
           </SheetTrigger>
           <SheetContent side="bottom" className="px-4 py-6">
-            <ControlsContent />
+            <div className="space-y-6 w-full">
+              <div className="space-y-2">
+                <div className="text-sm font-medium text-muted-foreground text-center">Number of Rounds</div>
+                <div className="flex items-center gap-4 w-full justify-center">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onRoundsChange(Math.max(1, rounds - 1))}
+                    className="h-8 w-8"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <span className="text-lg font-medium min-w-[4ch] text-center">{rounds}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onRoundsChange(Math.min(50, rounds + 1))}
+                    className="h-8 w-8"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="text-sm font-medium text-muted-foreground">Volume</div>
+                <div className="flex items-center gap-2 w-full justify-center">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleMute}
+                    className="text-primary hover:text-primary/80"
+                  >
+                    {isMuted ? (
+                      <VolumeX className="h-4 w-4" />
+                    ) : (
+                      <Volume2 className="h-4 w-4" />
+                    )}
+                  </Button>
+                  <Slider
+                    defaultValue={[volume]}
+                    max={1}
+                    step={0.01}
+                    onValueChange={handleVolumeChange}
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 w-full justify-center">
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={onPause}
+                >
+                  Pause
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onEndSession}
+                >
+                  End Session
+                </Button>
+              </div>
+            </div>
           </SheetContent>
         </Sheet>
       </div>
