@@ -121,28 +121,25 @@ export default function Exercise() {
     }
 
     try {
-      // Initialize audio early but don't wait for it
-      audioService.init().catch(error => {
-        console.error('Audio initialization failed:', error);
-        toast({
-          title: "Audio Error",
-          description: "Failed to initialize audio. You may need to allow audio playback in your browser settings.",
-          variant: "destructive",
-        });
-      });
-
       // Start the exercise immediately
       setIsStarted(true);
       setIsPaused(false);
 
-      // Try to start the audio
-      audioService.playMusic().catch(error => {
-        console.error('Audio playback failed:', error);
-        // Exercise continues even if audio fails
-      });
+      // Initialize and start audio
+      try {
+        await audioService.init();
+        await audioService.playMusic();
+      } catch (error) {
+        console.error('Audio setup failed:', error);
+        toast({
+          title: "Audio Notice",
+          description: "Please click anywhere on the page to enable meditation audio.",
+          duration: 5000,
+        });
+      }
     } catch (error) {
       console.error('Exercise start error:', error);
-      // Still start the exercise even if there's an audio error
+      // Continue with exercise even if audio fails
       setIsStarted(true);
       setIsPaused(false);
     }
@@ -153,17 +150,22 @@ export default function Exercise() {
     setShowDisclaimer(false);
 
     try {
-      await audioService.init();
-      await audioService.playMusic();
       setIsStarted(true);
+
+      // Try to initialize audio after user interaction
+      try {
+        await audioService.init();
+        await audioService.playMusic();
+      } catch (error) {
+        console.error('Audio setup failed:', error);
+        toast({
+          title: "Audio Notice",
+          description: "Click anywhere on the page to enable meditation audio.",
+          duration: 5000,
+        });
+      }
     } catch (error) {
-      console.error('Failed to initialize audio:', error);
-      toast({
-        title: "Audio Error",
-        description: "Failed to initialize audio. You may need to allow audio playback in your browser settings.",
-        variant: "destructive",
-      });
-      // Continue with the exercise even without audio
+      console.error('Exercise start error:', error);
       setIsStarted(true);
     }
   };

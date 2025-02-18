@@ -13,58 +13,76 @@ class AudioService {
     console.log('Audio service created');
   }
 
-  private async createAudioContext() {
-    if (!this.audioContext) {
-      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      console.log('AudioContext created:', this.audioContext.state);
+  private async waitForUserInteraction(): Promise<void> {
+    // Return immediately if the document is already interacted with
+    if (document.querySelector('body')?.classList.contains('user-interacted')) {
+      return;
     }
 
-    if (this.audioContext.state === 'suspended') {
-      await this.audioContext.resume();
-      console.log('AudioContext resumed');
-    }
+    return new Promise((resolve) => {
+      const handleInteraction = () => {
+        document.querySelector('body')?.classList.add('user-interacted');
+        document.removeEventListener('click', handleInteraction);
+        document.removeEventListener('touchstart', handleInteraction);
+        resolve();
+      };
+
+      document.addEventListener('click', handleInteraction);
+      document.addEventListener('touchstart', handleInteraction);
+    });
   }
 
   async init() {
     if (this.initialized) {
-      console.log('Audio service already initialized');
       return;
     }
 
     try {
-      await this.createAudioContext();
-      console.log('Setting up audio nodes...');
+      // Wait for user interaction before creating AudioContext
+      await this.waitForUserInteraction();
 
-      this.gainNode = this.audioContext!.createGain();
-      this.gainNode.connect(this.audioContext!.destination);
-      this.gainNode.gain.value = 0; // Start silent
+      // Create AudioContext
+      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
 
+      if (this.audioContext.state === 'suspended') {
+        await this.audioContext.resume();
+      }
+
+      // Create and configure audio element
       this.audioElement = new Audio();
       this.audioElement.src = '/meditation.mp3';
       this.audioElement.loop = true;
 
-      this.mediaSource = this.audioContext!.createMediaElementSource(this.audioElement);
+      // Create gain node
+      this.gainNode = this.audioContext.createGain();
+      this.gainNode.connect(this.audioContext.destination);
+      this.gainNode.gain.value = 0; // Start silent
+
+      // Create media source
+      this.mediaSource = this.audioContext.createMediaElementSource(this.audioElement);
       this.mediaSource.connect(this.gainNode);
 
       this.initialized = true;
-      console.log('Audio service initialized');
-
+      console.log('Audio service initialized successfully');
     } catch (error) {
       console.error('Audio initialization failed:', error);
       this.initialized = false;
-      throw error;
+      throw new Error(`Failed to initialize audio: ${error.message}`);
     }
   }
 
   async playMusic() {
-    if (!this.initialized || !this.audioElement || !this.audioContext || !this.gainNode) {
-      console.error('Cannot play: Audio system not initialized');
-      return;
-    }
-
     try {
+      if (!this.initialized) {
+        await this.init();
+      }
+
+      if (!this.audioContext || !this.audioElement || !this.gainNode) {
+        throw new Error('Audio system not fully initialized');
+      }
+
       // Ensure context is running
-      if (this.audioContext.state !== 'running') {
+      if (this.audioContext.state === 'suspended') {
         await this.audioContext.resume();
       }
 
@@ -74,7 +92,7 @@ class AudioService {
         this.fadeOutTimeout = null;
       }
 
-      // Start playing
+      // Play audio
       await this.audioElement.play();
 
       // Fade in
@@ -85,9 +103,9 @@ class AudioService {
         this.audioContext.currentTime + 2
       );
 
-      console.log('Audio playback started');
+      console.log('Audio playback started successfully');
     } catch (error) {
-      console.error('Playback failed:', error);
+      console.error('Audio playback failed:', error);
       throw error;
     }
   }
