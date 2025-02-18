@@ -223,8 +223,8 @@ export default function Exercise() {
 
           {!isStarted && (
             <div className="flex justify-center">
-              <Alert className="mb-8 border-yellow-500/50 bg-yellow-500/10 inline-flex w-auto">
-                <AlertDescription className="text-sm text-yellow-500">
+              <Alert className="mb-8 border-yellow-600/50 bg-yellow-50/50 dark:bg-yellow-500/10 dark:border-yellow-500/50 inline-flex w-auto">
+                <AlertDescription className="text-sm text-yellow-800 dark:text-yellow-500 flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4" />
                   Please stop immediately if you experience any discomfort. 
                   These exercises are not a substitute for medical advice.
