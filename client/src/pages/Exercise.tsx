@@ -121,19 +121,14 @@ export default function Exercise() {
     }
 
     try {
-      audioService.init();
-      await audioService.playMusic();
       setIsStarted(true);
       setIsPaused(false);
+      await audioService.playMusic();
     } catch (error) {
       console.error('Exercise start error:', error);
+      // Continue exercise even if audio fails, but don't prompt for clicking
       setIsStarted(true);
       setIsPaused(false);
-      toast({
-        title: "Audio Issue",
-        description: "Click anywhere on the page to enable sound for meditation audio.",
-        variant: "destructive",
-      });
     }
   };
 

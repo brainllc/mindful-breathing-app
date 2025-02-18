@@ -3,30 +3,24 @@ import { BehaviorSubject } from 'rxjs';
 class AudioService {
   private volume = new BehaviorSubject<number>(0.5);
   private audioElement: HTMLAudioElement | null = null;
-  private initialized = false;
 
   constructor() {
     console.log('Audio service created');
-  }
-
-  init() {
-    if (this.initialized && this.audioElement) {
-      return;
-    }
-
+    // Create audio element immediately but don't play
     this.audioElement = new Audio('/meditation.mp3');
     this.audioElement.loop = true;
     this.audioElement.volume = this.volume.value;
-    this.initialized = true;
   }
 
   async playMusic() {
     try {
-      if (!this.initialized || !this.audioElement) {
-        this.init();
+      if (!this.audioElement) {
+        this.audioElement = new Audio('/meditation.mp3');
+        this.audioElement.loop = true;
+        this.audioElement.volume = this.volume.value;
       }
 
-      await this.audioElement?.play();
+      await this.audioElement.play();
     } catch (error) {
       console.error('Audio playback failed:', error);
       throw error;
@@ -36,6 +30,7 @@ class AudioService {
   stopMusic() {
     if (!this.audioElement) return;
     this.audioElement.pause();
+    this.audioElement.currentTime = 0;
   }
 
   setVolume(value: number) {
