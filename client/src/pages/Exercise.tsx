@@ -122,6 +122,7 @@ export default function Exercise() {
 
     try {
       await audioService.init();
+      await audioService.playMusic();
       setIsStarted(true);
       setIsPaused(false);
     } catch (error) {
@@ -142,6 +143,7 @@ export default function Exercise() {
 
     try {
       await audioService.init();
+      await audioService.playMusic();
       setIsStarted(true);
     } catch (error) {
       console.error('Failed to initialize audio:', error);
