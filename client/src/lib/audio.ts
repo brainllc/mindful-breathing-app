@@ -17,7 +17,7 @@ class AudioService {
     try {
       // First verify the audio file is accessible
       const audioPath = '/meditation.mp3';
-      console.log('Checking audio file availability at:', audioPath);
+      console.log('Attempting to load audio from:', audioPath);
 
       const response = await fetch(audioPath);
       if (!response.ok) {
@@ -26,17 +26,21 @@ class AudioService {
       console.log('Audio file is accessible');
 
       // Create new audio element
-      this.audioElement = new Audio(audioPath);
-      this.audioElement.loop = true;
-      this.audioElement.volume = this.volume.value;
-      this.audioElement.preload = 'auto';
+      this.audioElement = new Audio();
+      this.audioElement.crossOrigin = "anonymous";
 
       // Test if browser supports MP3
       const canPlayType = this.audioElement.canPlayType('audio/mpeg');
-      console.log('Browser MP3 support:', canPlayType);
+      console.log('Browser can play MP3:', canPlayType);
       if (!canPlayType) {
         throw new Error('Browser does not support MP3 audio');
       }
+
+      // Set properties after testing support
+      this.audioElement.src = audioPath;
+      this.audioElement.loop = true;
+      this.audioElement.volume = this.volume.value;
+      this.audioElement.preload = 'auto';
 
       // Load the audio file
       await new Promise((resolve, reject) => {
@@ -45,7 +49,11 @@ class AudioService {
         this.audioElement.onerror = (e) => {
           const error = e instanceof ErrorEvent ? e.message : 'Unknown error';
           console.error('Audio error:', error);
-          reject(new Error(`Audio load failed: ${error}`));
+          if (this.audioElement?.error) {
+            console.error('MediaError code:', this.audioElement.error.code);
+            console.error('MediaError message:', this.audioElement.error.message);
+          }
+          reject(new Error(`Failed to load audio file`));
         };
 
         this.audioElement.oncanplaythrough = () => {
