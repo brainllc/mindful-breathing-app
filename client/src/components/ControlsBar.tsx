@@ -32,7 +32,7 @@ export function ControlsBar({ rounds, onRoundsChange, onPause, onEndSession }: P
     <>
       <div className="space-y-6 w-full">
         <div className="space-y-2">
-          <div className="text-sm font-medium text-muted-foreground">Number of Rounds</div>
+          <div className="text-sm font-medium text-muted-foreground text-center">Number of Rounds</div>
           <div className="flex items-center gap-4 w-full justify-center">
             <Button
               variant="ghost"
@@ -102,7 +102,7 @@ export function ControlsBar({ rounds, onRoundsChange, onPause, onEndSession }: P
   return (
     <>
       {/* Mobile View */}
-      <div className="md:hidden fixed bottom-8 right-4">
+      <div className="md:hidden fixed bottom-8 left-1/2 -translate-x-1/2">
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild>
             <Button size="icon" className="rounded-full shadow-lg">
