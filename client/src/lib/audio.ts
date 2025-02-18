@@ -113,6 +113,41 @@ class AudioService {
     }
   }
 
+  async pauseMusic() {
+    if (!this.audioElement || !this.gainNode) return;
+
+    try {
+      // Fade out before pausing
+      await this.fadeGain(this.gainNode.gain.value, 0, this.fadeOutDuration);
+      this.audioElement.pause();
+      console.log('Audio playback paused with fade out');
+    } catch (error) {
+      console.error('Error pausing audio:', error);
+      // If fade fails, pause immediately
+      this.audioElement.pause();
+    }
+  }
+
+  async resumeMusic() {
+    if (!this.audioElement || !this.gainNode || !this.audioContext) return;
+
+    try {
+      if (this.audioContext.state === 'suspended') {
+        await this.audioContext.resume();
+      }
+
+      const playPromise = this.audioElement.play();
+      if (playPromise !== undefined) {
+        await playPromise;
+        // Fade in from current position
+        await this.fadeGain(0, this.volume.value, this.fadeInDuration);
+        console.log('Audio playback resumed with fade in');
+      }
+    } catch (error) {
+      console.error('Error resuming audio:', error);
+    }
+  }
+
   async stopMusic() {
     if (!this.audioElement || !this.gainNode) return;
 

@@ -131,6 +131,17 @@ export default function Exercise() {
     }
   };
 
+  const handlePause = async () => {
+    if (isPaused) {
+      // Resume the exercise
+      await audioService.resumeMusic();
+    } else {
+      // Pause the exercise
+      await audioService.pauseMusic();
+    }
+    setIsPaused(!isPaused);
+  };
+
   const handleDisclaimerAccept = () => {
     setHasAcceptedDisclaimer(true);
     setShowDisclaimer(false);
@@ -276,7 +287,7 @@ export default function Exercise() {
                             setTotalRounds(newRounds);
                           }
                         }}
-                        onPause={() => setIsPaused(!isPaused)}
+                        onPause={handlePause}
                         onEndSession={() => {
                           setIsStarted(false);
                           setCurrentRound(0);
