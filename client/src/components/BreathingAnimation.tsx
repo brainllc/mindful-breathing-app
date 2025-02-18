@@ -17,7 +17,7 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
     scale: number;
     opacity: number;
   }>({ scale: 1, opacity: 0.5 });
-  const timerRef = useRef<number | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Get the duration for a given phase
   const getPhaseDuration = (phase: string) => {
@@ -30,117 +30,94 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
   };
 
   // Calculate total duration of the current phase sequence
-  const phaseSequenceDuration = (() => {
-    let duration = exercise.pattern.inhale;
-    if (exercise.pattern.hold) duration += exercise.pattern.hold;
-    duration += exercise.pattern.exhale;
-    return duration;
-  })();
+  const phaseSequenceDuration = exercise.pattern.inhale + 
+    (exercise.pattern.hold || 0) + 
+    exercise.pattern.exhale;
 
   useEffect(() => {
     if (!isActive) {
-      if (timerRef.current) {
-        window.cancelAnimationFrame(timerRef.current);
-        timerRef.current = null;
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
       return;
     }
 
-    let lastTime = performance.now();
-    let accumulatedTime = 0;
+    const updateInterval = 50; // Update every 50ms
+    const stepSize = updateInterval / 1000; // Convert to seconds
 
-    const animate = (currentTime: number) => {
-      const deltaTime = (currentTime - lastTime) / 1000; // Convert to seconds
-      lastTime = currentTime;
-      accumulatedTime += deltaTime;
+    intervalRef.current = setInterval(() => {
+      setPhaseTimeLeft(current => {
+        const newTimeLeft = Math.max(0, current - stepSize);
 
-      // Update every 16ms (approximately 60fps)
-      if (accumulatedTime >= 0.016) {
-        setPhaseTimeLeft(current => {
-          const newTimeLeft = Math.max(0, current - accumulatedTime);
-          accumulatedTime = 0;
+        // Calculate progress within the current phase
+        const currentPhaseDuration = getPhaseDuration(phase);
+        const elapsedInCurrentPhase = currentPhaseDuration - newTimeLeft;
 
-          // Calculate progress within the current phase
-          const currentPhaseDuration = getPhaseDuration(phase);
-          const elapsedInCurrentPhase = currentPhaseDuration - newTimeLeft;
+        // Update animation reference based on the current phase
+        if (phase === "inhale") {
+          animationRef.current = {
+            scale: 1 + (0.5 * (elapsedInCurrentPhase / exercise.pattern.inhale)),
+            opacity: 0.5 + (0.5 * (elapsedInCurrentPhase / exercise.pattern.inhale))
+          };
+        } else if (phase === "hold") {
+          animationRef.current = {
+            scale: 1.5,
+            opacity: 1
+          };
+        } else if (phase === "exhale") {
+          animationRef.current = {
+            scale: 1.5 - (0.5 * (elapsedInCurrentPhase / exercise.pattern.exhale)),
+            opacity: 1 - (0.5 * (elapsedInCurrentPhase / exercise.pattern.exhale))
+          };
+        }
 
-          // Update animation reference based on the current phase
-          if (phase === "inhale") {
-            animationRef.current = {
-              scale: 1 + (0.5 * (elapsedInCurrentPhase / exercise.pattern.inhale)),
-              opacity: 0.5 + (0.5 * (elapsedInCurrentPhase / exercise.pattern.inhale))
-            };
-          } else if (phase === "hold") {
-            animationRef.current = {
-              scale: 1.5,
-              opacity: 1
-            };
-          } else if (phase === "exhale") {
-            animationRef.current = {
-              scale: 1.5 - (0.5 * (elapsedInCurrentPhase / exercise.pattern.exhale)),
-              opacity: 1 - (0.5 * (elapsedInCurrentPhase / exercise.pattern.exhale))
-            };
+        // Calculate total progress through the phase sequence
+        let progressThroughSequence = (() => {
+          switch (phase) {
+            case "inhale": 
+              return elapsedInCurrentPhase;
+            case "hold": 
+              return exercise.pattern.inhale + elapsedInCurrentPhase;
+            case "exhale": 
+              return exercise.pattern.inhale + (exercise.pattern.hold || 0) + elapsedInCurrentPhase;
+            default: 
+              return 0;
           }
+        })();
 
-          // Calculate total progress through the phase sequence
-          let progressThroughSequence = (() => {
+        // Send normalized progress (0-1)
+        onPhaseProgress(progressThroughSequence / phaseSequenceDuration);
+
+        if (newTimeLeft === 0) {
+          // Determine next phase
+          const nextPhase = (() => {
             switch (phase) {
-              case "inhale": 
-                return elapsedInCurrentPhase;
-              case "hold": 
-                return exercise.pattern.inhale + elapsedInCurrentPhase;
-              case "exhale": 
-                return exercise.pattern.inhale + (exercise.pattern.hold || 0) + elapsedInCurrentPhase;
-              default: 
-                return 0;
+              case "inhale": return exercise.pattern.hold ? "hold" : "exhale";
+              case "hold": return "exhale";
+              case "exhale": return "inhale";
             }
           })();
 
-          // Send normalized progress (0-1)
-          onPhaseProgress(progressThroughSequence / phaseSequenceDuration);
+          setPhase(nextPhase);
 
-          if (newTimeLeft === 0) {
-            const nextPhase = (() => {
-              switch (phase) {
-                case "inhale": return exercise.pattern.hold ? "hold" : "exhale";
-                case "hold": return "exhale";
-                case "exhale": return "inhale";
-              }
-            })();
-
-            setPhase(nextPhase);
-
-            if (nextPhase === "inhale" && phase === "exhale") {
-              onRoundComplete();
-            }
-
-            return getPhaseDuration(nextPhase);
+          // If we're completing a full cycle
+          if (nextPhase === "inhale" && phase === "exhale") {
+            onRoundComplete();
           }
 
-          return newTimeLeft;
-        });
-      }
+          return getPhaseDuration(nextPhase);
+        }
 
-      timerRef.current = window.requestAnimationFrame(animate);
-    };
-
-    const startBreathing = async () => {
-      try {
-        await audioService.init();
-        await audioService.playMusic();
-      } catch (error) {
-        console.error('Failed to start meditation music:', error);
-      }
-      timerRef.current = window.requestAnimationFrame(animate);
-    };
-    startBreathing();
+        return newTimeLeft;
+      });
+    }, updateInterval);
 
     return () => {
-      if (timerRef.current) {
-        window.cancelAnimationFrame(timerRef.current);
-        timerRef.current = null;
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
-      audioService.stopMusic();
     };
   }, [isActive, exercise, phase, onRoundComplete, onPhaseProgress, phaseSequenceDuration]);
 
