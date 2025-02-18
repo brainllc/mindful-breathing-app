@@ -10,7 +10,13 @@ app.use(express.urlencoded({ extended: false }));
 app.use((req, res, next) => {
   // Trust X-Forwarded-* headers from Replit's proxy
   app.set('trust proxy', true);
-  next();
+
+  // Ensure proper protocol is used
+  if (req.header('x-forwarded-proto') !== 'https' && process.env.NODE_ENV === 'production') {
+    res.redirect(`https://${req.header('host')}${req.url}`);
+  } else {
+    next();
+  }
 });
 
 app.use((req, res, next) => {
@@ -60,8 +66,12 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  const PORT = Number(process.env.PORT) || 5000;
+  // Use port 5000 as specified in .replit
+  const PORT = 5000;
+
   server.listen(PORT, "0.0.0.0", () => {
-    log(`serving on port ${PORT}`);
+    log(`Server running in ${app.get('env')} mode`);
+    log(`Server listening on port ${PORT}`);
+    log(`Access your app at https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`);
   });
 })();
