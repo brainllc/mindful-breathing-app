@@ -196,7 +196,7 @@ export default function Exercise() {
   const totalProgress = ((currentRound / totalRounds) + (phaseProgress / totalRounds)) * 100;
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/20 via-background/85 to-background dark:from-primary/10 dark:via-background dark:to-background">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/30 via-background/80 to-background dark:from-primary/10 dark:via-background dark:to-background">
       <ThemeToggle />
       <SafetyDisclaimer 
         isOpen={showDisclaimer} 
@@ -204,7 +204,7 @@ export default function Exercise() {
         onDecline={handleDisclaimerDecline}
       />
 
-      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-30 dark:opacity-20" />
+      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-25 dark:opacity-20" />
 
       <div ref={containerRef} className="container relative mx-auto px-4 pt-12 pb-[140px]">
         <div className="max-w-4xl mx-auto">
