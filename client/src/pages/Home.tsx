@@ -28,7 +28,7 @@ export default function Home() {
     : null;
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-200 via-slate-300 to-slate-400 dark:from-primary/10 dark:via-background dark:to-background">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-100 via-emerald-200/90 to-emerald-300/80 dark:from-primary/10 dark:via-background dark:to-background">
       <ThemeToggle />
       <div 
         className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-40 dark:opacity-20"
