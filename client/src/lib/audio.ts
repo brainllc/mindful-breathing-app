@@ -1,9 +1,7 @@
 import { BehaviorSubject } from 'rxjs';
 
 class AudioService {
-  private volume = new BehaviorSubject<number>(0.3);
-  private audioContext: AudioContext | null = null;
-  private gainNode: GainNode | null = null;
+  private volume = new BehaviorSubject<number>(0.5);
   private audioElement: HTMLAudioElement | null = null;
   private initialized = false;
 
@@ -17,17 +15,17 @@ class AudioService {
     }
 
     try {
-      // Create audio element first
-      this.audioElement = new Audio();
-      this.audioElement.src = '/meditation.mp3';
+      // Create audio element
+      this.audioElement = new Audio('/meditation.mp3');
       this.audioElement.loop = true;
+      this.audioElement.volume = this.volume.value;
 
       // Wait for the audio to load
       await new Promise((resolve, reject) => {
         if (!this.audioElement) return reject('No audio element');
 
         const handleCanPlay = () => {
-          console.log('Audio file loaded and can play');
+          console.log('Audio file loaded successfully');
           this.audioElement?.removeEventListener('canplay', handleCanPlay);
           resolve(null);
         };
@@ -48,34 +46,12 @@ class AudioService {
         }
       });
 
-      // Create Audio Context
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-      this.audioContext = new AudioContextClass();
-      console.log('AudioContext created with state:', this.audioContext.state);
-
-      // Resume context if needed
-      if (this.audioContext.state === 'suspended') {
-        await this.audioContext.resume();
-        console.log('AudioContext resumed');
-      }
-
-      // Create gain node
-      this.gainNode = this.audioContext.createGain();
-      this.gainNode.connect(this.audioContext.destination);
-      this.gainNode.gain.value = this.volume.value;
-      console.log('Gain node created with volume:', this.volume.value);
-
-      // Connect audio element to gain node
-      const source = this.audioContext.createMediaElementSource(this.audioElement);
-      source.connect(this.gainNode);
-      console.log('Audio source connected to gain node');
-
       this.initialized = true;
       console.log('Audio service initialized successfully');
     } catch (error) {
       console.error('Audio initialization failed:', error);
       this.initialized = false;
-      throw new Error(`Failed to initialize audio: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
     }
   }
 
@@ -85,49 +61,53 @@ class AudioService {
         await this.init();
       }
 
-      if (!this.audioContext || !this.audioElement || !this.gainNode) {
-        throw new Error('Audio system not initialized');
+      if (!this.audioElement) {
+        throw new Error('Audio element not initialized');
       }
 
-      // Resume context if needed
-      if (this.audioContext.state === 'suspended') {
-        await this.audioContext.resume();
-      }
-
-      // Attempt to play
+      // Attempt to play with user interaction
       try {
-        await this.audioElement.play();
-        console.log('Audio playback started');
+        const playPromise = this.audioElement.play();
+        if (playPromise !== undefined) {
+          await playPromise;
+          console.log('Audio playback started successfully');
+        }
       } catch (playError) {
-        console.error('Play failed:', playError);
+        console.error('Playback failed:', playError);
         throw new Error('Failed to start playback. Please interact with the page first.');
       }
-
     } catch (error) {
-      console.error('Playback failed:', error);
+      console.error('Audio playback failed:', error);
       throw error;
     }
   }
 
   stopMusic(fadeOutDuration = 2) {
-    if (!this.audioElement || !this.audioContext || !this.gainNode) {
+    if (!this.audioElement) {
       return;
     }
 
-    const currentTime = this.audioContext.currentTime;
+    // Simple fade out using volume
+    const startVolume = this.audioElement.volume;
+    const fadeSteps = 20;
+    const fadeInterval = (fadeOutDuration * 1000) / fadeSteps;
+    const volumeStep = startVolume / fadeSteps;
 
-    // Fade out
-    this.gainNode.gain.cancelScheduledValues(currentTime);
-    this.gainNode.gain.setValueAtTime(this.gainNode.gain.value, currentTime);
-    this.gainNode.gain.linearRampToValueAtTime(0, currentTime + fadeOutDuration);
+    const fade = setInterval(() => {
+      if (!this.audioElement) {
+        clearInterval(fade);
+        return;
+      }
 
-    // Stop after fade
-    setTimeout(() => {
-      if (this.audioElement) {
+      if (this.audioElement.volume > volumeStep) {
+        this.audioElement.volume -= volumeStep;
+      } else {
+        clearInterval(fade);
         this.audioElement.pause();
         this.audioElement.currentTime = 0;
+        this.audioElement.volume = this.volume.value; // Reset volume
       }
-    }, fadeOutDuration * 1000);
+    }, fadeInterval);
   }
 
   prepareForCompletion(remainingSeconds: number) {
@@ -137,12 +117,10 @@ class AudioService {
   }
 
   setVolume(value: number) {
-    this.volume.next(Math.max(0, Math.min(1, value)));
-    if (this.gainNode && this.audioContext) {
-      this.gainNode.gain.setValueAtTime(
-        this.volume.value,
-        this.audioContext.currentTime
-      );
+    const normalizedValue = Math.max(0, Math.min(1, value));
+    this.volume.next(normalizedValue);
+    if (this.audioElement) {
+      this.audioElement.volume = normalizedValue;
     }
   }
 
