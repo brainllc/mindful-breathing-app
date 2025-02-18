@@ -16,7 +16,6 @@ import { ControlsBar } from "@/components/ControlsBar";
 import { audioService } from "@/lib/audio";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
-// Remove AdUnit import since we'll handle ads differently
 export default function Exercise() {
   const [, params] = useRoute("/exercise/:id");
   const exercise = exercises.find(e => e.id === params?.id);
@@ -177,6 +176,7 @@ export default function Exercise() {
 
   const handleRoundComplete = () => {
     if (currentRound + 1 >= totalRounds) {
+      // This is the last round, prepare for completion
       setIsStarted(false);
       setIsPaused(false);
       setCurrentRound(0);
@@ -184,6 +184,20 @@ export default function Exercise() {
     } else {
       setCurrentRound(prev => prev + 1);
       setPhaseProgress(0);
+    }
+  };
+
+  const handlePhaseProgress = (progress: number) => {
+    setPhaseProgress(progress);
+
+    // Calculate remaining time in the exercise
+    const totalDuration = roundDuration * totalRounds;
+    const elapsedTime = (currentRound * roundDuration) + (progress * roundDuration);
+    const remainingTime = totalDuration - elapsedTime;
+
+    // If we're in the last 2 seconds of the exercise, start fading out
+    if (currentRound + 1 === totalRounds && remainingTime <= 2) {
+      audioService.prepareForCompletion(remainingTime);
     }
   };
 
@@ -276,7 +290,7 @@ export default function Exercise() {
                       exercise={exercise}
                       isActive={isStarted && !isPaused}
                       onRoundComplete={handleRoundComplete}
-                      onPhaseProgress={setPhaseProgress}
+                      onPhaseProgress={handlePhaseProgress}
                     />
 
                     {isStarted && (
