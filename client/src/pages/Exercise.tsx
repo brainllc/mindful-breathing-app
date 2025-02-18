@@ -250,7 +250,7 @@ export default function Exercise() {
                   <Clock className="w-4 h-4 mr-1" />
                   <span>{roundDuration}s per round</span>
                 </div>
-                <div className="flex items-center text-primary hover:text-primary/80">
+                <div className="text-primary hover:text-primary/80">
                   <ExerciseInfoModal exercise={exercise} />
                 </div>
               </div>
