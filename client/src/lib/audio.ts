@@ -15,8 +15,23 @@ class AudioService {
 
     try {
       this.audioElement = new Audio('/meditation.mp3');
+
+      // Add event listeners for better debugging
+      this.audioElement.addEventListener('error', (e) => {
+        console.error('Audio element error:', e);
+      });
+
+      this.audioElement.addEventListener('loadeddata', () => {
+        console.log('Audio file loaded successfully');
+      });
+
+      // Reset the playback rate to normal
+      this.audioElement.playbackRate = 1.0;
+      // Enable looping
       this.audioElement.loop = true;
+      // Set initial volume
       this.audioElement.volume = this.volume.value;
+
       this.isInitialized = true;
       console.log('Audio service initialized successfully');
     } catch (error) {
@@ -39,8 +54,12 @@ class AudioService {
         this.audioElement.currentTime = 0;
       }
 
-      await this.audioElement.play();
-      console.log('Audio playback started');
+      // In Chrome, audio won't play until there's user interaction
+      const playPromise = this.audioElement.play();
+      if (playPromise !== undefined) {
+        await playPromise;
+        console.log('Audio playback started successfully');
+      }
     } catch (error) {
       console.error('Audio playback failed:', error);
       throw error;
@@ -67,7 +86,6 @@ class AudioService {
     return this.volume.value;
   }
 
-  // Subscribe to volume changes
   onVolumeChange(callback: (value: number) => void) {
     return this.volume.subscribe(callback);
   }
