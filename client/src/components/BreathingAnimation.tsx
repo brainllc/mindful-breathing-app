@@ -13,8 +13,6 @@ interface Props {
 export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhaseProgress }: Props) {
   const [phase, setPhase] = useState<"inhale" | "hold" | "exhale">("inhale");
   const [phaseTimeLeft, setPhaseTimeLeft] = useState(exercise.pattern.inhale);
-  const [currentScale, setCurrentScale] = useState(1);
-  const [currentOpacity, setCurrentOpacity] = useState(0.5);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Get the duration for a given phase
@@ -59,15 +57,6 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
           // Calculate progress within the current phase
           const currentPhaseDuration = getPhaseDuration(phase);
           const elapsedInCurrentPhase = currentPhaseDuration - newTimeLeft;
-
-          // Update scale and opacity based on the current phase
-          if (phase === "inhale") {
-            setCurrentScale(1 + (0.5 * (elapsedInCurrentPhase / exercise.pattern.inhale)));
-            setCurrentOpacity(0.5 + (0.5 * (elapsedInCurrentPhase / exercise.pattern.inhale)));
-          } else if (phase === "exhale") {
-            setCurrentScale(1.5 - (0.5 * (elapsedInCurrentPhase / exercise.pattern.exhale)));
-            setCurrentOpacity(1 - (0.5 * (elapsedInCurrentPhase / exercise.pattern.exhale)));
-          }
 
           // Calculate total progress through the phase sequence
           let progressThroughSequence = (() => {
@@ -120,27 +109,47 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
     };
   }, [isActive, exercise, phase, onRoundComplete, onPhaseProgress, phaseSequenceDuration]);
 
+  // Animation variants
+  const circleVariants = {
+    inhale: {
+      scale: 1.5,
+      opacity: 1,
+      transition: { 
+        duration: exercise.pattern.inhale,
+        ease: "linear"
+      }
+    },
+    hold: {
+      scale: 1.5,
+      opacity: 1,
+      transition: { 
+        duration: exercise.pattern.hold || 0,
+        ease: "linear"
+      }
+    },
+    exhale: {
+      scale: 1,
+      opacity: 0.5,
+      transition: { 
+        duration: exercise.pattern.exhale,
+        ease: "linear"
+      }
+    }
+  };
+
   return (
     <div className="relative w-full h-96 flex items-center justify-center">
       <motion.div
         className="absolute w-64 h-64 bg-primary/20 rounded-full"
-        animate={{
-          scale: currentScale,
-          opacity: currentOpacity,
-        }}
-        transition={{
-          duration: isActive ? getPhaseDuration(phase) : 0
-        }}
+        animate={isActive ? phase : undefined}
+        variants={circleVariants}
+        initial={false}
       />
       <motion.div
         className="absolute w-64 h-64 border-4 border-primary rounded-full"
-        animate={{
-          scale: currentScale,
-          opacity: currentOpacity,
-        }}
-        transition={{
-          duration: isActive ? getPhaseDuration(phase) : 0
-        }}
+        animate={isActive ? phase : undefined}
+        variants={circleVariants}
+        initial={false}
       />
       <div className="absolute flex flex-col items-center space-y-2">
         <div className="text-2xl font-light text-primary">
