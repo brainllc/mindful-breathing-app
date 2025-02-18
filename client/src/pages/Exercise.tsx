@@ -13,8 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { ExerciseInfoModal } from "@/components/ExerciseInfoModal";
 import { ControlsBar } from "@/components/ControlsBar";
-import { AudioPlayer } from "@/components/AudioPlayer";
-//import { audioService } from "@/lib/audio"; // Removed audioService import
+import { audioService } from "@/lib/audio";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function Exercise() {
@@ -115,13 +114,27 @@ export default function Exercise() {
     return <div>Exercise not found</div>;
   }
 
-  const handleStart = () => {
+  const handleStart = async () => {
     if (!hasAcceptedDisclaimer) {
       setShowDisclaimer(true);
       return;
     }
-    setIsStarted(true);
-    setIsPaused(false);
+
+    try {
+      audioService.init();
+      await audioService.playMusic();
+      setIsStarted(true);
+      setIsPaused(false);
+    } catch (error) {
+      console.error('Exercise start error:', error);
+      setIsStarted(true);
+      setIsPaused(false);
+      toast({
+        title: "Audio Issue",
+        description: "Click anywhere on the page to enable sound for meditation audio.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDisclaimerAccept = () => {
@@ -143,6 +156,7 @@ export default function Exercise() {
     setIsPaused(false);
     setCurrentRound(0);
     setPhaseProgress(0);
+    audioService.stopMusic();
     toast({
       title: "Exercise Stopped",
       description: "Take a moment to rest. If you experience any discomfort, please seek medical attention.",
@@ -156,6 +170,7 @@ export default function Exercise() {
       setIsPaused(false);
       setCurrentRound(0);
       setPhaseProgress(0);
+      audioService.stopMusic();
     } else {
       setCurrentRound(prev => prev + 1);
       setPhaseProgress(0);
