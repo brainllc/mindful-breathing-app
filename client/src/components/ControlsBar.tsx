@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Volume2, VolumeX, Minus, Plus } from "lucide-react";
+import { Volume2, VolumeX, Minus, Plus, Settings2 } from "lucide-react";
 import { audioService } from "@/lib/audio";
 import { useState } from "react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 interface Props {
   rounds: number;
@@ -14,6 +15,7 @@ interface Props {
 export function ControlsBar({ rounds, onRoundsChange, onPause, onEndSession }: Props) {
   const [volume, setVolume] = useState(audioService.getVolume());
   const [isMuted, setIsMuted] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleVolumeChange = (value: number[]) => {
     const newVolume = value[0];
@@ -26,70 +28,99 @@ export function ControlsBar({ rounds, onRoundsChange, onPause, onEndSession }: P
     audioService.setVolume(isMuted ? volume : 0);
   };
 
+  const ControlsContent = () => (
+    <>
+      <div className="space-y-6 w-full">
+        <div className="space-y-2">
+          <div className="text-sm font-medium text-muted-foreground">Number of Rounds</div>
+          <div className="flex items-center gap-4 w-full justify-center">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onRoundsChange(Math.max(1, rounds - 1))}
+              className="h-8 w-8"
+            >
+              <Minus className="h-4 w-4" />
+            </Button>
+            <span className="text-lg font-medium min-w-[4ch] text-center">{rounds}</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onRoundsChange(Math.min(50, rounds + 1))}
+              className="h-8 w-8"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="text-sm font-medium text-muted-foreground">Volume</div>
+          <div className="flex items-center gap-2 w-full justify-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleMute}
+              className="text-primary hover:text-primary/80"
+            >
+              {isMuted ? (
+                <VolumeX className="h-4 w-4" />
+              ) : (
+                <Volume2 className="h-4 w-4" />
+              )}
+            </Button>
+            <Slider
+              defaultValue={[volume]}
+              max={1}
+              step={0.01}
+              onValueChange={handleVolumeChange}
+              className="flex-1"
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4 w-full justify-center">
+          <Button 
+            variant="outline"
+            size="sm"
+            onClick={onPause}
+          >
+            Pause
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onEndSession}
+          >
+            End Session
+          </Button>
+        </div>
+      </div>
+    </>
+  );
+
   return (
-    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex flex-col md:flex-row items-center gap-4 md:gap-8 bg-card/50 backdrop-blur-sm px-4 md:px-6 py-4 md:py-3 rounded-2xl md:rounded-full border border-border/50 w-[calc(100%-2rem)] md:w-auto mx-4 md:mx-0">
-      <div className="flex items-center gap-4 w-full md:w-auto justify-center">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onRoundsChange(Math.max(1, rounds - 1))}
-          className="h-8 w-8"
-        >
-          <Minus className="h-4 w-4" />
-        </Button>
-        <span className="text-lg font-medium min-w-[4ch] text-center">{rounds}</span>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onRoundsChange(Math.min(50, rounds + 1))}
-          className="h-8 w-8"
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
+    <>
+      {/* Mobile View */}
+      <div className="md:hidden fixed bottom-8 right-4">
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+          <SheetTrigger asChild>
+            <Button size="icon" className="rounded-full shadow-lg">
+              <Settings2 className="h-4 w-4" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="px-4 py-6">
+            <ControlsContent />
+          </SheetContent>
+        </Sheet>
       </div>
 
-      <div className="h-px md:h-8 w-full md:w-px bg-border/50" />
-
-      <div className="flex items-center gap-2 w-full md:w-[140px] justify-center">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={toggleMute}
-          className="text-primary hover:text-primary/80"
-        >
-          {isMuted ? (
-            <VolumeX className="h-4 w-4" />
-          ) : (
-            <Volume2 className="h-4 w-4" />
-          )}
-        </Button>
-        <Slider
-          defaultValue={[volume]}
-          max={1}
-          step={0.01}
-          onValueChange={handleVolumeChange}
-          className="flex-1"
-        />
+      {/* Desktop View */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 hidden md:block">
+        <div className="flex items-center gap-8 bg-card/50 backdrop-blur-sm px-6 py-3 rounded-full border border-border/50">
+          <ControlsContent />
+        </div>
       </div>
-
-      <div className="h-px md:h-8 w-full md:w-px bg-border/50" />
-
-      <div className="flex items-center gap-4 w-full md:w-auto justify-center">
-        <Button 
-          variant="outline"
-          size="sm"
-          onClick={onPause}
-        >
-          Pause
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onEndSession}
-        >
-          End Session
-        </Button>
-      </div>
-    </div>
+    </>
   );
 }
