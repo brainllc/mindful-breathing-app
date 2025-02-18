@@ -4,6 +4,7 @@ import { Volume2, VolumeX, Minus, Plus, Settings2, Play, Pause } from "lucide-re
 import { audioService } from "@/lib/audio";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useToast } from "@/hooks/use-toast";
 
 interface Props {
   rounds: number;
@@ -11,12 +12,21 @@ interface Props {
   onPause: () => void;
   onEndSession: () => void;
   isPaused?: boolean;
+  currentRound: number; // Add currentRound prop
 }
 
-export function ControlsBar({ rounds, onRoundsChange, onPause, onEndSession, isPaused = false }: Props) {
+export function ControlsBar({ 
+  rounds, 
+  onRoundsChange, 
+  onPause, 
+  onEndSession, 
+  isPaused = false,
+  currentRound 
+}: Props) {
   const [volume, setVolume] = useState(audioService.getVolume());
   const [isMuted, setIsMuted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const { toast } = useToast();
 
   const handleVolumeChange = (value: number[]) => {
     const newVolume = value[0];
@@ -27,6 +37,30 @@ export function ControlsBar({ rounds, onRoundsChange, onPause, onEndSession, isP
   const toggleMute = () => {
     setIsMuted(!isMuted);
     audioService.setVolume(isMuted ? volume : 0);
+  };
+
+  const handleRoundsDecrease = () => {
+    if (rounds <= currentRound) {
+      toast({
+        title: "Cannot Decrease Rounds",
+        description: "Cannot set rounds lower than the current round.",
+        variant: "destructive",
+      });
+      return;
+    }
+    onRoundsChange(Math.max(1, rounds - 1));
+  };
+
+  const handleRoundsIncrease = () => {
+    if (rounds >= 50) {
+      toast({
+        title: "Maximum Rounds Reached",
+        description: "Cannot set more than 50 rounds.",
+        variant: "destructive",
+      });
+      return;
+    }
+    onRoundsChange(rounds + 1);
   };
 
   return (
@@ -47,7 +81,7 @@ export function ControlsBar({ rounds, onRoundsChange, onPause, onEndSession, isP
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => onRoundsChange(Math.max(1, rounds - 1))}
+                    onClick={handleRoundsDecrease}
                     className="h-8 w-8"
                   >
                     <Minus className="h-4 w-4" />
@@ -56,7 +90,7 @@ export function ControlsBar({ rounds, onRoundsChange, onPause, onEndSession, isP
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => onRoundsChange(Math.min(50, rounds + 1))}
+                    onClick={handleRoundsIncrease}
                     className="h-8 w-8"
                   >
                     <Plus className="h-4 w-4" />
@@ -129,7 +163,7 @@ export function ControlsBar({ rounds, onRoundsChange, onPause, onEndSession, isP
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => onRoundsChange(Math.max(1, rounds - 1))}
+                onClick={handleRoundsDecrease}
                 className="h-8 w-8"
               >
                 <Minus className="h-4 w-4" />
@@ -138,7 +172,7 @@ export function ControlsBar({ rounds, onRoundsChange, onPause, onEndSession, isP
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => onRoundsChange(Math.min(50, rounds + 1))}
+                onClick={handleRoundsIncrease}
                 className="h-8 w-8"
               >
                 <Plus className="h-4 w-4" />
