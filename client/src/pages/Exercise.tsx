@@ -15,6 +15,7 @@ import { ExerciseInfoModal } from "@/components/ExerciseInfoModal";
 import { ControlsBar } from "@/components/ControlsBar";
 import { audioService } from "@/lib/audio";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { AudioPlayer } from "@/components/AudioPlayer";
 
 export default function Exercise() {
   const [, params] = useRoute("/exercise/:id");
@@ -193,6 +194,8 @@ export default function Exercise() {
         onAccept={handleDisclaimerAccept}
         onDecline={handleDisclaimerDecline}
       />
+
+      <AudioPlayer isPlaying={isStarted && !isPaused} />
 
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-40 dark:opacity-20" />
 

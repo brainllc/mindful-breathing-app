@@ -22,6 +22,17 @@ export function AudioPlayer({ isPlaying }: AudioPlayerProps) {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Handle play/pause
+  useEffect(() => {
+    if (isPlaying) {
+      audioService.playMusic().catch(error => {
+        console.error('Failed to play audio:', error);
+      });
+    } else {
+      audioService.stopMusic();
+    }
+  }, [isPlaying]);
+
   const toggleMute = () => {
     if (isMuted) {
       audioService.setVolume(prevVolume);
@@ -40,11 +51,6 @@ export function AudioPlayer({ isPlaying }: AudioPlayerProps) {
       setIsMuted(false);
     }
   };
-
-  useEffect(() => {
-    audioService.setIsPlaying(isPlaying);
-  }, [isPlaying]);
-
 
   return (
     <div className="fixed bottom-4 right-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4 rounded-lg shadow-lg border flex items-center gap-4 z-50">
