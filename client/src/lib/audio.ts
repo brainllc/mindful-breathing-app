@@ -15,7 +15,8 @@ class AudioService {
 
     try {
       console.log("Initializing audio service...");
-      this.audioElement = new Audio('./meditation.mp3');
+      // Use absolute path from server root
+      this.audioElement = new Audio('/meditation.mp3');
 
       // Add comprehensive error handling
       this.audioElement.addEventListener('error', (e) => {
