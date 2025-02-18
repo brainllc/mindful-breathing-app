@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRoute } from "wouter";
 import { exercises } from "@/lib/exercises";
 import { RoundConfig } from "@/components/RoundConfig";
@@ -30,13 +30,12 @@ export default function Exercise() {
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [hasAcceptedDisclaimer, setHasAcceptedDisclaimer] = useState(false);
   const [phaseProgress, setPhaseProgress] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (exercise) {
-      // Update meta tags dynamically for each exercise
       document.title = `${exercise.name} - Mindful Breathing Exercise Guide`;
 
-      // Update meta description
       const metaDescription = document.querySelector('meta[name="description"]');
       if (metaDescription) {
         metaDescription.setAttribute('content', 
@@ -44,7 +43,6 @@ export default function Exercise() {
         );
       }
 
-      // Update Open Graph tags
       const ogTitle = document.querySelector('meta[property="og:title"]');
       const ogDesc = document.querySelector('meta[property="og:description"]');
 
@@ -57,7 +55,6 @@ export default function Exercise() {
         );
       }
 
-      // Add JSON-LD structured data
       const structuredData = {
         "@context": "https://schema.org",
         "@type": "HowTo",
@@ -86,7 +83,6 @@ export default function Exercise() {
         ]
       };
 
-      // Add or update structured data script tag
       let scriptTag = document.querySelector('#structured-data');
       if (!scriptTag) {
         scriptTag = document.createElement('script');
@@ -98,13 +94,21 @@ export default function Exercise() {
     }
 
     return () => {
-      // Clean up structured data when component unmounts
       const scriptTag = document.querySelector('#structured-data');
       if (scriptTag) {
         scriptTag.remove();
       }
     };
   }, [exercise]);
+
+  useEffect(() => {
+    if (isStarted && containerRef.current) {
+      containerRef.current.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'end'
+      });
+    }
+  }, [isStarted]);
 
   if (!exercise) {
     return <div>Exercise not found</div>;
@@ -182,16 +186,13 @@ export default function Exercise() {
     }
   };
 
-  // Calculate total duration of a single round in seconds
   const roundDuration = exercise.pattern.inhale + 
                        (exercise.pattern.hold || 0) + 
                        exercise.pattern.exhale +
                        (exercise.pattern.holdEmpty || 0);
 
-  // Calculate total duration of all rounds in seconds
   const totalDuration = roundDuration * totalRounds;
 
-  // Calculate progress based on current round and phase progress
   const totalProgress = ((currentRound / totalRounds) + (phaseProgress / totalRounds)) * 100;
 
   return (
@@ -205,7 +206,7 @@ export default function Exercise() {
 
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-40 dark:opacity-20" />
 
-      <div className="container relative mx-auto px-4 pt-12 pb-[140px]">
+      <div ref={containerRef} className="container relative mx-auto px-4 pt-12 pb-[140px]">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-12">
             <Link href="/" className="inline-block">
@@ -218,7 +219,6 @@ export default function Exercise() {
               </Button>
             </Link>
 
-            {/* Top right ad for desktop */}
             <div className="hidden md:block">
               <AdUnit 
                 slot="3333333333"  // Replace with actual ad slot
@@ -262,7 +262,6 @@ export default function Exercise() {
               </div>
             </div>
 
-            {/* Mobile banner ad */}
             <div className="md:hidden">
               <AdUnit 
                 slot="2222222222"  // Replace with actual ad slot
@@ -341,7 +340,6 @@ export default function Exercise() {
             </AnimatePresence>
           </motion.div>
 
-          {/* Bottom banner ad - only show when exercise is not active */}
           {!isStarted && (
             <div className="mt-16">
               <AdUnit 
