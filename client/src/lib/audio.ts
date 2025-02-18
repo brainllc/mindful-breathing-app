@@ -4,7 +4,11 @@ class AudioService {
   private volume = new BehaviorSubject<number>(0.3);
   private audioContext: AudioContext | null = null;
   private gainNode: GainNode | null = null;
-  private oscillators: OscillatorNode[] = [];
+  private oscillators: {
+    osc: OscillatorNode;
+    gain: GainNode;
+  }[] = [];
+  private lfoNode: OscillatorNode | null = null;
   private initialized = false;
 
   constructor() {
@@ -52,36 +56,73 @@ class AudioService {
         await this.audioContext.resume();
       }
 
-      // Create calming meditation sounds using multiple oscillators
-      const frequencies = [
-        174.6, // F3 - grounding frequency
-        261.6, // C4 - root frequency
-        329.6, // E4 - harmonic
-      ];
-
-      // Stop any existing oscillators
+      // Stop any existing sounds
       this.stopMusic();
+
+      const currentTime = this.audioContext.currentTime;
+
+      // Create LFO for subtle modulation
+      this.lfoNode = this.audioContext.createOscillator();
+      this.lfoNode.frequency.setValueAtTime(0.1, currentTime); // Very slow modulation
+      const lfoGain = this.audioContext.createGain();
+      lfoGain.gain.setValueAtTime(0.02, currentTime); // Subtle modulation amount
+      this.lfoNode.connect(lfoGain);
+
+      // Create base frequencies using harmonious ratios
+      const baseFreq = 136.1; // Root frequency (close to C#3)
+      const frequencies = [
+        baseFreq,            // Root note
+        baseFreq * 1.5,      // Perfect fifth
+        baseFreq * 1.681,    // Major sixth
+        baseFreq * 2,        // Octave
+        baseFreq * 3.0307,   // Just major third (two octaves up)
+      ];
 
       frequencies.forEach((freq, index) => {
         if (this.audioContext && this.gainNode) {
-          const oscillator = this.audioContext.createOscillator();
-          oscillator.type = index === 0 ? 'sine' : 'triangle';
-          oscillator.frequency.setValueAtTime(freq, this.audioContext.currentTime);
-
-          // Create individual gain node for each oscillator
+          // Create main oscillator
+          const osc = this.audioContext.createOscillator();
           const oscGain = this.audioContext.createGain();
-          oscGain.gain.setValueAtTime(0, this.audioContext.currentTime);
+
+          // Use different waveforms for richer texture
+          if (index === 0) {
+            osc.type = 'sine'; // Pure fundamental
+          } else if (index === 1) {
+            osc.type = 'triangle'; // Softer harmonics
+          } else {
+            osc.type = 'sine'; // Pure harmonics
+          }
+
+          osc.frequency.setValueAtTime(freq, currentTime);
+
+          // Set initial gain to 0 for fade-in
+          oscGain.gain.setValueAtTime(0, currentTime);
+
+          // Fade in gradually with different timing for each frequency
+          const baseVolume = 0.1 / frequencies.length; // Balanced volume
+          const fadeInTime = 2 + (index * 0.5); // Staggered fade-ins
           oscGain.gain.linearRampToValueAtTime(
-            0.15 / frequencies.length, // Divide by number of oscillators for balanced volume
-            this.audioContext.currentTime + 2
+            baseVolume * (index === 0 ? 1.2 : 1), // Slightly stronger fundamental
+            currentTime + fadeInTime
           );
 
-          oscillator.connect(oscGain);
+          // Connect modulation if not the root note
+          if (index > 0) {
+            lfoGain.connect(oscGain.gain);
+          }
+
+          // Connect everything
+          osc.connect(oscGain);
           oscGain.connect(this.gainNode);
-          oscillator.start();
-          this.oscillators.push(oscillator);
+          osc.start();
+
+          // Store references for cleanup
+          this.oscillators.push({ osc, gain: oscGain });
         }
       });
+
+      // Start LFO
+      this.lfoNode.start();
 
       console.log('Meditation sound started playing');
     } catch (error) {
@@ -93,15 +134,18 @@ class AudioService {
     if (this.audioContext) {
       const currentTime = this.audioContext.currentTime;
 
-      // Fade out all oscillators
-      this.oscillators.forEach(osc => {
-        if (osc.frequency) {
-          const gainNode = osc.connect(this.audioContext!.createGain());
-          gainNode.gain.setValueAtTime(gainNode.gain.value, currentTime);
-          gainNode.gain.linearRampToValueAtTime(0, currentTime + 0.5);
-          osc.stop(currentTime + 0.5);
-        }
+      // Fade out oscillators
+      this.oscillators.forEach(({ osc, gain }) => {
+        gain.gain.setValueAtTime(gain.gain.value, currentTime);
+        gain.gain.linearRampToValueAtTime(0, currentTime + 1.5);
+        osc.stop(currentTime + 1.5);
       });
+
+      // Stop and clear LFO
+      if (this.lfoNode) {
+        this.lfoNode.stop(currentTime + 1.5);
+        this.lfoNode = null;
+      }
 
       // Clear oscillators array
       this.oscillators = [];
