@@ -12,7 +12,7 @@ interface Props {
   onPause: () => void;
   onEndSession: () => void;
   isPaused?: boolean;
-  currentRound: number; // Add currentRound prop
+  currentRound: number;
 }
 
 export function ControlsBar({ 
@@ -37,18 +37,6 @@ export function ControlsBar({
   const toggleMute = () => {
     setIsMuted(!isMuted);
     audioService.setVolume(isMuted ? volume : 0);
-  };
-
-  const handleRoundsDecrease = () => {
-    if (rounds <= currentRound) {
-      toast({
-        title: "Cannot Decrease Rounds",
-        description: "Cannot set rounds lower than the current round.",
-        variant: "destructive",
-      });
-      return;
-    }
-    onRoundsChange(Math.max(1, rounds - 1));
   };
 
   const handleRoundsIncrease = () => {
@@ -81,7 +69,8 @@ export function ControlsBar({
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={handleRoundsDecrease}
+                    onClick={() => onRoundsChange(rounds - 1)}
+                    disabled={rounds <= currentRound}
                     className="h-8 w-8"
                   >
                     <Minus className="h-4 w-4" />
@@ -163,7 +152,8 @@ export function ControlsBar({
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={handleRoundsDecrease}
+                onClick={() => onRoundsChange(rounds - 1)}
+                disabled={rounds <= currentRound}
                 className="h-8 w-8"
               >
                 <Minus className="h-4 w-4" />
