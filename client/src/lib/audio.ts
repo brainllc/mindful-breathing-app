@@ -15,48 +15,44 @@ class AudioService {
     }
 
     try {
-      // Create audio element with absolute path
-      const audioPath = window.location.origin + '/meditation.mp3';
-      console.log('Attempting to load audio from:', audioPath);
+      // First verify the audio file is accessible
+      const audioPath = '/meditation.mp3';
+      console.log('Checking audio file availability at:', audioPath);
 
+      const response = await fetch(audioPath);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch audio file: ${response.status} ${response.statusText}`);
+      }
+      console.log('Audio file is accessible');
+
+      // Create new audio element
       this.audioElement = new Audio(audioPath);
       this.audioElement.loop = true;
       this.audioElement.volume = this.volume.value;
       this.audioElement.preload = 'auto';
 
-      // Test audio format support
-      const canPlay = this.audioElement.canPlayType('audio/mpeg');
-      console.log('Browser can play MP3:', canPlay);
+      // Test if browser supports MP3
+      const canPlayType = this.audioElement.canPlayType('audio/mpeg');
+      console.log('Browser MP3 support:', canPlayType);
+      if (!canPlayType) {
+        throw new Error('Browser does not support MP3 audio');
+      }
 
+      // Load the audio file
       await new Promise((resolve, reject) => {
         if (!this.audioElement) return reject('No audio element');
 
-        const timeoutId = setTimeout(() => {
-          console.error('Audio loading timed out');
-          reject(new Error('Audio loading timed out'));
-        }, 5000);
+        this.audioElement.onerror = (e) => {
+          const error = e instanceof ErrorEvent ? e.message : 'Unknown error';
+          console.error('Audio error:', error);
+          reject(new Error(`Audio load failed: ${error}`));
+        };
 
-        const handleCanPlay = () => {
-          clearTimeout(timeoutId);
-          console.log('Audio file loaded and ready');
-          this.audioElement?.removeEventListener('canplay', handleCanPlay);
+        this.audioElement.oncanplaythrough = () => {
+          console.log('Audio file loaded and ready for playback');
           resolve(null);
         };
 
-        const handleError = (e: Event) => {
-          clearTimeout(timeoutId);
-          const error = e instanceof ErrorEvent ? e.message : 'Unknown error';
-          console.error('Audio loading error:', error);
-          if (this.audioElement?.error) {
-            console.error('MediaError code:', this.audioElement.error.code);
-            console.error('MediaError message:', this.audioElement.error.message);
-          }
-          this.audioElement?.removeEventListener('error', handleError);
-          reject(new Error('Failed to load audio file'));
-        };
-
-        this.audioElement.addEventListener('canplay', handleCanPlay);
-        this.audioElement.addEventListener('error', handleError);
         this.audioElement.load();
       });
 
@@ -80,7 +76,7 @@ class AudioService {
         throw new Error('Audio element not initialized');
       }
 
-      // Attempt to play with user interaction
+      // Attempt to play and handle autoplay restrictions
       const playPromise = this.audioElement.play();
       if (playPromise !== undefined) {
         await playPromise;
@@ -97,11 +93,10 @@ class AudioService {
       return;
     }
 
-    // Simple fade out using volume
     const startVolume = this.audioElement.volume;
-    const fadeSteps = 20;
-    const fadeInterval = (fadeOutDuration * 1000) / fadeSteps;
-    const volumeStep = startVolume / fadeSteps;
+    const steps = 20;
+    const interval = (fadeOutDuration * 1000) / steps;
+    const volumeStep = startVolume / steps;
 
     const fade = setInterval(() => {
       if (!this.audioElement) {
@@ -115,9 +110,9 @@ class AudioService {
         clearInterval(fade);
         this.audioElement.pause();
         this.audioElement.currentTime = 0;
-        this.audioElement.volume = this.volume.value; // Reset volume
+        this.audioElement.volume = this.volume.value;
       }
-    }, fadeInterval);
+    }, interval);
   }
 
   prepareForCompletion(remainingSeconds: number) {

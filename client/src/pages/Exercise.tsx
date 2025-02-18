@@ -131,7 +131,7 @@ export default function Exercise() {
         console.error('Failed to start audio:', error);
         toast({
           title: "Audio Issue",
-          description: "Unable to play meditation audio. Please check your browser settings and click to enable sound.",
+          description: "Unable to play meditation audio. Please click anywhere on the page to enable sound.",
           variant: "destructive",
         });
       }
@@ -146,25 +146,7 @@ export default function Exercise() {
   const handleDisclaimerAccept = async () => {
     setHasAcceptedDisclaimer(true);
     setShowDisclaimer(false);
-
-    try {
-      setIsStarted(true);
-
-      try {
-        await audioService.init();
-        await audioService.playMusic();
-      } catch (error) {
-        console.error('Failed to start audio:', error);
-        toast({
-          title: "Audio Issue",
-          description: "Unable to play meditation audio. Please check your browser settings and click to enable sound.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error('Exercise start error:', error);
-      setIsStarted(true);
-    }
+    handleStart(); // Directly call handleStart to avoid redundancy
   };
 
   const handleDisclaimerDecline = () => {
