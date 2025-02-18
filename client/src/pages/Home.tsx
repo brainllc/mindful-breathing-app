@@ -7,7 +7,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { AdUnit } from "@/components/AdUnit";
 
 export default function Home() {
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
@@ -54,16 +53,6 @@ export default function Home() {
             </p>
           </motion.header>
 
-          {/* Top banner ad */}
-          <div className="mb-16">
-            <AdUnit 
-              slot="1234567890"  // Replace with actual ad slot
-              format="auto"
-              responsive={true}
-              className="mx-auto max-w-[728px] h-[90px] bg-card/50 backdrop-blur-sm rounded-lg overflow-hidden"
-            />
-          </div>
-
           <Tabs defaultValue="mood" className="max-w-5xl mx-auto">
             <TabsList className="w-full max-w-md mx-auto grid grid-cols-2 mb-16 bg-transparent" role="tablist" aria-label="Exercise selection methods">
               <TabsTrigger
@@ -102,16 +91,6 @@ export default function Home() {
                       How are you feeling today?
                     </h2>
                     <MoodSelector onSelect={handleMoodSelect} />
-
-                    {/* In-article ad after mood selection */}
-                    <div className="mt-16">
-                      <AdUnit 
-                        slot="9876543210"  // Replace with actual ad slot
-                        format="fluid"
-                        layout="in-article"
-                        className="mx-auto max-w-2xl bg-card/50 backdrop-blur-sm rounded-lg overflow-hidden"
-                      />
-                    </div>
                   </motion.section>
                 ) : (
                   <motion.section
@@ -158,16 +137,6 @@ export default function Home() {
                         check all exercises.
                       </p>
                     )}
-
-                    {/* Bottom ad in recommended exercises */}
-                    <div className="mt-8">
-                      <AdUnit 
-                        slot="5555555555"  // Replace with actual ad slot
-                        format="auto"
-                        responsive={true}
-                        className="mx-auto max-w-[728px] h-[90px] bg-card/50 backdrop-blur-sm rounded-lg overflow-hidden"
-                      />
-                    </div>
                   </motion.section>
                 )}
               </AnimatePresence>
@@ -187,16 +156,6 @@ export default function Home() {
                     index={index}
                   />
                 ))}
-              </div>
-
-              {/* Bottom ad in all exercises view */}
-              <div className="mt-16">
-                <AdUnit 
-                  slot="4444444444"  // Replace with actual ad slot
-                  format="auto"
-                  responsive={true}
-                  className="mx-auto max-w-[728px] h-[90px] bg-card/50 backdrop-blur-sm rounded-lg overflow-hidden"
-                />
               </div>
             </TabsContent>
           </Tabs>
