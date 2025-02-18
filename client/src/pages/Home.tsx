@@ -28,10 +28,10 @@ export default function Home() {
     : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-blue-50/30 to-slate-100/50 dark:from-primary/10 dark:via-background dark:to-background">
+    <div className="min-h-screen bg-gradient-to-b from-slate-100 via-blue-50/40 to-slate-50 dark:from-primary/10 dark:via-background dark:to-background">
       <ThemeToggle />
       <div 
-        className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-40 dark:opacity-20"
+        className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-25 dark:opacity-20"
         role="presentation" 
         aria-hidden="true"
       />
@@ -57,14 +57,14 @@ export default function Home() {
             <TabsList className="w-full max-w-md mx-auto grid grid-cols-2 mb-16 bg-transparent" role="tablist" aria-label="Exercise selection methods">
               <TabsTrigger
                 value="mood"
-                className="text-lg px-8 py-4 data-[state=active]:text-primary hover:text-primary/80 transition-colors"
+                className="text-lg px-8 py-4 tab-trigger"
                 role="tab"
               >
                 <span className="relative">Find by Mood</span>
               </TabsTrigger>
               <TabsTrigger
                 value="all"
-                className="text-lg px-8 py-4 data-[state=active]:text-primary hover:text-primary/80 transition-colors"
+                className="text-lg px-8 py-4 tab-trigger"
                 role="tab"
               >
                 <span className="relative">All Exercises</span>

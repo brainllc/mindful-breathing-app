@@ -42,7 +42,7 @@ export function MoodSelector({ onSelect }: Props) {
           >
             <Button
               variant="outline"
-              className="w-full h-32 flex flex-col items-center justify-center gap-4 bg-gradient-to-b from-card/50 to-card border-primary/10 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 group dark:from-card/30 dark:to-card/50"
+              className="w-full h-32 flex flex-col items-center justify-center gap-4 mood-card"
               onClick={() => onSelect(mood.id)}
             >
               <div className="relative">
