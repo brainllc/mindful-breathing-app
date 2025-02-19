@@ -24,18 +24,27 @@ app.use((req, res, next) => {
     Headers: ${JSON.stringify(req.headers)}
   `);
 
+  // Handle www to non-www redirect first
+  if (host?.startsWith('www.')) {
+    const nonWwwHost = host.replace('www.', '');
+    return res.redirect(301, `${proto}://${nonWwwHost}${req.url}`);
+  }
+
   // Handle both custom domain and Replit domain
   if (process.env.NODE_ENV === 'production') {
     // Allow requests during domain verification
     const allowedDomains = [
       'breathwork.fyi',
+      'www.breathwork.fyi', // Add www subdomain explicitly
       'breath-wave-brainappsllc.replit.app',
       '.replit.app',
       '.repl.co'
     ];
 
     // Check if this is a valid domain
-    const isAllowedDomain = host && allowedDomains.some(domain => host.includes(domain));
+    const isAllowedDomain = host && allowedDomains.some(domain => 
+      host === domain || (domain.startsWith('.') && host.endsWith(domain))
+    );
 
     if (!isAllowedDomain) {
       log(`Unrecognized host: ${host}`);
@@ -68,11 +77,6 @@ app.use((req, res, next) => {
           </body>
         </html>
       `);
-    }
-
-    // Handle www to non-www redirect for consistency
-    if (host === 'www.breathwork.fyi') {
-      return res.redirect(301, `https://breathwork.fyi${req.url}`);
     }
 
     // Force HTTPS for all valid domains
