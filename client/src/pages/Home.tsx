@@ -57,14 +57,14 @@ export default function Home() {
             <TabsList className="w-full max-w-md mx-auto grid grid-cols-2 gap-2 mb-16 bg-transparent" role="tablist" aria-label="Exercise selection methods">
               <TabsTrigger
                 value="mood"
-                className="text-lg px-8 py-4 tab-trigger transition-colors duration-200 bg-primary/0 data-[state=active]:bg-primary/10 data-[state=active]:text-primary dark:data-[state=active]:bg-primary/20 data-[state=active]:font-medium relative rounded-full"
+                className="text-lg px-8 py-4 transition-all duration-200 bg-primary/0 hover:bg-primary/5 dark:hover:bg-primary/10 data-[state=active]:bg-primary/10 data-[state=active]:text-primary dark:data-[state=active]:bg-primary/20 data-[state=active]:font-medium relative rounded-full before:absolute before:inset-0 before:rounded-full before:bg-primary/0 hover:before:bg-primary/5 before:transition-colors before:duration-200 active:scale-95 transform transition"
                 role="tab"
               >
                 <span className="relative">Find by Mood</span>
               </TabsTrigger>
               <TabsTrigger
                 value="all"
-                className="text-lg px-8 py-4 tab-trigger transition-colors duration-200 bg-primary/0 data-[state=active]:bg-primary/10 data-[state=active]:text-primary dark:data-[state=active]:bg-primary/20 data-[state=active]:font-medium relative rounded-full"
+                className="text-lg px-8 py-4 transition-all duration-200 bg-primary/0 hover:bg-primary/5 dark:hover:bg-primary/10 data-[state=active]:bg-primary/10 data-[state=active]:text-primary dark:data-[state=active]:bg-primary/20 data-[state=active]:font-medium relative rounded-full before:absolute before:inset-0 before:rounded-full before:bg-primary/0 hover:before:bg-primary/5 before:transition-colors before:duration-200 active:scale-95 transform transition"
                 role="tab"
               >
                 <span className="relative">All Exercises</span>

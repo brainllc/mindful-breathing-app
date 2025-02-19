@@ -6,17 +6,16 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Enhanced custom domain handling
+// Enhanced domain handling middleware
 app.use((req, res, next) => {
   // Trust X-Forwarded-* headers from Replit's proxy
   app.set('trust proxy', true);
 
-  // Get the host and protocol from headers
   const host = req.get('host');
   const proto = req.get('x-forwarded-proto');
 
   // Enhanced logging for debugging domain issues
-  log(`Incoming request:
+  log(`Domain request:
     Host: ${host}
     Protocol: ${proto}
     URL: ${req.url}
@@ -30,7 +29,9 @@ app.use((req, res, next) => {
     }
 
     // Define allowed domains
-    const replitDomain = process.env.REPL_SLUG ? `${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` : 'breath-wave-brainappsllc.replit.app';
+    const replitDomain = process.env.REPL_SLUG ? 
+      `${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` : 
+      'breath-wave-brainappsllc.replit.app';
     const customDomain = 'breathwork.fyi';
 
     // Configure allowed domains
@@ -64,32 +65,44 @@ app.use((req, res, next) => {
               .steps { margin: 1.5em 0; }
               .step { margin-bottom: 1em; }
               .note { color: #666; font-size: 0.9em; margin-top: 1.5em; }
+              .warning { color: #dc3545; }
             </style>
           </head>
           <body>
             <div class="message">
               <h1>Domain Configuration Required</h1>
-              <p>To access this site, you need to configure your DNS settings as follows:</p>
+              <p>To access this site, you need to configure your DNS settings exactly as follows:</p>
 
               <div class="steps">
                 <div class="step">
-                  <strong>For the root domain (breathwork.fyi):</strong><br>
+                  <strong>1. For the root domain (breathwork.fyi):</strong><br>
                   Add an A record:<br>
                   • Name: <span class="code">@</span><br>
                   • Value: <span class="code">35.190.27.27</span>
                 </div>
 
                 <div class="step">
-                  <strong>For the www subdomain (www.breathwork.fyi):</strong><br>
+                  <strong>2. For the www subdomain (www.breathwork.fyi):</strong><br>
                   Add a CNAME record:<br>
                   • Name: <span class="code">www</span><br>
                   • Value: <span class="code">${replitDomain}</span>
                 </div>
               </div>
 
+              <p class="warning">
+                <strong>Common Issues:</strong><br>
+                • The www CNAME must point to <span class="code">${replitDomain}</span>, not to the IP address<br>
+                • Do not use an A record for the www subdomain<br>
+                • Remove any existing conflicting DNS records<br>
+                • Clear your browser's DNS cache if you recently updated records
+              </p>
+
               <p class="note">
-                • DNS changes typically take 15-30 minutes to propagate<br>
-                • You can access the site directly at <a href="https://${replitDomain}">https://${replitDomain}</a> while waiting
+                <strong>Next Steps:</strong><br>
+                1. Verify your DNS settings match exactly what's shown above<br>
+                2. Wait 15-30 minutes for DNS propagation<br>
+                3. Clear your browser's DNS cache<br>
+                4. Access the site directly at <a href="https://${replitDomain}">https://${replitDomain}</a> while waiting
               </p>
             </div>
           </body>
@@ -97,14 +110,14 @@ app.use((req, res, next) => {
       `);
     }
 
-    // Force HTTPS
+    // Handle HTTPS upgrade first
     if (proto !== 'https') {
       const redirectUrl = `https://${host}${req.url}`;
       log(`Redirecting to HTTPS: ${redirectUrl}`);
       return res.redirect(301, redirectUrl);
     }
 
-    // Handle www to non-www redirect
+    // Only redirect www to non-www for the custom domain
     if (host === `www.${customDomain}`) {
       const redirectUrl = `https://${customDomain}${req.url}`;
       log(`Redirecting www to non-www: ${redirectUrl}`);
@@ -115,7 +128,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Logging middleware
+// API request logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
   res.on("finish", () => {
