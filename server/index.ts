@@ -12,94 +12,102 @@ app.use((req, res, next) => {
   app.set('trust proxy', true);
 
   // Get the host and protocol from headers
-  const host = req.header('host');
-  const proto = req.header('x-forwarded-proto');
-  const originalUrl = req.url;
+  const host = req.get('host');
+  const proto = req.get('x-forwarded-proto');
 
   // Enhanced logging for debugging domain issues
-  log(`Incoming request details:
+  log(`Incoming request:
     Host: ${host}
     Protocol: ${proto}
-    URL: ${originalUrl}
+    URL: ${req.url}
     Headers: ${JSON.stringify(req.headers)}
   `);
 
-  // Handle both custom domain and Replit domain
   if (process.env.NODE_ENV === 'production') {
-    // Allow requests during domain verification
+    if (!host) {
+      log('No host header found');
+      return res.status(400).send('No host header');
+    }
+
+    // Define allowed domains
+    const replitDomain = process.env.REPL_SLUG ? `${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` : 'breath-wave-brainappsllc.replit.app';
+    const customDomain = 'breathwork.fyi';
+
+    // Configure allowed domains
     const allowedDomains = [
-      'breathwork.fyi',
-      'www.breathwork.fyi',
-      'breath-wave-brainappsllc.replit.app',
+      customDomain,
+      `www.${customDomain}`,
+      replitDomain,
       '.replit.app',
       '.repl.co'
     ];
 
-    // Check if this is a valid domain
-    const isAllowedDomain = host && allowedDomains.some(domain =>
-      host === domain || (domain.startsWith('.') && host.endsWith(domain))
-    );
+    // Check if domain is allowed
+    const isAllowedDomain = allowedDomains.some(domain => {
+      if (domain.startsWith('.')) {
+        return host.endsWith(domain);
+      }
+      return host === domain;
+    });
 
     if (!isAllowedDomain) {
-      log(`Unrecognized host: ${host}`);
+      log(`Domain validation failed for: ${host}`);
       return res.status(403).send(`
         <html>
           <head>
-            <title>Domain Setup Instructions</title>
+            <title>Domain Configuration Required</title>
             <style>
-              body { font-family: system-ui; max-width: 600px; margin: 40px auto; padding: 0 20px; }
-              h1 { color: #333; }
-              .message { background: #f5f5f5; padding: 20px; border-radius: 8px; }
-              .link { color: #0066cc; text-decoration: none; }
-              .link:hover { text-decoration: underline; }
-              .code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+              body { font-family: system-ui; max-width: 600px; margin: 40px auto; padding: 0 20px; line-height: 1.6; }
+              h1 { color: #333; margin-bottom: 1.5em; }
+              .message { background: #f8f9fa; padding: 2em; border-radius: 8px; border: 1px solid #dee2e6; }
+              .code { background: #f1f3f5; padding: 0.2em 0.4em; border-radius: 3px; font-family: monospace; }
+              .steps { margin: 1.5em 0; }
+              .step { margin-bottom: 1em; }
+              .note { color: #666; font-size: 0.9em; margin-top: 1.5em; }
             </style>
           </head>
           <body>
-            <h1>Domain Setup Instructions</h1>
             <div class="message">
-              <p>To properly set up your domain, please configure the following DNS records:</p>
-              <ol>
-                <li>For <span class="code">breathwork.fyi</span>:
-                  <ul>
-                    <li>Type: <span class="code">A</span></li>
-                    <li>Name: <span class="code">@</span></li>
-                    <li>Value: <span class="code">35.190.27.27</span></li>
-                    <li>TTL: <span class="code">3600</span> (or default)</li>
-                  </ul>
-                </li>
-                <li>For <span class="code">www.breathwork.fyi</span>:
-                  <ul>
-                    <li>Type: <span class="code">CNAME</span></li>
-                    <li>Name: <span class="code">www</span></li>
-                    <li>Value: <span class="code">breath-wave-brainappsllc.replit.app</span></li>
-                    <li>TTL: <span class="code">3600</span> (or default)</li>
-                  </ul>
-                </li>
-              </ol>
-              <p><strong>Important Notes:</strong></p>
-              <ul>
-                <li>DNS changes can take up to 48 hours to propagate globally</li>
-                <li>The SSL certificate will be automatically provisioned once DNS is properly configured</li>
-                <li>You can access the app directly at <a class="link" href="https://breath-wave-brainappsllc.replit.app">https://breath-wave-brainappsllc.replit.app</a> while waiting</li>
-              </ul>
-              <p>If you continue to experience issues after 48 hours, please verify your DNS settings or contact your domain registrar for assistance.</p>
+              <h1>Domain Configuration Required</h1>
+              <p>To access this site, you need to configure your DNS settings as follows:</p>
+
+              <div class="steps">
+                <div class="step">
+                  <strong>For the root domain (breathwork.fyi):</strong><br>
+                  Add an A record:<br>
+                  • Name: <span class="code">@</span><br>
+                  • Value: <span class="code">35.190.27.27</span>
+                </div>
+
+                <div class="step">
+                  <strong>For the www subdomain (www.breathwork.fyi):</strong><br>
+                  Add a CNAME record:<br>
+                  • Name: <span class="code">www</span><br>
+                  • Value: <span class="code">${replitDomain}</span>
+                </div>
+              </div>
+
+              <p class="note">
+                • DNS changes typically take 15-30 minutes to propagate<br>
+                • You can access the site directly at <a href="https://${replitDomain}">https://${replitDomain}</a> while waiting
+              </p>
             </div>
           </body>
         </html>
       `);
     }
 
-    // Handle www to non-www redirect after domain validation
-    if (host?.startsWith('www.')) {
-      const nonWwwHost = host.replace('www.', '');
-      return res.redirect(301, `${proto}://${nonWwwHost}${req.url}`);
-    }
-
-    // Force HTTPS for all valid domains
+    // Force HTTPS
     if (proto !== 'https') {
       const redirectUrl = `https://${host}${req.url}`;
       log(`Redirecting to HTTPS: ${redirectUrl}`);
+      return res.redirect(301, redirectUrl);
+    }
+
+    // Handle www to non-www redirect
+    if (host === `www.${customDomain}`) {
+      const redirectUrl = `https://${customDomain}${req.url}`;
+      log(`Redirecting www to non-www: ${redirectUrl}`);
       return res.redirect(301, redirectUrl);
     }
   }
@@ -110,29 +118,12 @@ app.use((req, res, next) => {
 // Logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-      log(logLine);
+    if (req.path.startsWith("/api")) {
+      log(`${req.method} ${req.path} ${res.statusCode} in ${duration}ms`);
     }
   });
-
   next();
 });
 
