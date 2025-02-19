@@ -24,25 +24,19 @@ app.use((req, res, next) => {
     Headers: ${JSON.stringify(req.headers)}
   `);
 
-  // Handle www to non-www redirect first
-  if (host?.startsWith('www.')) {
-    const nonWwwHost = host.replace('www.', '');
-    return res.redirect(301, `${proto}://${nonWwwHost}${req.url}`);
-  }
-
   // Handle both custom domain and Replit domain
   if (process.env.NODE_ENV === 'production') {
     // Allow requests during domain verification
     const allowedDomains = [
       'breathwork.fyi',
-      'www.breathwork.fyi', // Add www subdomain explicitly
+      'www.breathwork.fyi',
       'breath-wave-brainappsllc.replit.app',
       '.replit.app',
       '.repl.co'
     ];
 
     // Check if this is a valid domain
-    const isAllowedDomain = host && allowedDomains.some(domain => 
+    const isAllowedDomain = host && allowedDomains.some(domain =>
       host === domain || (domain.startsWith('.') && host.endsWith(domain))
     );
 
@@ -58,25 +52,48 @@ app.use((req, res, next) => {
               .message { background: #f5f5f5; padding: 20px; border-radius: 8px; }
               .link { color: #0066cc; text-decoration: none; }
               .link:hover { text-decoration: underline; }
+              .code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
             </style>
           </head>
           <body>
             <h1>Domain Setup Instructions</h1>
             <div class="message">
-              <p>To properly set up your domain, please ensure you have configured:</p>
+              <p>To properly set up your domain, please configure the following DNS records:</p>
               <ol>
-                <li>An A record for breathwork.fyi pointing to 35.190.27.27</li>
-                <li>A CNAME record for www.breathwork.fyi pointing to breath-wave-brainappsllc.replit.app</li>
+                <li>For <span class="code">breathwork.fyi</span>:
+                  <ul>
+                    <li>Type: <span class="code">A</span></li>
+                    <li>Name: <span class="code">@</span></li>
+                    <li>Value: <span class="code">35.190.27.27</span></li>
+                    <li>TTL: <span class="code">3600</span> (or default)</li>
+                  </ul>
+                </li>
+                <li>For <span class="code">www.breathwork.fyi</span>:
+                  <ul>
+                    <li>Type: <span class="code">CNAME</span></li>
+                    <li>Name: <span class="code">www</span></li>
+                    <li>Value: <span class="code">breath-wave-brainappsllc.replit.app</span></li>
+                    <li>TTL: <span class="code">3600</span> (or default)</li>
+                  </ul>
+                </li>
               </ol>
-              <p>Domain verification can take up to 30 minutes after DNS changes.</p>
-              <p>In the meantime, you can access the application at: 
-                <a class="link" href="https://breath-wave-brainappsllc.replit.app">https://breath-wave-brainappsllc.replit.app</a>
-              </p>
-              <p><strong>Note:</strong> If you've already configured these records, please allow up to 30 minutes for DNS propagation and SSL certificate generation.</p>
+              <p><strong>Important Notes:</strong></p>
+              <ul>
+                <li>DNS changes can take up to 48 hours to propagate globally</li>
+                <li>The SSL certificate will be automatically provisioned once DNS is properly configured</li>
+                <li>You can access the app directly at <a class="link" href="https://breath-wave-brainappsllc.replit.app">https://breath-wave-brainappsllc.replit.app</a> while waiting</li>
+              </ul>
+              <p>If you continue to experience issues after 48 hours, please verify your DNS settings or contact your domain registrar for assistance.</p>
             </div>
           </body>
         </html>
       `);
+    }
+
+    // Handle www to non-www redirect after domain validation
+    if (host?.startsWith('www.')) {
+      const nonWwwHost = host.replace('www.', '');
+      return res.redirect(301, `${proto}://${nonWwwHost}${req.url}`);
     }
 
     // Force HTTPS for all valid domains
