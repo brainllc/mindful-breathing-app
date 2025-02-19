@@ -6,17 +6,31 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Add custom domain handling
+// Enhanced custom domain handling
 app.use((req, res, next) => {
   // Trust X-Forwarded-* headers from Replit's proxy
   app.set('trust proxy', true);
 
-  // Ensure proper protocol is used
-  if (req.header('x-forwarded-proto') !== 'https' && process.env.NODE_ENV === 'production') {
-    res.redirect(`https://${req.header('host')}${req.url}`);
-  } else {
-    next();
+  // Get the host from headers
+  const host = req.header('host');
+
+  // Handle both custom domain and Replit domain
+  if (process.env.NODE_ENV === 'production') {
+    // Force HTTPS
+    if (req.header('x-forwarded-proto') !== 'https') {
+      return res.redirect(`https://${host}${req.url}`);
+    }
+
+    // Allow both custom domain and Replit domain
+    if (host && (
+      host.includes('breathwork.fyi') || 
+      host.includes('replit.app') ||
+      host.includes('repl.co')
+    )) {
+      return next();
+    }
   }
+  next();
 });
 
 app.use((req, res, next) => {
@@ -66,7 +80,6 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Use port 5000 as specified in .replit
   const PORT = 5000;
 
   server.listen(PORT, "0.0.0.0", () => {
