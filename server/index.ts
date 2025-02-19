@@ -13,12 +13,18 @@ app.use((req, res, next) => {
 
   // Get the host from headers
   const host = req.header('host');
+  const proto = req.header('x-forwarded-proto');
+
+  // Log the incoming request for debugging
+  log(`Incoming request - Host: ${host}, Protocol: ${proto}, URL: ${req.url}`);
 
   // Handle both custom domain and Replit domain
   if (process.env.NODE_ENV === 'production') {
     // Force HTTPS
-    if (req.header('x-forwarded-proto') !== 'https') {
-      return res.redirect(`https://${host}${req.url}`);
+    if (proto !== 'https') {
+      const redirectUrl = `https://${host}${req.url}`;
+      log(`Redirecting to HTTPS: ${redirectUrl}`);
+      return res.redirect(redirectUrl);
     }
 
     // Allow both custom domain and Replit domain
@@ -27,6 +33,7 @@ app.use((req, res, next) => {
       host.includes('replit.app') ||
       host.includes('repl.co')
     )) {
+      log(`Valid host detected: ${host}`);
       return next();
     }
   }
@@ -69,7 +76,7 @@ app.use((req, res, next) => {
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-
+    log(`Error: ${message}`);
     res.status(status).json({ message });
     throw err;
   });
