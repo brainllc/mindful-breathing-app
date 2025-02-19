@@ -57,14 +57,14 @@ export default function Home() {
             <TabsList className="w-full max-w-md mx-auto grid grid-cols-2 mb-16 bg-transparent" role="tablist" aria-label="Exercise selection methods">
               <TabsTrigger
                 value="mood"
-                className="text-lg px-8 py-4 tab-trigger data-[state=active]:bg-primary/10 data-[state=active]:text-primary dark:data-[state=active]:bg-primary/20 data-[state=active]:font-medium relative"
+                className="text-lg px-8 py-4 tab-trigger transition-all duration-200 hover:scale-[1.02] hover:bg-primary/5 active:scale-[0.98] data-[state=active]:bg-primary/10 data-[state=active]:text-primary dark:hover:bg-primary/15 dark:data-[state=active]:bg-primary/20 data-[state=active]:font-medium relative"
                 role="tab"
               >
                 <span className="relative">Find by Mood</span>
               </TabsTrigger>
               <TabsTrigger
                 value="all"
-                className="text-lg px-8 py-4 tab-trigger data-[state=active]:bg-primary/10 data-[state=active]:text-primary dark:data-[state=active]:bg-primary/20 data-[state=active]:font-medium relative"
+                className="text-lg px-8 py-4 tab-trigger transition-all duration-200 hover:scale-[1.02] hover:bg-primary/5 active:scale-[0.98] data-[state=active]:bg-primary/10 data-[state=active]:text-primary dark:hover:bg-primary/15 dark:data-[state=active]:bg-primary/20 data-[state=active]:font-medium relative"
                 role="tab"
               >
                 <span className="relative">All Exercises</span>
