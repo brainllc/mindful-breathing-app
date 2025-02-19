@@ -11,12 +11,18 @@ app.use((req, res, next) => {
   // Trust X-Forwarded-* headers from Replit's proxy
   app.set('trust proxy', true);
 
-  // Get the host from headers
+  // Get the host and protocol from headers
   const host = req.header('host');
   const proto = req.header('x-forwarded-proto');
+  const originalUrl = req.url;
 
-  // Log the incoming request for debugging
-  log(`Incoming request - Host: ${host}, Protocol: ${proto}, URL: ${req.url}`);
+  // Enhanced logging for debugging domain issues
+  log(`Incoming request details:
+    Host: ${host}
+    Protocol: ${proto}
+    URL: ${originalUrl}
+    Headers: ${JSON.stringify(req.headers)}
+  `);
 
   // Handle both custom domain and Replit domain
   if (process.env.NODE_ENV === 'production') {
@@ -24,21 +30,36 @@ app.use((req, res, next) => {
     if (proto !== 'https') {
       const redirectUrl = `https://${host}${req.url}`;
       log(`Redirecting to HTTPS: ${redirectUrl}`);
-      return res.redirect(redirectUrl);
+      return res.redirect(301, redirectUrl);
     }
 
     // Allow both custom domain and Replit domain
-    if (host && (
-      host.includes('breathwork.fyi') || 
-      host.includes('replit.app') ||
-      host.includes('repl.co')
-    )) {
+    const allowedDomains = [
+      'breathwork.fyi',
+      'www.breathwork.fyi',
+      '.replit.app',
+      '.repl.co'
+    ];
+
+    if (host && allowedDomains.some(domain => host.includes(domain))) {
       log(`Valid host detected: ${host}`);
       return next();
     }
 
-    // If host is not recognized, log it
+    // If host is not recognized, log it and return 403
     log(`Unrecognized host: ${host}`);
+    return res.status(403).send(`
+      <html>
+        <head><title>Domain Verification in Progress</title></head>
+        <body>
+          <h1>Domain Verification in Progress</h1>
+          <p>The domain ${host} is currently being verified by Replit. This process can take up to 30 minutes.</p>
+          <p>In the meantime, you can access the application at: 
+             <a href="https://breath-wave-brainappsllc.replit.app">https://breath-wave-brainappsllc.replit.app</a>
+          </p>
+        </body>
+      </html>
+    `);
   }
   next();
 });
