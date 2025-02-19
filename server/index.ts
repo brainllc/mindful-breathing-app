@@ -36,6 +36,9 @@ app.use((req, res, next) => {
       log(`Valid host detected: ${host}`);
       return next();
     }
+
+    // If host is not recognized, log it
+    log(`Unrecognized host: ${host}`);
   }
   next();
 });
