@@ -54,17 +54,17 @@ export default function Home() {
           </motion.header>
 
           <Tabs defaultValue="mood" className="max-w-5xl mx-auto">
-            <TabsList className="w-full max-w-md mx-auto grid grid-cols-2 mb-16 bg-transparent" role="tablist" aria-label="Exercise selection methods">
+            <TabsList className="w-full max-w-md mx-auto grid grid-cols-2 gap-2 mb-16 bg-transparent" role="tablist" aria-label="Exercise selection methods">
               <TabsTrigger
                 value="mood"
-                className="text-lg px-8 py-4 tab-trigger transition-all duration-200 hover:scale-[1.02] hover:bg-primary/5 active:scale-[0.98] data-[state=active]:bg-primary/10 data-[state=active]:text-primary dark:hover:bg-primary/15 dark:data-[state=active]:bg-primary/20 data-[state=active]:font-medium relative"
+                className="text-lg px-8 py-4 tab-trigger transition-all duration-200 hover:scale-[1.02] hover:bg-primary/5 active:scale-[0.98] data-[state=active]:bg-primary/10 data-[state=active]:text-primary dark:hover:bg-primary/15 dark:data-[state=active]:bg-primary/20 data-[state=active]:font-medium relative rounded-full"
                 role="tab"
               >
                 <span className="relative">Find by Mood</span>
               </TabsTrigger>
               <TabsTrigger
                 value="all"
-                className="text-lg px-8 py-4 tab-trigger transition-all duration-200 hover:scale-[1.02] hover:bg-primary/5 active:scale-[0.98] data-[state=active]:bg-primary/10 data-[state=active]:text-primary dark:hover:bg-primary/15 dark:data-[state=active]:bg-primary/20 data-[state=active]:font-medium relative"
+                className="text-lg px-8 py-4 tab-trigger transition-all duration-200 hover:scale-[1.02] hover:bg-primary/5 active:scale-[0.98] data-[state=active]:bg-primary/10 data-[state=active]:text-primary dark:hover:bg-primary/15 dark:data-[state=active]:bg-primary/20 data-[state=active]:font-medium relative rounded-full"
                 role="tab"
               >
                 <span className="relative">All Exercises</span>
