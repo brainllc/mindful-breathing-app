@@ -26,14 +26,7 @@ app.use((req, res, next) => {
 
   // Handle both custom domain and Replit domain
   if (process.env.NODE_ENV === 'production') {
-    // Force HTTPS
-    if (proto !== 'https') {
-      const redirectUrl = `https://${host}${req.url}`;
-      log(`Redirecting to HTTPS: ${redirectUrl}`);
-      return res.redirect(301, redirectUrl);
-    }
-
-    // Allow both custom domain and Replit domain
+    // Allow requests during domain verification
     const allowedDomains = [
       'breathwork.fyi',
       'www.breathwork.fyi',
@@ -41,29 +34,48 @@ app.use((req, res, next) => {
       '.repl.co'
     ];
 
-    if (host && allowedDomains.some(domain => host.includes(domain))) {
-      log(`Valid host detected: ${host}`);
-      return next();
+    // Check if this is a valid domain
+    const isAllowedDomain = host && allowedDomains.some(domain => host.includes(domain));
+
+    if (!isAllowedDomain) {
+      log(`Unrecognized host: ${host}`);
+      return res.status(403).send(`
+        <html>
+          <head>
+            <title>Domain Verification in Progress</title>
+            <style>
+              body { font-family: system-ui; max-width: 600px; margin: 40px auto; padding: 0 20px; }
+              h1 { color: #333; }
+              .message { background: #f5f5f5; padding: 20px; border-radius: 8px; }
+              .link { color: #0066cc; text-decoration: none; }
+              .link:hover { text-decoration: underline; }
+            </style>
+          </head>
+          <body>
+            <h1>Domain Verification in Progress</h1>
+            <div class="message">
+              <p>The domain ${host} is currently being verified by Replit. This process can take up to 30 minutes.</p>
+              <p>In the meantime, you can access the application at: 
+                <a class="link" href="https://breath-wave-brainappsllc.replit.app">https://breath-wave-brainappsllc.replit.app</a>
+              </p>
+            </div>
+          </body>
+        </html>
+      `);
     }
 
-    // If host is not recognized, log it and return 403
-    log(`Unrecognized host: ${host}`);
-    return res.status(403).send(`
-      <html>
-        <head><title>Domain Verification in Progress</title></head>
-        <body>
-          <h1>Domain Verification in Progress</h1>
-          <p>The domain ${host} is currently being verified by Replit. This process can take up to 30 minutes.</p>
-          <p>In the meantime, you can access the application at: 
-             <a href="https://breath-wave-brainappsllc.replit.app">https://breath-wave-brainappsllc.replit.app</a>
-          </p>
-        </body>
-      </html>
-    `);
+    // Force HTTPS for all valid domains
+    if (proto !== 'https') {
+      const redirectUrl = `https://${host}${req.url}`;
+      log(`Redirecting to HTTPS: ${redirectUrl}`);
+      return res.redirect(301, redirectUrl);
+    }
   }
+
   next();
 });
 
+// Logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -82,11 +94,9 @@ app.use((req, res, next) => {
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
-
       if (logLine.length > 80) {
         logLine = logLine.slice(0, 79) + "…";
       }
-
       log(logLine);
     }
   });
