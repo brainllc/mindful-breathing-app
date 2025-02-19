@@ -30,6 +30,7 @@ app.use((req, res, next) => {
     const allowedDomains = [
       'breathwork.fyi',
       'www.breathwork.fyi',
+      'breath-wave-brainappsllc.replit.app',
       '.replit.app',
       '.repl.co'
     ];
@@ -42,7 +43,7 @@ app.use((req, res, next) => {
       return res.status(403).send(`
         <html>
           <head>
-            <title>Domain Verification in Progress</title>
+            <title>Domain Setup Instructions</title>
             <style>
               body { font-family: system-ui; max-width: 600px; margin: 40px auto; padding: 0 20px; }
               h1 { color: #333; }
@@ -52,16 +53,27 @@ app.use((req, res, next) => {
             </style>
           </head>
           <body>
-            <h1>Domain Verification in Progress</h1>
+            <h1>Domain Setup Instructions</h1>
             <div class="message">
-              <p>The domain ${host} is currently being verified by Replit. This process can take up to 30 minutes.</p>
+              <p>To properly set up your domain, please ensure you have configured:</p>
+              <ol>
+                <li>An A record for breathwork.fyi pointing to 35.190.27.27</li>
+                <li>A CNAME record for www.breathwork.fyi pointing to breath-wave-brainappsllc.replit.app</li>
+              </ol>
+              <p>Domain verification can take up to 30 minutes after DNS changes.</p>
               <p>In the meantime, you can access the application at: 
                 <a class="link" href="https://breath-wave-brainappsllc.replit.app">https://breath-wave-brainappsllc.replit.app</a>
               </p>
+              <p><strong>Note:</strong> If you've already configured these records, please allow up to 30 minutes for DNS propagation and SSL certificate generation.</p>
             </div>
           </body>
         </html>
       `);
+    }
+
+    // Handle www to non-www redirect for consistency
+    if (host === 'www.breathwork.fyi') {
+      return res.redirect(301, `https://breathwork.fyi${req.url}`);
     }
 
     // Force HTTPS for all valid domains
