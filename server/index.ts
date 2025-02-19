@@ -29,7 +29,6 @@ app.use((req, res, next) => {
     // Allow requests during domain verification
     const allowedDomains = [
       'breathwork.fyi',
-      'www.breathwork.fyi',
       'breath-wave-brainappsllc.replit.app',
       '.replit.app',
       '.repl.co'
@@ -124,7 +123,6 @@ app.use((req, res, next) => {
     const message = err.message || "Internal Server Error";
     log(`Error: ${message}`);
     res.status(status).json({ message });
-    throw err;
   });
 
   if (app.get("env") === "development") {
