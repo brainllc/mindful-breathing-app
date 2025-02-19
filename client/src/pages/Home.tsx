@@ -42,9 +42,9 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="max-w-2xl mx-auto text-center mb-20"
+            className="max-w-2xl mx-auto text-center mb-20 pt-4"
           >
-            <h1 className="text-6xl font-bold tracking-tight mb-8 bg-gradient-to-b from-primary/90 to-primary/70 bg-clip-text text-transparent">
+            <h1 className="text-6xl font-bold tracking-tight mb-8 bg-gradient-to-b from-primary/90 to-primary/70 bg-clip-text text-transparent pb-1">
               Mindful Breathing
             </h1>
             <p className="text-xl text-muted-foreground leading-relaxed max-w-xl mx-auto">
