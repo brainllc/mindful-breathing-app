@@ -204,7 +204,7 @@ export default function Exercise() {
         onDecline={handleDisclaimerDecline}
       />
 
-      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-25 dark:opacity-20" />
+      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-25 dark:opacity-20 will-change-transform" role="presentation" aria-hidden="true" />
       <div ref={containerRef} className="container relative mx-auto px-4 pt-12 pb-[140px]">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-12">

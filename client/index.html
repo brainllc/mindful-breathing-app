@@ -16,17 +16,34 @@
     <meta name="description" content="Discover effective breathing techniques including Box Breathing, Wim Hof Method, 4-7-8 Breathing, and more. Practice guided breathing exercises for stress relief, anxiety reduction, and improved focus." />
     <meta name="keywords" content="breathing exercises, meditation, mindfulness, box breathing, wim hof method, 4-7-8 breathing, alternate nostril breathing, resonant breathing, diaphragmatic breathing, stress relief, anxiety relief, focus improvement" />
 
+    <!-- Performance Optimizations -->
+    <link rel="preload" href="/src/index.css" as="style">
+    <link rel="preload" href="/src/main.tsx" as="script" crossorigin>
+    <link rel="preload" href="/grid.svg" as="image">
+
+    <!-- Cache Control -->
+    <meta http-equiv="Cache-Control" content="max-age=31536000, immutable" />
+
+    <!-- Font Display Strategy -->
+    <style>
+      @font-face {
+        font-family: 'Inter';
+        font-display: swap;
+        src: local('Inter');
+      }
+    </style>
+
     <!-- Open Graph / Social Media Meta Tags -->
     <meta property="og:title" content="Mindful Breathing - Guided Breathing Exercises" />
     <meta property="og:description" content="Practice guided breathing exercises for stress relief, anxiety reduction, and improved focus. Features Box Breathing, Wim Hof Method, and more." />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://mindful-breathing.repl.co" />
+    <meta property="og:url" content="https://breathwork.fyi" />
     <meta property="og:image" content="/og-image.png" />
 
     <!-- Additional Meta Tags -->
     <meta name="robots" content="index, follow" />
     <meta name="author" content="Mindful Breathing" />
-    <link rel="canonical" href="https://mindful-breathing.repl.co" />
+    <link rel="canonical" href="https://breathwork.fyi" />
   </head>
   <body>
     <div id="root"></div>

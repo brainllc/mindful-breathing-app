@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { MoodSelector } from "@/components/MoodSelector";
 import { ExerciseCard } from "@/components/ExerciseCard";
 import { exercises, getExercisesByMood, moods } from "@/lib/exercises";
@@ -6,7 +6,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ThemeToggle";
+
+// Lazy load the ThemeToggle component as it's not critical for first paint
+const ThemeToggle = lazy(() => import("@/components/ThemeToggle"));
 
 export default function Home() {
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
@@ -28,10 +30,12 @@ export default function Home() {
     : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-100 via-blue-50/40 to-slate-50 dark:from-primary/10 dark:via-background dark:to-background">
-      <ThemeToggle />
+    <div className="min-h-screen bg-gradient-to-b from-slate-100 via-blue-50/40 to-slate-50 dark:from-primary/10 dark:via-background dark:to-background will-change-transform">
+      <Suspense fallback={null}>
+        <ThemeToggle />
+      </Suspense>
       <div 
-        className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-25 dark:opacity-20"
+        className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-25 dark:opacity-20 will-change-transform"
         role="presentation" 
         aria-hidden="true"
       />
@@ -41,10 +45,10 @@ export default function Home() {
           <motion.header
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            transition={{ duration: 0.4 }}
             className="max-w-2xl mx-auto text-center mb-20 pt-4"
           >
-            <h1 className="text-6xl font-bold tracking-tight mb-8 bg-gradient-to-b from-primary/90 to-primary/70 bg-clip-text text-transparent pb-1">
+            <h1 className="text-6xl font-bold tracking-tight mb-8 bg-gradient-to-b from-primary/90 to-primary/70 bg-clip-text text-transparent pb-4 will-change-transform">
               Mindful Breathing
             </h1>
             <p className="text-xl text-muted-foreground leading-relaxed max-w-xl mx-auto">
