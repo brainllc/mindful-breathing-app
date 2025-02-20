@@ -35,7 +35,7 @@ export default function Home() {
         <ThemeToggle />
       </Suspense>
       <div 
-        className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-25 dark:opacity-20"
+        className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-25 dark:opacity-20" 
         role="presentation" 
         aria-hidden="true"
       />
@@ -48,7 +48,7 @@ export default function Home() {
             transition={{ duration: 0.4 }}
             className="max-w-2xl mx-auto text-center mb-20 pt-4"
           >
-            <h1 className="text-6xl font-bold tracking-tight mb-8 bg-gradient-to-b from-primary/90 to-primary/70 bg-clip-text text-transparent">
+            <h1 className="text-6xl font-bold tracking-tight mb-8">
               Mindful Breathing
             </h1>
             <p className="text-xl text-muted-foreground leading-relaxed max-w-xl mx-auto">
