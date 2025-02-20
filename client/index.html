@@ -17,9 +17,11 @@
     <meta name="keywords" content="breathing exercises, meditation, mindfulness, box breathing, wim hof method, 4-7-8 breathing, alternate nostril breathing, resonant breathing, diaphragmatic breathing, stress relief, anxiety relief, focus improvement" />
 
     <!-- Performance Optimizations -->
-    <link rel="preload" href="/src/index.css" as="style">
-    <link rel="preload" href="/src/main.tsx" as="script" crossorigin>
-    <link rel="preload" href="/grid.svg" as="image">
+    <link rel="preload" href="/src/index.css" as="style" />
+    <link rel="modulepreload" href="/src/main.tsx" crossorigin />
+    <link rel="preload" href="/grid.svg" as="image" />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
 
     <!-- Cache Control -->
     <meta http-equiv="Cache-Control" content="max-age=31536000, immutable" />
@@ -31,7 +33,29 @@
         font-display: swap;
         src: local('Inter');
       }
+
+      /* Prevent text flash during load */
+      .text-transparent {
+        opacity: 0;
+        transition: opacity 0.2s ease-in-out;
+      }
+      .fonts-loaded .text-transparent {
+        opacity: 1;
+      }
     </style>
+
+    <!-- Font Loading Script -->
+    <script>
+      if ("fonts" in document) {
+        Promise.all([
+          document.fonts.load("1em Inter"),
+        ]).then(() => {
+          document.documentElement.classList.add("fonts-loaded");
+        });
+      } else {
+        document.documentElement.classList.add("fonts-loaded");
+      }
+    </script>
 
     <!-- Open Graph / Social Media Meta Tags -->
     <meta property="og:title" content="Mindful Breathing - Guided Breathing Exercises" />
