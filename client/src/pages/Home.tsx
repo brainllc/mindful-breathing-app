@@ -30,12 +30,12 @@ export default function Home() {
     : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-100 via-blue-50/40 to-slate-50 dark:from-primary/10 dark:via-background dark:to-background will-change-transform">
+    <div className="min-h-screen bg-gradient-to-b from-slate-100 via-blue-50/40 to-slate-50 dark:from-primary/10 dark:via-background dark:to-background">
       <Suspense fallback={null}>
         <ThemeToggle />
       </Suspense>
       <div 
-        className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-25 dark:opacity-20 will-change-transform"
+        className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-25 dark:opacity-20"
         role="presentation" 
         aria-hidden="true"
       />
@@ -58,29 +58,22 @@ export default function Home() {
           </motion.header>
 
           <Tabs defaultValue="mood" className="max-w-5xl mx-auto">
-            <TabsList className="w-full max-w-md mx-auto grid grid-cols-2 gap-2 mb-16 bg-transparent" role="tablist" aria-label="Exercise selection methods">
+            <TabsList className="w-full max-w-md mx-auto grid grid-cols-2 gap-2 mb-16 bg-transparent">
               <TabsTrigger
                 value="mood"
                 className="text-lg px-8 py-4 transition-all duration-200 bg-primary/0 hover:bg-primary/5 dark:hover:bg-primary/10 data-[state=active]:bg-primary/10 data-[state=active]:text-primary dark:data-[state=active]:bg-primary/20 data-[state=active]:font-medium relative rounded-full before:absolute before:inset-0 before:rounded-full before:bg-primary/0 hover:before:bg-primary/5 before:transition-colors before:duration-200 active:scale-95 transform transition"
-                role="tab"
               >
-                <span className="relative">Find by Mood</span>
+                Find by Mood
               </TabsTrigger>
               <TabsTrigger
                 value="all"
                 className="text-lg px-8 py-4 transition-all duration-200 bg-primary/0 hover:bg-primary/5 dark:hover:bg-primary/10 data-[state=active]:bg-primary/10 data-[state=active]:text-primary dark:data-[state=active]:bg-primary/20 data-[state=active]:font-medium relative rounded-full before:absolute before:inset-0 before:rounded-full before:bg-primary/0 hover:before:bg-primary/5 before:transition-colors before:duration-200 active:scale-95 transform transition"
-                role="tab"
               >
-                <span className="relative">All Exercises</span>
+                All Exercises
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent
-              value="mood"
-              className="focus-visible:outline-none space-y-16 px-4"
-              role="tabpanel"
-              aria-label="Find exercises by mood"
-            >
+            <TabsContent value="mood" className="focus-visible:outline-none space-y-16 px-4">
               <AnimatePresence mode="wait">
                 {!selectedMood ? (
                   <motion.section
@@ -111,7 +104,7 @@ export default function Home() {
                         className="text-primary hover:text-primary/80"
                         onClick={handleBackToMoods}
                       >
-                        <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
+                        <ArrowLeft className="w-4 h-4 mr-2" />
                         Back to Moods
                       </Button>
                       <h3 className="text-2xl font-medium text-center">
@@ -146,12 +139,7 @@ export default function Home() {
               </AnimatePresence>
             </TabsContent>
 
-            <TabsContent
-              value="all"
-              className="focus-visible:outline-none px-4"
-              role="tabpanel"
-              aria-label="All breathing exercises"
-            >
+            <TabsContent value="all" className="focus-visible:outline-none px-4">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {exercises.map((exercise, index) => (
                   <ExerciseCard
