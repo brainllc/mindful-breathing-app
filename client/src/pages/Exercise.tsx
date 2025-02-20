@@ -239,7 +239,7 @@ export default function Exercise() {
             className="space-y-12"
           >
             <div className="text-center space-y-4">
-              <h1 className="text-4xl font-bold bg-gradient-to-b from-primary/90 to-primary/70 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold text-primary/90">
                 {exercise.name}
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
