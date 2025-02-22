@@ -26,7 +26,7 @@ export function ExerciseCard({ exercise, index }: Props) {
               <Clock className="w-4 h-4" />
               <span>{exercise.pattern.inhale + (exercise.pattern.hold || 0) + exercise.pattern.exhale + (exercise.pattern.holdEmpty || 0)}s per round</span>
             </div>
-            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+            <CardTitle className="text-2xl font-bold text-primary/90">
               {exercise.name}
             </CardTitle>
             <CardDescription className="text-base mt-2">
