@@ -7,20 +7,6 @@ import fs from "fs";
 
 const app = express();
 
-// Specific handler for sitemap.xml before any middleware
-app.get('/sitemap.xml', (req, res) => {
-  const sitemapPath = path.join(process.cwd(), 'public', 'sitemap.xml');
-  fs.readFile(sitemapPath, (err, data) => {
-    if (err) {
-      log(`Error reading sitemap: ${err}`);
-      return res.status(500).send('Error reading sitemap');
-    }
-    res.header('Content-Type', 'application/xml; charset=utf-8');
-    res.header('Content-Disposition', 'inline');
-    res.send(data);
-  });
-});
-
 app.use(compression()); // Add compression middleware
 app.use(express.static('public')); // Serve static files from public directory
 app.use(express.json());
