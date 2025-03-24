@@ -2,9 +2,19 @@ import express, { type Request, Response, NextFunction } from "express";
 import compression from "compression";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import path from "path";
 
 const app = express();
 app.use(compression()); // Add compression middleware
+
+// Add XML content type middleware for sitemap
+app.use((req, res, next) => {
+  if (req.path.endsWith('.xml')) {
+    res.type('application/xml');
+  }
+  next();
+});
+
 app.use(express.static('public')); // Serve static files from public directory
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -32,8 +42,8 @@ app.use((req, res, next) => {
     }
 
     // Define allowed domains
-    const replitDomain = process.env.REPL_SLUG ? 
-      `${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` : 
+    const replitDomain = process.env.REPL_SLUG ?
+      `${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` :
       'breath-wave-brainappsllc.replit.app';
     const customDomain = 'breathwork.fyi';
 
