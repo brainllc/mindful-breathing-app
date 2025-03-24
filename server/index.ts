@@ -3,16 +3,22 @@ import compression from "compression";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import path from "path";
+import fs from "fs";
 
 const app = express();
 app.use(compression()); // Add compression middleware
 
-// Add XML content type middleware for sitemap
-app.use((req, res, next) => {
-  if (req.path.endsWith('.xml')) {
-    res.type('application/xml');
-  }
-  next();
+// Specific handler for sitemap.xml
+app.get('/sitemap.xml', (req, res) => {
+  const sitemapPath = path.join(process.cwd(), 'public', 'sitemap.xml');
+  fs.readFile(sitemapPath, (err, data) => {
+    if (err) {
+      log(`Error reading sitemap: ${err}`);
+      return res.status(500).send('Error reading sitemap');
+    }
+    res.header('Content-Type', 'application/xml');
+    res.send(data);
+  });
 });
 
 app.use(express.static('public')); // Serve static files from public directory
