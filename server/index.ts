@@ -5,6 +5,7 @@ import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 app.use(compression()); // Add compression middleware
+app.use(express.static('public')); // Serve static files from public directory
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
