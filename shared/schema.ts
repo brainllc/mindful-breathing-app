@@ -3,22 +3,22 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
+  id: text("id").primaryKey(),
+  email: text("email").notNull().unique(),
   currentExercise: text("current_exercise"),
   completedRounds: integer("completed_rounds").default(0),
 });
 
 export const sessions = pgTable("sessions", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id),
+  userId: text("user_id").references(() => users.id),
   exerciseId: text("exercise_id").notNull(),
   rounds: integer("rounds").notNull(),
   completed: boolean("completed").default(false),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
+  email: true,
 });
 
 export const insertSessionSchema = createInsertSchema(sessions).pick({

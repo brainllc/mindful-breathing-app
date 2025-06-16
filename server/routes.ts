@@ -1,7 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
-import { insertUserSchema, insertSessionSchema } from "@shared/schema";
+import { db, supabase } from "./db";
+import { users } from "@shared/schema";
+import { eq } from "drizzle-orm";
 import fs from "fs";
 import path from "path";
 
@@ -22,49 +23,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  app.post("/api/users", async (req, res) => {
-    const parsed = insertUserSchema.safeParse(req.body);
-    if (!parsed.success) {
-      return res.status(400).json({ error: parsed.error });
+  app.post("/api/signup", async (req, res, next) => {
+    try {
+      const { email, password } = req.body;
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email and password are required" });
+      }
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) return next(error);
+
+      // Also create user in our public.users table
+      if (data.user) {
+        await db.insert(users).values({ id: data.user.id, email });
+      }
+
+      res.json(data);
+    } catch (error) {
+      next(error);
     }
-    const user = await storage.createUser(parsed.data);
-    res.json(user);
   });
 
-  app.get("/api/users/:id", async (req, res) => {
-    const user = await storage.getUser(Number(req.params.id));
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
+  app.post("/api/signin", async (req, res, next) => {
+    try {
+      const { email, password } = req.body;
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) return next(error);
+      res.json(data);
+    } catch (error) {
+      next(error);
     }
-    res.json(user);
   });
 
-  app.post("/api/sessions", async (req, res) => {
-    const parsed = insertSessionSchema.safeParse(req.body);
-    if (!parsed.success) {
-      return res.status(400).json({ error: parsed.error });
+  // Example of a protected route
+  app.get("/api/me", async (req, res, next) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+        return res.status(401).json({ error: "Authorization header is missing" });
+      }
+      
+      const token = authHeader.split(" ")[1];
+      if (!token) {
+        return res.status(401).json({ error: "Bearer token is missing" });
+      }
+
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser(token);
+
+      if (error || !user) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const [appUser] = await db.select().from(users).where(eq(users.id, user.id));
+
+      if (!appUser) {
+        return res.status(404).json({ error: "User not found in our database" });
+      }
+
+      res.json(appUser);
+    } catch (error) {
+      next(error);
     }
-    const session = await storage.createSession(parsed.data);
-    res.json(session);
   });
 
-  app.get("/api/users/:id/sessions", async (req, res) => {
-    const sessions = await storage.getSessionsByUser(Number(req.params.id));
-    res.json(sessions);
-  });
-
-  app.patch("/api/users/:id/progress", async (req, res) => {
-    const { exercise, rounds } = req.body;
-    if (!exercise || !rounds) {
-      return res.status(400).json({ error: "Missing exercise or rounds" });
-    }
-    const user = await storage.updateUserProgress(
-      Number(req.params.id),
-      exercise,
-      rounds
-    );
-    res.json(user);
-  });
+  // The rest of the routes would be updated similarly,
+  // using supabase.auth.getUser() to protect them
+  // and using the user id from there to query the database.
 
   const httpServer = createServer(app);
   return httpServer;
