@@ -15,20 +15,25 @@ import { ExerciseInfoModal } from "@/components/ExerciseInfoModal";
 import { ControlsBar } from "@/components/ControlsBar";
 import { audioService } from "@/lib/audio";
 import ThemeToggle from "@/components/ThemeToggle";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Exercise() {
   const [, params] = useRoute("/exercise/:id");
   const exercise = exercises.find(e => e.id === params?.id);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const [isStarted, setIsStarted] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [currentRound, setCurrentRound] = useState(0);
-  const [totalRounds, setTotalRounds] = useState(exercise?.defaultRounds || 4);
+  const [totalRounds, setTotalRounds] = useState(Math.max(1, exercise?.defaultRounds || 4));
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [hasAcceptedDisclaimer, setHasAcceptedDisclaimer] = useState(false);
   const [phaseProgress, setPhaseProgress] = useState(0);
+  const [currentSessionId, setCurrentSessionId] = useState<number | null>(null);
+  const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const exerciseTitleRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (exercise) {
@@ -112,16 +117,100 @@ export default function Exercise() {
     return <div>Exercise not found</div>;
   }
 
+  // Function to start a session in the backend
+  const startSession = async () => {
+    if (!user || !exercise) return;
+
+    try {
+      const storedSession = localStorage.getItem('supabase.auth.token');
+      if (!storedSession) return;
+      
+      const session = JSON.parse(storedSession);
+      const response = await fetch(`/api/exercises/${exercise.id}/start`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          rounds: totalRounds
+        })
+      });
+
+      if (response.ok) {
+        const sessionData = await response.json();
+        setCurrentSessionId(sessionData.id);
+        setSessionStartTime(new Date());
+      }
+    } catch (error) {
+      console.error('Error starting session:', error);
+    }
+  };
+
+  // Function to complete a session in the backend
+  const completeSession = async () => {
+    if (!user || !currentSessionId || !sessionStartTime) return;
+
+    try {
+      const storedSession = localStorage.getItem('supabase.auth.token');
+      if (!storedSession) return;
+      
+      const session = JSON.parse(storedSession);
+      const durationSeconds = Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 1000);
+      
+      const response = await fetch(`/api/exercises/sessions/${currentSessionId}/complete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          roundsCompleted: currentRound + 1,
+          durationSeconds
+        })
+      });
+
+      if (response.ok) {
+        const minutes = Math.floor(durationSeconds / 60);
+        const minuteText = minutes === 1 ? "minute" : "minutes";
+        toast({
+          title: "Great job!",
+          description: `You completed ${currentRound + 1} rounds in ${minutes} ${minuteText}.`,
+        });
+      }
+    } catch (error) {
+      console.error('Error completing session:', error);
+    }
+  };
+
   const handleStart = async () => {
     if (!hasAcceptedDisclaimer) {
       setShowDisclaimer(true);
       return;
     }
 
+    await startExercise();
+  };
+
+  const startExercise = async () => {
     try {
       console.log('Starting exercise...');
       setIsStarted(true);
       setIsPaused(false);
+      
+      // Start session tracking
+      await startSession();
+      
+      // Auto-scroll to exercise title with padding
+      setTimeout(() => {
+        if (exerciseTitleRef.current) {
+          exerciseTitleRef.current.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+          });
+        }
+      }, 100);
+      
       await audioService.playMusic();
     } catch (error) {
       console.error('Exercise start error:', error);
@@ -142,10 +231,11 @@ export default function Exercise() {
     setIsPaused(!isPaused);
   };
 
-  const handleDisclaimerAccept = () => {
+  const handleDisclaimerAccept = async () => {
     setHasAcceptedDisclaimer(true);
     setShowDisclaimer(false);
-    handleStart();
+    // Start exercise directly without checking disclaimer state
+    await startExercise();
   };
 
   const handleDisclaimerDecline = () => {
@@ -161,6 +251,8 @@ export default function Exercise() {
     setIsPaused(false);
     setCurrentRound(0);
     setPhaseProgress(0);
+    setCurrentSessionId(null);
+    setSessionStartTime(null);
     await audioService.stopMusic();
     toast({
       title: "Exercise Stopped",
@@ -171,10 +263,15 @@ export default function Exercise() {
 
   const handleRoundComplete = async () => {
     if (currentRound + 1 >= totalRounds) {
+      // Exercise completed
+      await completeSession();
+      
       setIsStarted(false);
       setIsPaused(false);
       setCurrentRound(0);
       setPhaseProgress(0);
+      setCurrentSessionId(null);
+      setSessionStartTime(null);
       await audioService.stopMusic();
     } else {
       setCurrentRound(prev => prev + 1);
@@ -238,7 +335,7 @@ export default function Exercise() {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-12"
           >
-            <div className="text-center space-y-4">
+            <div ref={exerciseTitleRef} className="text-center space-y-4">
               <h1 className="text-4xl font-bold text-primary/90">
                 {exercise.name}
               </h1>
@@ -275,6 +372,7 @@ export default function Exercise() {
                     <BreathingAnimation
                       exercise={exercise}
                       isActive={isStarted && !isPaused}
+                      currentRound={currentRound}
                       onRoundComplete={handleRoundComplete}
                       onPhaseProgress={handlePhaseProgress}
                     />
@@ -283,9 +381,10 @@ export default function Exercise() {
                       <ControlsBar
                         rounds={totalRounds}
                         onRoundsChange={(newRounds) => {
-                          // Prevent setting rounds below current round
-                          if (newRounds >= currentRound + 1) {
-                            setTotalRounds(newRounds);
+                          // Ensure minimum 1 round and prevent setting below current round
+                          const validRounds = Math.max(1, newRounds);
+                          if (validRounds >= currentRound + 1) {
+                            setTotalRounds(validRounds);
                           }
                         }}
                         onPause={handlePause}
@@ -312,7 +411,7 @@ export default function Exercise() {
                     <RoundConfig
                       defaultRounds={totalRounds}
                       onStart={(rounds) => {
-                        setTotalRounds(rounds);
+                        setTotalRounds(Math.max(1, rounds));
                       }}
                       isStarted={isStarted}
                     />

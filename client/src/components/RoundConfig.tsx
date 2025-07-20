@@ -9,15 +9,20 @@ interface Props {
 
 export function RoundConfig({ defaultRounds, onStart, isStarted }: Props) {
   const handleValueChange = (value: number[]) => {
-    onStart(value[0]);
+    // Ensure minimum value is 1
+    const roundsValue = Math.max(1, value[0]);
+    onStart(roundsValue);
   };
+
+  // Ensure defaultRounds is never less than 1
+  const safeDefaultRounds = Math.max(1, defaultRounds);
 
   return (
     <div className="space-y-4 max-w-md mx-auto">
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <Label className="text-muted-foreground">Number of Rounds</Label>
-          <span className="text-2xl font-medium text-primary">{defaultRounds}</span>
+          <span className="text-2xl font-medium text-primary">{safeDefaultRounds}</span>
         </div>
         <div 
           className="relative" 
@@ -25,12 +30,13 @@ export function RoundConfig({ defaultRounds, onStart, isStarted }: Props) {
             if (isStarted) return;
             const rect = e.currentTarget.getBoundingClientRect();
             const pos = (e.clientX - rect.left) / rect.width;
-            const value = Math.round(1 + pos * 49); // Scale to 1-50 range
+            const value = Math.max(1, Math.round(1 + pos * 49)); // Scale to 1-50 range, ensure min 1
             handleValueChange([value]);
           }}
         >
           <Slider
-            defaultValue={[defaultRounds]}
+            defaultValue={[safeDefaultRounds]}
+            value={[safeDefaultRounds]}
             min={1}
             max={50}
             step={1}

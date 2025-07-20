@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from "react";
+import { useState } from "react";
 import { MoodSelector } from "@/components/MoodSelector";
 import { ExerciseCard } from "@/components/ExerciseCard";
 import { exercises, getExercisesByMood, moods } from "@/lib/exercises";
@@ -6,9 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-// Lazy load the ThemeToggle component as it's not critical for first paint
-const ThemeToggle = lazy(() => import("@/components/ThemeToggle"));
+import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 
 export default function Home() {
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
@@ -31,9 +30,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 via-blue-50/40 to-slate-50 dark:from-primary/10 dark:via-background dark:to-background">
-      <Suspense fallback={null}>
-        <ThemeToggle />
-      </Suspense>
+      <Navbar />
       <div 
         className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-25 dark:opacity-20" 
         role="presentation" 
@@ -153,6 +150,7 @@ export default function Home() {
           </Tabs>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

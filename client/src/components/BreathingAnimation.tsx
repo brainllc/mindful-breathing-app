@@ -6,18 +6,29 @@ import { audioService } from "@/lib/audio";
 interface Props {
   exercise: Exercise;
   isActive: boolean;
+  currentRound: number;
   onRoundComplete: () => void;
   onPhaseProgress: (progress: number) => void;
 }
 
-export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhaseProgress }: Props) {
+export function BreathingAnimation({ exercise, isActive, currentRound, onRoundComplete, onPhaseProgress }: Props) {
   const [phase, setPhase] = useState<"inhale" | "hold" | "exhale">("inhale");
   const [phaseTimeLeft, setPhaseTimeLeft] = useState(exercise.pattern.inhale);
+  const [roundCompleted, setRoundCompleted] = useState(false);
   const animationRef = useRef<{
     scale: number;
     opacity: number;
   }>({ scale: 1, opacity: 0.5 });
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Reset round completion when exercise starts or round changes
+  useEffect(() => {
+    if (isActive) {
+      setRoundCompleted(false);
+      setPhase("inhale");
+      setPhaseTimeLeft(exercise.pattern.inhale);
+    }
+  }, [isActive, currentRound, exercise.pattern.inhale]);
 
   // Get the duration for a given phase
   const getPhaseDuration = (phase: string) => {
@@ -35,7 +46,7 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
     exercise.pattern.exhale;
 
   useEffect(() => {
-    if (!isActive) {
+    if (!isActive || roundCompleted) {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
@@ -86,8 +97,10 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
           }
         })();
 
-        // Send normalized progress (0-1)
-        onPhaseProgress(progressThroughSequence / phaseSequenceDuration);
+        // Send normalized progress (0-1) only if round not completed
+        if (!roundCompleted) {
+          onPhaseProgress(progressThroughSequence / phaseSequenceDuration);
+        }
 
         if (newTimeLeft === 0) {
           // Determine next phase
@@ -99,13 +112,19 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
             }
           })();
 
-          setPhase(nextPhase);
-
-          // If we're completing a full cycle
+          // If we're completing a full cycle (exhale -> inhale)
           if (nextPhase === "inhale" && phase === "exhale") {
-            onRoundComplete();
+            setRoundCompleted(true);
+            // Send final progress as 1.0 (100% complete)
+            onPhaseProgress(1.0);
+            // Call round complete after a small delay to ensure progress is set
+            setTimeout(() => {
+              onRoundComplete();
+            }, 10);
+            return current; // Don't update the time, keep it at 0
           }
 
+          setPhase(nextPhase);
           return getPhaseDuration(nextPhase);
         }
 
@@ -119,7 +138,7 @@ export function BreathingAnimation({ exercise, isActive, onRoundComplete, onPhas
         intervalRef.current = null;
       }
     };
-  }, [isActive, exercise, phase, onRoundComplete, onPhaseProgress, phaseSequenceDuration]);
+  }, [isActive, exercise, phase, onRoundComplete, onPhaseProgress, phaseSequenceDuration, roundCompleted]);
 
   return (
     <div className="relative w-full h-96 flex items-center justify-center">
