@@ -22,7 +22,7 @@ export default function DownloadStressGuide() {
 
     // Start the download
     const link = document.createElement('a');
-    link.href = '/stress-guide.pdf'; // Put your PDF in the public folder
+    link.href = '/stress-guide.pdf';
     link.download = '5-Minute-Reset-Stress-Guide.pdf';
     link.click();
     
@@ -59,9 +59,9 @@ export default function DownloadStressGuide() {
               <div className="bg-blue-50 dark:bg-blue-950/20 p-6 rounded-lg mb-6">
                 <h3 className="font-bold mb-3">What's Inside:</h3>
                 <div className="grid md:grid-cols-3 gap-4 text-sm">
-                  <div>✓ Understanding your stress response</div>
+                  <div>✓ Understanding stress science</div>
                   <div>✓ 5-minute emergency techniques</div>
-                  <div>✓ How to get started the right way</div>
+                  <div>✓ Getting started the right way</div>
                 </div>
               </div>
               
@@ -87,7 +87,7 @@ export default function DownloadStressGuide() {
           <Card className="border border-primary/10">
             <CardContent className="p-8">
               <h2 className="text-2xl font-bold mb-4 text-center">What's Next?</h2>
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid md:grid-cols-3 gap-6">
                 <div>
                   <h3 className="font-semibold mb-2">📧 Monthly Newsletter</h3>
                   <p className="text-sm text-muted-foreground">
@@ -95,10 +95,17 @@ export default function DownloadStressGuide() {
                   </p>
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-2">🌬️ Try the App</h3>
+                  <h3 className="font-semibold mb-2">🌬️ Try Interactive Exercises</h3>
                   <p className="text-sm text-muted-foreground">
-                    Ready for interactive breathing exercises? 
-                    <a href="/" className="text-primary hover:underline"> Explore our app</a>
+                    Ready for guided breathing sessions? 
+                    <a href="/" className="text-primary hover:underline"> Try our interactive breathing exercises</a>
+                  </p>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-2">📚 Free Learning Library</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Dive deeper with our collection of expert articles on breathwork science and techniques.
+                    <a href="/library" className="text-primary hover:underline"> Explore our library</a>
                   </p>
                 </div>
               </div>
