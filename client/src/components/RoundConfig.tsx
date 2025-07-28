@@ -9,13 +9,13 @@ interface Props {
 
 export function RoundConfig({ defaultRounds, onStart, isStarted }: Props) {
   const handleValueChange = (value: number[]) => {
-    // Ensure minimum value is 1
-    const roundsValue = Math.max(1, value[0]);
+    // Ensure value is between 1 and 50 (hard caps)
+    const roundsValue = Math.max(1, Math.min(50, value[0]));
     onStart(roundsValue);
   };
 
-  // Ensure defaultRounds is never less than 1
-  const safeDefaultRounds = Math.max(1, defaultRounds);
+  // Ensure defaultRounds is between 1 and 50
+  const safeDefaultRounds = Math.max(1, Math.min(50, defaultRounds));
 
   return (
     <div className="space-y-4 max-w-md mx-auto">
@@ -29,8 +29,8 @@ export function RoundConfig({ defaultRounds, onStart, isStarted }: Props) {
           onClick={(e) => {
             if (isStarted) return;
             const rect = e.currentTarget.getBoundingClientRect();
-            const pos = (e.clientX - rect.left) / rect.width;
-            const value = Math.max(1, Math.round(1 + pos * 49)); // Scale to 1-50 range, ensure min 1
+            const pos = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)); // Clamp position between 0 and 1
+            const value = Math.max(1, Math.min(50, Math.round(1 + pos * 49))); // Scale to 1-50 range with hard caps
             handleValueChange([value]);
           }}
         >
