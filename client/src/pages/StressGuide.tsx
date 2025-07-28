@@ -340,7 +340,7 @@ export default function StressGuide() {
             </div>
 
             <div className="grid md:grid-cols-3 gap-8">
-              {/* Preview 1 - Understanding Stress */}
+              {/* Preview 1 - Understanding Stress - Updated for production images */}
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
