@@ -11,6 +11,7 @@ import { HelmetProvider } from "react-helmet-async";
 const Home = lazy(() => import("@/pages/Home"));
 const Exercise = lazy(() => import("@/pages/Exercise"));
 const StressGuide = lazy(() => import("@/pages/StressGuide"));
+const DownloadStressGuide = lazy(() => import("@/pages/DownloadStressGuide"));
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Login = lazy(() => import("@/pages/Login"));
 const Register = lazy(() => import("@/pages/Register"));
@@ -38,6 +39,7 @@ function Router() {
         <Route path="/" component={Home} />
         <Route path="/exercise/:id" component={Exercise} />
         <Route path="/stress-guide" component={StressGuide} />
+        <Route path="/download-stress-guide" component={DownloadStressGuide} />
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
@@ -57,10 +59,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <HelmetProvider>
-        <AuthProvider>
-          <Router />
-          <Toaster />
-        </AuthProvider>
+      <AuthProvider>
+        <Router />
+        <Toaster />
+      </AuthProvider>
       </HelmetProvider>
     </QueryClientProvider>
   );

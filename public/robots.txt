@@ -1,0 +1,24 @@
+User-agent: *
+Allow: /
+
+# Disallow private/auth pages
+Disallow: /auth/
+Disallow: /profile
+Disallow: /dashboard
+
+# Allow important public pages
+Allow: /
+Allow: /library/
+Allow: /exercise/
+Allow: /stress-guide
+Allow: /download-stress-guide
+Allow: /login
+Allow: /register
+Allow: /terms-of-service
+Allow: /privacy-policy
+
+# Sitemap location
+Sitemap: https://breathwork.fyi/sitemap.xml
+
+# Crawl delay for good citizenship
+Crawl-delay: 1 

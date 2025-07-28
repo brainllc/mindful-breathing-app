@@ -93,7 +93,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { email, firstName, lastName, dateOfBirth, marketingConsent } = validationResult.data;
+      const { email, displayName, isAgeVerified, marketingConsent } = validationResult.data;
       const { password } = req.body;
 
       if (!password || password.length < 8) {
@@ -118,9 +118,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const newUser = await db.insert(users).values({
         id: authData.user.id,
         email,
-        firstName,
-        lastName,
-        dateOfBirth,
+        displayName,
+        isAgeVerified,
         acceptedTermsAt: new Date(),
         acceptedPrivacyAt: new Date(),
         marketingConsent,
@@ -232,19 +231,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // New user - create profile
-      // Extract name from OAuth user data
-      const fullName = user.user_metadata?.full_name || user.email.split('@')[0];
-      const nameParts = fullName.split(' ');
-      const firstName = nameParts[0] || 'User';
-      const lastName = nameParts.slice(1).join(' ') || '';
+      // Extract display name from OAuth user data
+      const displayName = user.user_metadata?.full_name || user.email.split('@')[0] || 'User';
 
       // Create user in our database
       const newUser = await db.insert(users).values({
         id: user.id,
         email: user.email,
-        firstName,
-        lastName,
-        dateOfBirth: '1990-01-01', // Placeholder date for OAuth users - they can update later
+        displayName,
+        isAgeVerified: true, // OAuth users are assumed to be verified adults through their provider
         acceptedTermsAt: new Date(),
         acceptedPrivacyAt: new Date(),
         marketingConsent: req.body.marketingConsent === 'true',
@@ -513,8 +508,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         utmSource,
         utmMedium,
         utmCampaign,
-        ipAddress: req.ip,
-        userAgent: req.get('User-Agent'),
+        // Removed IP address and user agent tracking for privacy compliance
       }).returning();
       
       res.json({ 

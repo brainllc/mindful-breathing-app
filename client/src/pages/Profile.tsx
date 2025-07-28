@@ -41,8 +41,7 @@ export default function Profile() {
   const [isLoading, setIsLoading] = useState(false);
   const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [formData, setFormData] = useState({
-    firstName: user?.firstName || "",
-    lastName: user?.lastName || "",
+    displayName: user?.displayName || "",
     email: user?.email || ""
   });
 
@@ -78,8 +77,7 @@ export default function Profile() {
   useEffect(() => {
     if (user) {
       setFormData({
-        firstName: user.firstName,
-        lastName: user.lastName,
+        displayName: user.displayName,
         email: user.email
       });
     }
@@ -151,8 +149,7 @@ export default function Profile() {
 
   const handleCancel = () => {
     setFormData({
-      firstName: user?.firstName || "",
-      lastName: user?.lastName || "",
+      displayName: user?.displayName || "",
       email: user?.email || ""
     });
     setIsEditing(false);
@@ -216,29 +213,17 @@ export default function Profile() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="firstName">First Name</Label>
-                      <Input
-                        id="firstName"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleInputChange}
-                        disabled={!isEditing}
-                        className={!isEditing ? "bg-muted" : ""}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="lastName">Last Name</Label>
-                      <Input
-                        id="lastName"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleInputChange}
-                        disabled={!isEditing}
-                        className={!isEditing ? "bg-muted" : ""}
-                      />
-                    </div>
+                  <div>
+                    <Label htmlFor="displayName">Display Name</Label>
+                    <Input
+                      id="displayName"
+                      name="displayName"
+                      value={formData.displayName}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                      className={!isEditing ? "bg-muted" : ""}
+                      placeholder="How you'd like to be addressed"
+                    />
                   </div>
 
                   <div>

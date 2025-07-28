@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,13 +19,13 @@ interface RegisterFormProps {
 
 export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) {
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+    displayName: "",
     email: "",
     password: "",
     confirmPassword: "",
     dateOfBirth: "",
   });
+  const [isAgeVerified, setIsAgeVerified] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -36,6 +36,31 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
   const [acceptMarketing, setAcceptMarketing] = useState(false);
   const { toast } = useToast();
   const { login } = useAuth();
+  const errorRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to error when it appears
+  useEffect(() => {
+    if (error) {
+      // Check if error is related to checkboxes - scroll to top to avoid navbar blocking
+      const isCheckboxError = error.includes("Terms of Service") || 
+                            error.includes("Privacy Policy") ||
+                            error.includes("must accept");
+      
+      if (isCheckboxError) {
+        // Scroll to top of page for checkbox errors
+        window.scrollTo({ 
+          top: 0, 
+          behavior: 'smooth' 
+        });
+      } else if (errorRef.current) {
+        // Scroll to error message for other errors
+        errorRef.current.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      }
+    }
+  }, [error]);
 
   const handleGoogleSignUp = async () => {
     if (!acceptTerms || !acceptPrivacy) {
@@ -84,13 +109,8 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
   };
 
   const validateForm = () => {
-    if (!formData.firstName.trim()) {
-      setError("First name is required");
-      return false;
-    }
-    
-    if (!formData.lastName.trim()) {
-      setError("Last name is required");
+    if (!formData.displayName.trim()) {
+      setError("Display name is required");
       return false;
     }
     
@@ -109,6 +129,9 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
       setError("You must be 18 or older to use this service. Please consult with a parent or guardian.");
       return false;
     }
+    
+    // Set age verification flag but don't store the actual birthdate
+    setIsAgeVerified(true);
     
     if (formData.password.length < 8) {
       setError("Password must be at least 8 characters long");
@@ -151,9 +174,8 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
         },
         body: JSON.stringify({
           email: formData.email,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          dateOfBirth: formData.dateOfBirth,
+          displayName: formData.displayName,
+          isAgeVerified: isAgeVerified,
           password: formData.password,
           marketingConsent: acceptMarketing,
         }),
@@ -171,8 +193,7 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
         login({
           id: data.user.id,
           email: data.user.email,
-          firstName: data.user.firstName,
-          lastName: data.user.lastName,
+          displayName: data.user.displayName,
           isPremium: data.user.isPremium,
         }, data.session);
       }
@@ -213,7 +234,7 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
         <CardContent>
           <div className="space-y-4">
             {error && (
-              <Alert variant="destructive">
+              <Alert variant="destructive" ref={errorRef}>
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
@@ -299,137 +320,126 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
             </div>
             
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="firstName"
-                      type="text"
-                      placeholder="John"
-                      value={formData.firstName}
-                      onChange={(e) => handleInputChange("firstName", e.target.value)}
-                      required
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input
-                    id="lastName"
-                    type="text"
-                    placeholder="Doe"
-                    value={formData.lastName}
-                    onChange={(e) => handleInputChange("lastName", e.target.value)}
-                    required
-                  />
-                </div>
+            <div className="space-y-2">
+              <Label htmlFor="displayName">Display Name</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="displayName"
+                  type="text"
+                  placeholder="John D."
+                  value={formData.displayName}
+                  onChange={(e) => handleInputChange("displayName", e.target.value)}
+                  required
+                  className="pl-10"
+                />
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    required
-                    className="pl-10"
-                  />
-                </div>
+              <p className="text-xs text-muted-foreground">
+                This is how your name will appear to others. You can use your full name, first name, or initials.
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange("email", e.target.value)}
+                  required
+                  className="pl-10"
+                />
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="dateOfBirth"
-                    type="date"
-                    value={formData.dateOfBirth}
-                    onChange={(e) => handleInputChange("dateOfBirth", e.target.value)}
-                    required
-                    className="pl-10 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:opacity-0"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  You must be 18 or older to use this service
-                </p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="dateOfBirth">Date of Birth</Label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="dateOfBirth"
+                  type="date"
+                  value={formData.dateOfBirth}
+                  onChange={(e) => handleInputChange("dateOfBirth", e.target.value)}
+                  required
+                  className="pl-10 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:opacity-0"
+                />
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={formData.password}
-                    onChange={(e) => handleInputChange("password", e.target.value)}
-                    required
-                    className="pl-10 pr-10"
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Must be at least 8 characters long
-                </p>
+              <p className="text-xs text-muted-foreground">
+                You must be 18 or older to use this service
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={(e) => handleInputChange("password", e.target.value)}
+                  required
+                  className="pl-10 pr-10"
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={formData.confirmPassword}
-                    onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                    required
-                    className="pl-10 pr-10"
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
+              <p className="text-xs text-muted-foreground">
+                Must be at least 8 characters long
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={formData.confirmPassword}
+                  onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                  required
+                  className="pl-10 pr-10"
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
-              
-              <Button 
-                type="submit" 
-                className="w-full"
+            </div>
+            
+            <Button 
+              type="submit" 
+              className="w-full"
                 disabled={isLoading || isGoogleLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                    Creating account...
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="w-4 h-4 mr-2" />
-                    Create Account
-                  </>
-                )}
-              </Button>
-            </form>
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  Creating account...
+                </>
+              ) : (
+                <>
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Create Account
+                </>
+              )}
+            </Button>
+          </form>
           </div>
           
           <div className="mt-6 text-center text-sm text-muted-foreground">

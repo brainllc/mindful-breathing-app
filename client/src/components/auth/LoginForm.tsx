@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,31 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
   const [error, setError] = useState("");
   const { toast } = useToast();
   const { login } = useAuth();
+  const errorRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to error when it appears
+  useEffect(() => {
+    if (error) {
+      // Check if error is related to checkboxes - scroll to top to avoid navbar blocking
+      const isCheckboxError = error.includes("Terms of Service") || 
+                            error.includes("Privacy Policy") ||
+                            error.includes("must accept");
+      
+      if (isCheckboxError) {
+        // Scroll to top of page for checkbox errors
+        window.scrollTo({ 
+          top: 0, 
+          behavior: 'smooth' 
+        });
+      } else if (errorRef.current) {
+        // Scroll to error message for other errors
+        errorRef.current.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      }
+    }
+  }, [error]);
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
@@ -81,8 +106,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
         login({
           id: data.user.id,
           email: data.user.email,
-          firstName: data.user.firstName,
-          lastName: data.user.lastName,
+          displayName: data.user.displayName,
           isPremium: data.user.isPremium,
         }, data.session);
       }
@@ -119,7 +143,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
         <CardContent>
           <div className="space-y-4">
             {error && (
-              <Alert variant="destructive">
+              <Alert variant="destructive" ref={errorRef}>
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
@@ -161,69 +185,69 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
             </div>
             
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="pl-10"
-                  />
-                </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="pl-10"
+                />
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="pl-10 pr-10"
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="pl-10 pr-10"
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
-              
-              <Button 
-                type="submit" 
-                className="w-full"
+            </div>
+            
+            <Button 
+              type="submit" 
+              className="w-full"
                 disabled={isLoading || isGoogleLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                    Signing in...
-                  </>
-                ) : (
-                  <>
-                    <LogIn className="w-4 h-4 mr-2" />
-                    Sign In
-                  </>
-                )}
-              </Button>
-              
-              <div className="text-center text-sm text-muted-foreground">
-                <Link href="/forgot-password" className="hover:text-primary">
-                  Forgot your password?
-                </Link>
-              </div>
-            </form>
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  Signing in...
+                </>
+              ) : (
+                <>
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Sign In
+                </>
+              )}
+            </Button>
+            
+            <div className="text-center text-sm text-muted-foreground">
+              <Link href="/forgot-password" className="hover:text-primary">
+                Forgot your password?
+              </Link>
+            </div>
+          </form>
           </div>
           
           <div className="mt-6 text-center text-sm text-muted-foreground">

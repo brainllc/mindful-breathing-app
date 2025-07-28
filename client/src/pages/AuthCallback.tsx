@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/supabase';
 import { useToast } from '@/hooks/use-toast';
@@ -14,8 +14,12 @@ export default function AuthCallback() {
   const { login } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const hasRun = useRef(false);
 
   useEffect(() => {
+    // Prevent multiple executions
+    if (hasRun.current) return;
+    hasRun.current = true;
     const handleAuthCallback = async () => {
       try {
         // Get the session from the URL
@@ -34,52 +38,129 @@ export default function AuthCallback() {
           return;
         }
 
-        // Send the session to your backend for processing
-        const response = await fetch('/api/auth/oauth-callback', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({
-            provider: 'google',
-            providerToken: session.provider_token,
-            providerRefreshToken: session.provider_refresh_token,
-            user: session.user,
-          }),
-        });
+        // Check if this is OAuth (has provider_token) or email confirmation
+        const isOAuth = session.provider_token && session.user.app_metadata?.provider !== 'email';
+        
+        if (isOAuth) {
+          // Handle OAuth (Google) signup/signin
+          const response = await fetch('/api/auth/oauth-callback', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({
+              provider: 'google',
+              providerToken: session.provider_token,
+              providerRefreshToken: session.provider_refresh_token,
+              user: session.user,
+            }),
+          });
 
-        const data = await response.json();
+          const data = await response.json();
 
-        if (!response.ok) {
-          setError(data.error || 'Authentication failed. Please try again.');
-          setLoading(false);
-          return;
-        }
+          if (!response.ok) {
+            setError(data.error || 'Authentication failed. Please try again.');
+            setLoading(false);
+            return;
+          }
 
-        // Login the user
-        if (data.user) {
-          login({
+          // Login the user
+          if (data.user) {
+                      login({
             id: data.user.id,
             email: data.user.email,
-            firstName: data.user.firstName,
-            lastName: data.user.lastName,
+            displayName: data.user.displayName,
             isPremium: data.user.isPremium,
           }, session);
 
-          setSuccess(true);
-          
-          toast({
-            title: "Welcome!",
-            description: `Successfully signed in with Google. Welcome ${data.user.firstName}!`,
-          });
+            setSuccess(true);
+            
+            toast({
+              title: "Welcome!",
+              description: `Successfully signed in with Google. Welcome ${data.user.displayName}!`,
+            });
 
-          // Redirect to dashboard after a short delay
-          setTimeout(() => {
-            setLocation('/dashboard');
-          }, 2000);
+            // Redirect to dashboard after a short delay
+            setTimeout(() => {
+              setLocation('/dashboard');
+            }, 2000);
+          } else {
+            setError('Failed to create user account. Please try again.');
+          }
         } else {
-          setError('Failed to create user account. Please try again.');
+          // Handle email confirmation - user is already confirmed, just log them in
+          try {
+            // Get user details from your backend
+            const response = await fetch('/api/user/profile', {
+              headers: {
+                'Authorization': `Bearer ${session.access_token}`,
+              },
+            });
+
+            if (response.ok) {
+              const userData = await response.json();
+              
+              // Login the user
+                          login({
+              id: userData.id,
+              email: userData.email,
+              displayName: userData.displayName,
+              isPremium: userData.isPremium,
+            }, session);
+
+              setSuccess(true);
+              
+              toast({
+                title: "Email Confirmed!",
+                description: `Welcome to Breathwork.fyi! Your account has been activated.`,
+              });
+
+              // Redirect to dashboard after a short delay
+              setTimeout(() => {
+                setLocation('/dashboard');
+              }, 2000);
+            } else {
+              // Fallback: just log them in with basic Supabase user data
+                          login({
+              id: session.user.id,
+              email: session.user.email || '',
+              displayName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+              isPremium: false,
+            }, session);
+
+              setSuccess(true);
+              
+              toast({
+                title: "Email Confirmed!",
+                description: `Welcome to Breathwork.fyi! Your account has been activated.`,
+              });
+
+              setTimeout(() => {
+                setLocation('/dashboard');
+              }, 2000);
+            }
+          } catch (err) {
+            console.error('Error fetching user data:', err);
+                      // Fallback: just log them in with basic Supabase user data
+          login({
+            id: session.user.id,
+            email: session.user.email || '',
+            displayName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+            isPremium: false,
+          }, session);
+
+            setSuccess(true);
+            
+            toast({
+              title: "Email Confirmed!",
+              description: `Welcome to Breathwork.fyi! Your account has been activated.`,
+            });
+
+            setTimeout(() => {
+              setLocation('/dashboard');
+            }, 2000);
+          }
         }
 
       } catch (err) {
@@ -91,7 +172,7 @@ export default function AuthCallback() {
     };
 
     handleAuthCallback();
-  }, [login, toast, setLocation]);
+  }, [login, setLocation]); // Removed toast from dependencies to prevent re-runs
 
   const handleRetry = () => {
     setLocation('/login');
@@ -111,12 +192,9 @@ export default function AuthCallback() {
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
-            <div className="flex flex-col items-center space-y-4">
-              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-              <p className="text-sm text-muted-foreground">
-                This should only take a moment
-              </p>
-            </div>
+            <p className="text-sm text-muted-foreground">
+              This should only take a moment
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -160,12 +238,9 @@ export default function AuthCallback() {
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
-            <div className="flex flex-col items-center space-y-4">
-              <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin" />
-              <p className="text-sm text-muted-foreground">
-                Taking you to your dashboard
-              </p>
-            </div>
+            <p className="text-sm text-muted-foreground">
+              Taking you to your dashboard
+            </p>
           </CardContent>
         </Card>
       </div>

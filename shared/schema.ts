@@ -6,9 +6,8 @@ import { z } from "zod";
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
   email: text("email").notNull().unique(),
-  firstName: text("first_name").notNull(),
-  lastName: text("last_name").notNull(),
-  dateOfBirth: date("date_of_birth").notNull(),
+  displayName: text("display_name").notNull(),
+  isAgeVerified: boolean("is_age_verified").notNull().default(false),
   hashedPassword: text("hashed_password"), // For direct auth (optional with Supabase)
   isEmailVerified: boolean("is_email_verified").default(false),
   
@@ -80,8 +79,7 @@ export const emailCaptureLeads = pgTable("email_capture_leads", {
   id: serial("id").primaryKey(),
   email: text("email").notNull(),
   source: text("source").notNull(), // 'stress-guide', 'newsletter', etc.
-  ipAddress: text("ip_address"),
-  userAgent: text("user_agent"),
+  // Removed ipAddress and userAgent to minimize PII collection
   utmSource: text("utm_source"),
   utmMedium: text("utm_medium"),
   utmCampaign: text("utm_campaign"),
@@ -94,23 +92,12 @@ export const emailCaptureLeads = pgTable("email_capture_leads", {
 // Validation schemas
 export const insertUserSchema = createInsertSchema(users, {
   email: z.string().email(),
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  dateOfBirth: z.string().refine((date) => {
-    const birthDate = new Date(date);
-    const today = new Date();
-    const age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      return age - 1 >= 18;
-    }
-    return age >= 18;
-  }, "You must be 18 or older"),
+  displayName: z.string().min(1, "Display name is required").max(50, "Display name must be 50 characters or less"),
+  isAgeVerified: z.boolean().refine((verified) => verified === true, "You must be 18 or older to use this service"),
 }).pick({
   email: true,
-  firstName: true,
-  lastName: true,
-  dateOfBirth: true,
+  displayName: true,
+  isAgeVerified: true,
   marketingConsent: true,
 });
 

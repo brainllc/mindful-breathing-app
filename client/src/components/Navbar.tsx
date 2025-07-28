@@ -94,17 +94,17 @@ export function Navbar() {
 
   const navItems = [
     {
-      label: "Interactive Breathing Exercises",
+      label: "Breathing Exercises",
       href: "/",
       active: location === "/",
     },
     {
-      label: "Free Breathwork for Stress Guide",
+      label: "Stress Guide",
       href: "/stress-guide",
       active: location === "/stress-guide",
     },
     {
-      label: "Educational Library",
+      label: "Library",
       href: "/library",
       active: location.startsWith("/library"),
       disabled: false,
@@ -175,7 +175,7 @@ export function Navbar() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm">
                       <User className="w-4 h-4 mr-2" />
-                      {user?.firstName}
+                      {user?.displayName}
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">

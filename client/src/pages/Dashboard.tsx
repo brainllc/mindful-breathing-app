@@ -289,7 +289,7 @@ export default function Dashboard() {
             className="max-w-4xl mx-auto text-center mb-16"
           >
             <h1 className="text-5xl font-bold tracking-tight mb-4 text-primary/90">
-              Welcome back, {user.firstName}!
+              Welcome back, {user.displayName}!
             </h1>
             <p className="text-xl text-muted-foreground leading-relaxed">
               Here's your breathing journey progress

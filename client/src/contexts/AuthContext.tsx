@@ -3,8 +3,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 interface User {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
+  displayName: string;
   isPremium: boolean;
 }
 
@@ -44,8 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser({
               id: userData.id,
               email: userData.email,
-              firstName: userData.firstName,
-              lastName: userData.lastName,
+              displayName: userData.displayName,
               isPremium: userData.isPremium,
             });
           } else {

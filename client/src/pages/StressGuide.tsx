@@ -1,12 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/hooks/use-toast";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { 
@@ -24,70 +24,88 @@ import {
 } from "lucide-react";
 
 export default function StressGuide() {
-  const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const scrollToForm = () => {
-    const formElement = document.getElementById('lead-capture-form');
+    const formElement = document.getElementById('stress-guide-form');
     if (formElement) {
       formElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
-    if (!email) {
-      toast({
-        title: "Email Required",
-        description: "Please enter your email address to get the free guide.",
-        variant: "destructive"
-      });
-      return;
-    }
-
     setIsSubmitting(true);
-    
+
     try {
-      const response = await fetch("/api/lead-magnet/capture", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          source: "stress-guide",
-          utmSource: new URLSearchParams(window.location.search).get("utm_source"),
-          utmMedium: new URLSearchParams(window.location.search).get("utm_medium"),
-          utmCampaign: new URLSearchParams(window.location.search).get("utm_campaign"),
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to capture email");
-      }
-
-      toast({
-        title: data.alreadyExists ? "Email already registered!" : "Success! Check your email",
-        description: data.alreadyExists 
-          ? "You're already on our list. The guide should be in your inbox."
-          : "Your free breathwork guide is on its way to your inbox.",
-      });
+      const formData = new FormData(e.currentTarget);
       
-      setEmail("");
-    } catch (error) {
-      toast({
-        title: "Something went wrong",
-        description: "Please try again or contact support.",
-        variant: "destructive"
+      const response = await fetch('https://assets.mailerlite.com/jsonp/1689950/forms/160846263230662467/subscribe', {
+        method: 'POST',
+        body: formData,
       });
+
+      if (response.ok) {
+        setIsSuccess(true);
+        // Reset form
+        e.currentTarget.reset();
+      } else {
+        throw new Error('Submission failed');
+      }
+    } catch (error) {
+      console.error('Form submission error:', error);
+      // You could add error handling here
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // MailerLite setup
+  useEffect(() => {
+    // Load reCAPTCHA script
+    const recaptchaScript = document.createElement('script');
+    recaptchaScript.src = 'https://www.google.com/recaptcha/api.js';
+    recaptchaScript.async = true;
+    document.head.appendChild(recaptchaScript);
+
+    // Load MailerLite webforms script
+    const mlScript = document.createElement('script');
+    mlScript.src = 'https://groot.mailerlite.com/js/w/webforms.min.js?v176e10baa5e7ed80d35ae235be3d5024';
+    mlScript.async = true;
+    document.body.appendChild(mlScript);
+
+    // Load MailerLite tracking script
+    const trackingScript = document.createElement('script');
+    trackingScript.innerHTML = `
+      fetch("https://assets.mailerlite.com/jsonp/1689950/forms/160846263230662467/takel")
+    `;
+    document.body.appendChild(trackingScript);
+
+    // MailerLite success handler (we handle success state in React)
+    (window as any).ml_webform_success_28806241 = function() {
+      // Success is handled by our React state
+      console.log('MailerLite form submitted successfully');
+    };
+
+    return () => {
+      // Cleanup
+      delete (window as any).ml_webform_success_28806241;
+      // Remove scripts if they exist
+      const existingMLScript = document.querySelector('script[src*="webforms.min.js"]');
+      if (existingMLScript) {
+        existingMLScript.remove();
+      }
+      const existingRecaptchaScript = document.querySelector('script[src*="recaptcha"]');
+      if (existingRecaptchaScript) {
+        existingRecaptchaScript.remove();
+      }
+      const existingTrackingScript = document.querySelector('script[innerHTML*="takel"]');
+      if (existingTrackingScript) {
+        existingTrackingScript.remove();
+      }
+    };
+  }, []);
 
   const benefits = [
     {
@@ -123,6 +141,23 @@ export default function StressGuide() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-indigo-50/30 to-purple-50 dark:from-background dark:via-background dark:to-background">
+      <style>{`
+        .g-recaptcha {
+          transform: scale(1);
+          -webkit-transform: scale(1);
+          transform-origin: 0 0;
+          -webkit-transform-origin: 0 0;
+        }
+        
+        @media screen and (max-width: 480px) {
+          .g-recaptcha {
+            transform: scale(0.78);
+            -webkit-transform: scale(0.78);
+            transform-origin: 0 0;
+            -webkit-transform-origin: 0 0;
+          }
+        }
+      `}</style>
       <Navbar />
       
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-20 dark:opacity-10" />
@@ -258,6 +293,32 @@ export default function StressGuide() {
                     </div>
                   ))}
                 </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* First CTA - Ready to Stop Stress */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.65 }}
+            className="max-w-md mx-auto mb-16"
+          >
+            <Card className="border-2 border-green-300 shadow-lg bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20">
+              <CardContent className="p-6 text-center">
+                <h3 className="text-xl font-bold mb-2 text-green-800 dark:text-green-200">
+                  Ready to Stop Stress in Its Tracks?
+                </h3>
+                <p className="text-sm text-green-700 dark:text-green-300 mb-4">
+                  Get instant access to the same techniques helping thousands find calm in chaos
+                </p>
+                <Button size="lg" className="w-full bg-green-600 hover:bg-green-700" onClick={scrollToForm}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Get My Free Guide Now
+                </Button>
+                <p className="text-xs text-green-600 dark:text-green-400 mt-2">
+                  ⚡ Instant download • 100% free
+                </p>
               </CardContent>
             </Card>
           </motion.div>
@@ -436,31 +497,7 @@ export default function StressGuide() {
              </div>
            </motion.div>
 
-          {/* Secondary CTA */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1.1 }}
-            className="max-w-md mx-auto mb-16"
-          >
-            <Card className="border-2 border-green-300 shadow-lg bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20">
-              <CardContent className="p-6 text-center">
-                <h3 className="text-xl font-bold mb-2 text-green-800 dark:text-green-200">
-                  Ready to Stop Stress in Its Tracks?
-                </h3>
-                                 <p className="text-sm text-green-700 dark:text-green-300 mb-4">
-                   Get instant access to the same techniques helping thousands find calm in chaos
-                 </p>
-                                 <Button size="lg" className="w-full bg-green-600 hover:bg-green-700" onClick={scrollToForm}>
-                   <Download className="w-4 h-4 mr-2" />
-                   Get My Free Guide Now
-                 </Button>
-                <p className="text-xs text-green-600 dark:text-green-400 mt-2">
-                  ⚡ Instant download • No credit card required
-                </p>
-              </CardContent>
-            </Card>
-          </motion.div>
+
 
                      {/* FAQ Section */}
            <motion.div
@@ -505,7 +542,7 @@ export default function StressGuide() {
                    <span className="text-primary">Q:</span> Is this really free?
                  </h4>
                  <p className="text-muted-foreground leading-relaxed">
-                   <span className="text-primary font-semibold">A:</span> Yes, completely free. No hidden costs, no credit card required. Just enter your email and get instant access.
+                   <span className="text-primary font-semibold">A:</span> Yes, completely free. No hidden costs, 100% free. Just enter your email and get instant access.
                  </p>
                </div>
              </div>
@@ -518,7 +555,7 @@ export default function StressGuide() {
             transition={{ duration: 0.6, delay: 0.8 }}
             className="max-w-md mx-auto"
           >
-            <Card id="lead-capture-form" className="border-2 border-primary/30 shadow-xl">
+            <Card id="stress-guide-form" className="border-2 border-primary/30 shadow-xl">
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl flex items-center justify-center gap-2">
                   <Download className="w-6 h-6" />
@@ -529,51 +566,110 @@ export default function StressGuide() {
                  </CardDescription>
                 <div className="flex justify-center gap-4 mt-4 text-xs text-muted-foreground">
                   <span>✓ Instant Download</span>
-                  <span>✓ No Spam Ever</span>
-                  <span>✓ Unsubscribe Anytime</span>
+                  <span>✓ Immediately Actionable</span>
+                  <span>✓ Weekly Tips Included</span>
                 </div>
               </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="your@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="h-12"
-                    />
-                  </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full h-12 text-lg font-semibold"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        <Download className="w-5 h-5 mr-2" />
-                        Get My Free Guide Now
-                        <ArrowRight className="w-5 h-5 ml-2" />
-                      </>
-                    )}
-                  </Button>
-                </form>
-                <div className="text-center mt-4 space-y-2">
-                  <p className="text-xs text-muted-foreground">
-                    🔒 Your email is safe. No spam, ever. Unsubscribe with one click.
-                  </p>
-                  <p className="text-xs text-green-600 font-medium">
-                    ⚡ You'll receive your guide within 60 seconds
-                  </p>
+                            <CardContent>
+                {/* MailerLite Form - Full Version */}
+                <div className="mailerlite-form-wrapper">
+                  {!isSuccess ? (
+                    <form 
+                      className="ml-block-form" 
+                      action="https://assets.mailerlite.com/jsonp/1689950/forms/160846263230662467/subscribe" 
+                      method="post"
+                      onSubmit={handleFormSubmit}
+                    >
+                    <div className="space-y-4">
+                      {/* Email Field */}
+                      <div className="ml-form-fieldRow space-y-2">
+                        <div className="ml-field-group ml-field-email ml-validate-email ml-validate-required">
+                          <Label htmlFor="ml-email">Email Address *</Label>
+                          <Input
+                            id="ml-email"
+                            type="email"
+                            name="fields[email]"
+                            placeholder="your@email.com"
+                            required
+                            className="h-12 form-control"
+                            autoComplete="email"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Required Opt-in Checkbox */}
+                      <div className="ml-form-checkboxRow ml-validate-required">
+                        <label className="checkbox flex items-start gap-3">
+                          <input 
+                            type="checkbox" 
+                            name="gdpr[]" 
+                            value="Email"
+                            required
+                            className="mt-1 rounded border-gray-300 text-primary focus:ring-primary"
+                          />
+                          <div className="label-description text-sm text-muted-foreground">
+                            I agree to receive the free guide and a monthly breathwork newsletter. You can unsubscribe anytime. See our <Link href="/privacy-policy" className="underline hover:text-primary">Privacy Policy</Link>. *
+                          </div>
+                        </label>
+                      </div>
+
+                      {/* reCAPTCHA */}
+                      <div className="ml-form-recaptcha ml-validate-required flex justify-center">
+                        <div 
+                          className="g-recaptcha" 
+                          data-sitekey="6Lf1KHQUAAAAAFNKEX1hdSWCS3mRMv4FlFaNslaD"
+                        ></div>
+                      </div>
+
+                      {/* Hidden Fields */}
+                      <input type="hidden" name="ml-submit" value="1" />
+                      <input type="hidden" name="anticsrf" value="true" />
+
+                      {/* Submit Button */}
+                      <Button 
+                        type="submit" 
+                        className="w-full h-12 text-lg font-semibold"
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            <Download className="w-5 h-5 mr-2" />
+                            Yes, Send Me The Guide + Tips
+                            <ArrowRight className="w-5 h-5 ml-2" />
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                                      </form>
+                  ) : (
+                    <div className="text-center p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
+                      <h4 className="text-lg font-semibold text-green-800 dark:text-green-200 mb-2">Success!</h4>
+                      <p className="text-sm text-green-700 dark:text-green-300 mb-4">
+                        Check your email for the download link. It should arrive within 2 minutes.
+                      </p>
+                      <p className="text-xs text-green-600 dark:text-green-400">
+                        ✓ You're now subscribed to our weekly breathing tips
+                      </p>
+                    </div>
+                  )}
                 </div>
+                
+                {/* Post-submit messaging */}
+                {!isSuccess && (
+                  <div className="text-center mt-4 space-y-2">
+                    <p className="text-xs text-green-600 font-medium">
+                      ⚡ You'll receive your guide within 60 seconds
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      📍 BR.AI.N LLC • Las Vegas, NV • breathwork.fyi@gmail.com
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </motion.div>
