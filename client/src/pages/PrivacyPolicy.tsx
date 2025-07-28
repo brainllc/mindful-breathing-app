@@ -303,7 +303,7 @@ export default function PrivacyPolicy() {
                   </div>
                   
                   <p>
-                    To exercise your rights, please contact us at breathwork.fyi@gmail.com. We will respond within 30 days (or as required by applicable law).
+                    To exercise your rights, please contact us at hello@breathwork.fyi. We will respond within 30 days (or as required by applicable law).
                   </p>
                 </div>
               </section>
@@ -376,12 +376,12 @@ export default function PrivacyPolicy() {
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                       <h4 className="font-semibold mb-2">General Privacy Inquiries:</h4>
-                      <p className="text-sm">breathwork.fyi@gmail.com</p>
+                      <p className="text-sm">hello@breathwork.fyi</p>
                     </div>
                     
                     <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                       <h4 className="font-semibold mb-2">Data Protection Officer:</h4>
-                      <p className="text-sm">breathwork.fyi@gmail.com</p>
+                      <p className="text-sm">hello@breathwork.fyi</p>
                     </div>
                   </div>
                   

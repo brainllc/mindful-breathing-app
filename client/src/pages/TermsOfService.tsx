@@ -256,7 +256,7 @@ export default function TermsOfService() {
                   </p>
                   <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                     <p><strong>Company:</strong> BR.AI.N LLC</p>
-                    <p><strong>Email:</strong> breathwork.fyi@gmail.com</p>
+                    <p><strong>Email:</strong> hello@breathwork.fyi</p>
                     <p><strong>Address:</strong> 9407 Ne Vancouver Mall Dr, Ste 104 #2220, Vancouver, Washington 98662, United States</p>
                   </div>
                 </div>

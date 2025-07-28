@@ -35,7 +35,7 @@ export function Footer() {
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Contact & Legal</h3>
             <div className="space-y-3">
               <a 
-                href="mailto:breathwork.fyi@gmail.com" 
+                href="mailto:hello@breathwork.fyi" 
                 className="flex items-center text-gray-600 dark:text-gray-400 hover:text-primary transition-colors text-sm"
               >
                 <Mail className="h-4 w-4 mr-2" />

@@ -666,7 +666,7 @@ export default function StressGuide() {
                       ⚡ You'll receive your guide within 60 seconds
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      📍 BR.AI.N LLC • Vancouver, WA • breathwork.fyi@gmail.com
+                      📍 BR.AI.N LLC • Vancouver, WA • hello@breathwork.fyi
                     </p>
                   </div>
                 )}
