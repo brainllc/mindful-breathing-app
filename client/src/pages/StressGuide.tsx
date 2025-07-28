@@ -23,11 +23,6 @@ import {
   Sparkles
 } from "lucide-react";
 
-// Import images as modules to ensure Vite processes them correctly
-import previewUnderstandingStress from "/images/stress-guide/preview-understanding-stress.jpg";
-import preview5MinuteTechniques from "/images/stress-guide/preview-5-minute-techniques.jpg";
-import previewGettingStarted from "/images/stress-guide/preview-getting-started.jpg";
-
 export default function StressGuide() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -355,7 +350,7 @@ export default function StressGuide() {
                 <Card className="overflow-hidden border-primary/20 hover:border-primary/40 transition-all duration-300 hover:shadow-xl">
                   <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20 aspect-[4/5]">
                     <img 
-                      src={previewUnderstandingStress} 
+                      src="/images/stress-guide/preview-understanding-stress.jpg" 
                       alt="Understanding Your Stress Response - Guide Preview"
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
@@ -398,7 +393,7 @@ export default function StressGuide() {
                 <Card className="overflow-hidden border-primary/20 hover:border-primary/40 transition-all duration-300 hover:shadow-xl">
                   <div className="relative overflow-hidden bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20 aspect-[4/5]">
                                                              <img 
-                      src={preview5MinuteTechniques} 
+                      src="/images/stress-guide/preview-5-minute-techniques.jpg" 
                       alt="5-Minute Stress Techniques - Guide Preview"
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
@@ -441,7 +436,7 @@ export default function StressGuide() {
                 <Card className="overflow-hidden border-primary/20 hover:border-primary/40 transition-all duration-300 hover:shadow-xl">
                   <div className="relative overflow-hidden bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-900/20 dark:to-violet-900/20 aspect-[4/5]">
                                                              <img 
-                      src={previewGettingStarted} 
+                      src="/images/stress-guide/preview-getting-started.jpg" 
                       alt="How to Get Started the Right Way - Guide Preview"
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
