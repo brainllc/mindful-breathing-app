@@ -168,17 +168,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Email is required" });
       }
 
-      // Use Supabase to send password reset email
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${process.env.FRONTEND_URL || 'https://breathwork.fyi'}/auth/reset-password`,
-      });
+      // Check if user exists in our database and if they're an OAuth user
+      const [existingUser] = await db.select().from(users).where(eq(users.email, email));
+      
+      if (existingUser) {
+        // Check if user is OAuth (no hashed password means they use OAuth)
+        if (!existingUser.hashedPassword) {
+          return res.json({
+            isOAuthUser: true,
+            message: "This account uses Google Sign-In. Please use 'Continue with Google' on the login page instead of resetting your password."
+          });
+        }
+        
+        // User has a password, proceed with normal reset flow
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${process.env.FRONTEND_URL || 'https://breathwork.fyi'}/auth/reset-password`,
+        });
 
-      if (error) {
-        // Don't reveal if email exists or not for security
-        console.error("Password reset error:", error.message);
+        if (error) {
+          console.error("Password reset error:", error.message);
+        }
       }
 
-      // Always return success to prevent email enumeration
+      // Always return success message for non-OAuth cases to prevent email enumeration
       res.json({ 
         message: "If an account with that email exists, we've sent password reset instructions." 
       });
