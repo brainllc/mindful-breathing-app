@@ -1,6 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { db, supabase } from "./db";
+import { createClient } from "@supabase/supabase-js";
 import { 
   users, 
   exerciseSessions, 
@@ -153,6 +154,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user: newUser[0],
         session: authData.session
       });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Forgot password
+  app.post("/api/auth/forgot-password", async (req, res, next) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
+      // Use Supabase to send password reset email
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${process.env.FRONTEND_URL || 'https://breathwork.fyi'}/auth/reset-password`,
+      });
+
+      if (error) {
+        // Don't reveal if email exists or not for security
+        console.error("Password reset error:", error.message);
+      }
+
+      // Always return success to prevent email enumeration
+      res.json({ 
+        message: "If an account with that email exists, we've sent password reset instructions." 
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Reset password
+  app.post("/api/auth/reset-password", async (req, res, next) => {
+    try {
+      const { password, accessToken, refreshToken } = req.body;
+      
+      if (!password || !accessToken || !refreshToken) {
+        return res.status(400).json({ error: "Password and tokens are required" });
+      }
+
+      if (password.length < 8) {
+        return res.status(400).json({ error: "Password must be at least 8 characters long" });
+      }
+
+      // Create a temporary Supabase client with the reset tokens
+      const tempSupabase = createClient(
+        process.env.SUPABASE_URL!,
+        process.env.SUPABASE_ANON_KEY!
+      );
+
+      // Set the session with the reset tokens
+      const { error: sessionError } = await tempSupabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+
+      if (sessionError) {
+        return res.status(400).json({ error: "Invalid or expired reset link" });
+      }
+
+      // Update the user's password
+      const { error: updateError } = await tempSupabase.auth.updateUser({
+        password: password,
+      });
+
+      if (updateError) {
+        return res.status(400).json({ error: updateError.message });
+      }
+
+      res.json({ message: "Password reset successfully" });
     } catch (error) {
       next(error);
     }
