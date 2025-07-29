@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+import { Link } from "wouter";
 import { Eye, EyeOff, Lock, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,26 @@ export default function ResetPassword() {
     const hash = window.location.hash;
     if (hash) {
       const params = new URLSearchParams(hash.substring(1));
+      
+      // Check for error first
+      const error = params.get('error');
+      const errorCode = params.get('error_code');
+      const errorDescription = params.get('error_description');
+      
+      if (error) {
+        let errorMessage = "Invalid or expired reset link.";
+        if (errorCode === 'otp_expired') {
+          errorMessage = "This password reset link has expired. Please request a new one.";
+        } else if (errorDescription) {
+          errorMessage = decodeURIComponent(errorDescription.replace(/\+/g, ' '));
+        }
+        setError(errorMessage);
+        // Clear the URL hash
+        window.history.replaceState(null, '', window.location.pathname);
+        return;
+      }
+      
+      // Check for tokens
       const accessToken = params.get('access_token');
       const refreshToken = params.get('refresh_token');
       
@@ -35,7 +56,12 @@ export default function ResetPassword() {
         
         // Clear the URL hash for security
         window.history.replaceState(null, '', window.location.pathname);
+      } else {
+        setError("Invalid reset link. Please request a new password reset.");
       }
+    } else {
+      // No hash parameters at all
+      setError("Invalid reset link. Please request a new password reset.");
     }
   }, []);
 
@@ -163,12 +189,33 @@ export default function ResetPassword() {
               </div>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {error && (
+              {error && error.includes("expired") ? (
+                <div className="space-y-6">
                   <Alert variant="destructive">
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
-                )}
+                  
+                  <div className="space-y-4">
+                    <Link href="/forgot-password">
+                      <Button className="w-full">
+                        Request New Reset Link
+                      </Button>
+                    </Link>
+                    
+                    <Link href="/login">
+                      <Button variant="outline" className="w-full">
+                        Back to Login
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {error && (
+                    <Alert variant="destructive">
+                      <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                  )}
 
                 <div className="space-y-2">
                   <Label htmlFor="password">New Password</Label>
@@ -249,6 +296,7 @@ export default function ResetPassword() {
                   )}
                 </Button>
               </form>
+              )}
             </CardContent>
           </Card>
         </div>
