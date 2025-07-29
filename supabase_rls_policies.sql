@@ -6,80 +6,80 @@
 -- ============================================
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 
--- Users can view their own profile
+-- Users can view their own profile (performance optimized)
 CREATE POLICY "Users can view own profile" ON public.users
-  FOR SELECT USING (auth.uid()::text = id);
+  FOR SELECT USING ((select auth.uid()::text) = id);
 
--- Users can update their own profile
+-- Users can update their own profile (performance optimized)
 CREATE POLICY "Users can update own profile" ON public.users
-  FOR UPDATE USING (auth.uid()::text = id);
+  FOR UPDATE USING ((select auth.uid()::text) = id);
 
--- Users can insert their own profile (for registration)
+-- Users can insert their own profile (performance optimized)
 CREATE POLICY "Users can insert own profile" ON public.users
-  FOR INSERT WITH CHECK (auth.uid()::text = id);
+  FOR INSERT WITH CHECK ((select auth.uid()::text) = id);
 
--- Users can delete their own profile
+-- Users can delete their own profile (performance optimized)
 CREATE POLICY "Users can delete own profile" ON public.users
-  FOR DELETE USING (auth.uid()::text = id);
+  FOR DELETE USING ((select auth.uid()::text) = id);
 
 -- ============================================
 -- EXERCISE_SESSIONS TABLE - Only users can see their own sessions
 -- ============================================
 ALTER TABLE public.exercise_sessions ENABLE ROW LEVEL SECURITY;
 
--- Users can view their own exercise sessions
+-- Users can view their own exercise sessions (performance optimized)
 CREATE POLICY "Users can view own exercise sessions" ON public.exercise_sessions
-  FOR SELECT USING (auth.uid()::text = user_id);
+  FOR SELECT USING ((select auth.uid()::text) = user_id);
 
--- Users can create their own exercise sessions
+-- Users can create their own exercise sessions (performance optimized)
 CREATE POLICY "Users can create own exercise sessions" ON public.exercise_sessions
-  FOR INSERT WITH CHECK (auth.uid()::text = user_id);
+  FOR INSERT WITH CHECK ((select auth.uid()::text) = user_id);
 
--- Users can update their own exercise sessions
+-- Users can update their own exercise sessions (performance optimized)
 CREATE POLICY "Users can update own exercise sessions" ON public.exercise_sessions
-  FOR UPDATE USING (auth.uid()::text = user_id);
+  FOR UPDATE USING ((select auth.uid()::text) = user_id);
 
--- Users can delete their own exercise sessions
+-- Users can delete their own exercise sessions (performance optimized)
 CREATE POLICY "Users can delete own exercise sessions" ON public.exercise_sessions
-  FOR DELETE USING (auth.uid()::text = user_id);
+  FOR DELETE USING ((select auth.uid()::text) = user_id);
 
 -- ============================================
 -- EXERCISE_UNLOCKS TABLE - Only users can see their own unlocks
 -- ============================================
 ALTER TABLE public.exercise_unlocks ENABLE ROW LEVEL SECURITY;
 
--- Users can view their own exercise unlocks
+-- Users can view their own exercise unlocks (performance optimized)
 CREATE POLICY "Users can view own exercise unlocks" ON public.exercise_unlocks
-  FOR SELECT USING (auth.uid()::text = user_id);
+  FOR SELECT USING ((select auth.uid()::text) = user_id);
 
--- Users can create their own exercise unlocks (usually done by system)
+-- Users can create their own exercise unlocks (performance optimized)
 CREATE POLICY "Users can create own exercise unlocks" ON public.exercise_unlocks
-  FOR INSERT WITH CHECK (auth.uid()::text = user_id);
+  FOR INSERT WITH CHECK ((select auth.uid()::text) = user_id);
 
--- Users can delete their own exercise unlocks
+-- Users can delete their own exercise unlocks (performance optimized)
 CREATE POLICY "Users can delete own exercise unlocks" ON public.exercise_unlocks
-  FOR DELETE USING (auth.uid()::text = user_id);
+  FOR DELETE USING ((select auth.uid()::text) = user_id);
 
 -- ============================================
 -- USER_STATS TABLE - Only users can see their own stats
 -- ============================================
 ALTER TABLE public.user_stats ENABLE ROW LEVEL SECURITY;
 
--- Users can view their own stats
+-- Users can view their own stats (performance optimized)
 CREATE POLICY "Users can view own stats" ON public.user_stats
-  FOR SELECT USING (auth.uid()::text = user_id);
+  FOR SELECT USING ((select auth.uid()::text) = user_id);
 
--- Users can create their own stats (usually done on first session)
+-- Users can create their own stats (performance optimized)
 CREATE POLICY "Users can create own stats" ON public.user_stats
-  FOR INSERT WITH CHECK (auth.uid()::text = user_id);
+  FOR INSERT WITH CHECK ((select auth.uid()::text) = user_id);
 
--- Users can update their own stats
+-- Users can update their own stats (performance optimized)
 CREATE POLICY "Users can update own stats" ON public.user_stats
-  FOR UPDATE USING (auth.uid()::text = user_id);
+  FOR UPDATE USING ((select auth.uid()::text) = user_id);
 
--- Users can delete their own stats
+-- Users can delete their own stats (performance optimized)
 CREATE POLICY "Users can delete own stats" ON public.user_stats
-  FOR DELETE USING (auth.uid()::text = user_id);
+  FOR DELETE USING ((select auth.uid()::text) = user_id);
 
 -- ============================================
 -- EMAIL_CAPTURE_LEADS TABLE - Special case for lead generation
