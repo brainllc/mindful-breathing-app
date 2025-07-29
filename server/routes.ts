@@ -190,9 +190,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Always return success message for non-OAuth cases to prevent email enumeration
-      res.json({ 
-        message: "If an account with that email exists, we've sent password reset instructions." 
+      // Always return success message for security (to prevent email enumeration)
+      res.json({
+        message: "If an account with that email exists, we've sent password reset instructions."
       });
     } catch (error) {
       next(error);
