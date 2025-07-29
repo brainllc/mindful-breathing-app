@@ -5,6 +5,7 @@ export interface Exercise {
   name: string;
   description: string;
   benefits: string[];
+  completionBenefits?: string; // Optional completion-specific benefits message
   defaultRounds: number;
   pattern: {
     inhale: number;
@@ -26,6 +27,7 @@ export const exercises: Exercise[] = [
       "Helps manage emotions",
       "Increases mental clarity"
     ],
+    completionBenefits: "You've just activated your parasympathetic nervous system, bringing your body into a state of calm focus. This structured breathing pattern has helped reduce cortisol levels and increased your mental clarity - the same technique trusted by elite performers under pressure.",
     defaultRounds: 4,
     pattern: {
       inhale: 4,
@@ -45,6 +47,7 @@ export const exercises: Exercise[] = [
       "Helps control anger responses",
       "Improves digestion"
     ],
+    completionBenefits: "Congratulations on completing this powerful natural tranquilizer! You've just flooded your body with oxygen and activated your vagus nerve, which promotes deep relaxation. This practice has helped shift your nervous system from fight-or-flight to rest-and-digest mode.",
     defaultRounds: 4,
     pattern: {
       inhale: 4,
@@ -63,6 +66,7 @@ export const exercises: Exercise[] = [
       "Improves cold tolerance",
       "Enhances mental focus"
     ],
+    completionBenefits: "Amazing work! You've just completed the Wim Hof Method, flooding your cells with oxygen and alkalizing your blood pH. This powerful practice has activated your sympathetic nervous system in a controlled way, potentially boosting your energy levels and strengthening your immune response.",
     defaultRounds: 3,
     pattern: {
       inhale: 2,

@@ -3,10 +3,11 @@ import { useRoute } from "wouter";
 import { exercises } from "@/lib/exercises";
 import { RoundConfig } from "@/components/RoundConfig";
 import { BreathingAnimation } from "@/components/BreathingAnimation";
+import { ExerciseCompletion } from "@/components/ExerciseCompletion";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Clock, AlertTriangle } from "lucide-react";
+import { Clock, AlertTriangle } from "lucide-react";
 import { Link } from "wouter";
 import { SafetyDisclaimer } from "@/components/SafetyDisclaimer";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -14,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ExerciseInfoModal } from "@/components/ExerciseInfoModal";
 import { ControlsBar } from "@/components/ControlsBar";
 import { audioService } from "@/lib/audio";
-import ThemeToggle from "@/components/ThemeToggle";
+import { Navbar } from "@/components/Navbar";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function Exercise() {
@@ -32,8 +33,18 @@ export default function Exercise() {
   const [phaseProgress, setPhaseProgress] = useState(0);
   const [currentSessionId, setCurrentSessionId] = useState<number | null>(null);
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
+  // Add countdown states
+  const [showCountdown, setShowCountdown] = useState(false);
+  const [countdownValue, setCountdownValue] = useState(3);
+  // Add completion state
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [completionData, setCompletionData] = useState<{
+    roundsCompleted: number;
+    durationSeconds: number;
+  } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const exerciseTitleRef = useRef<HTMLDivElement>(null);
+  const breathingAnimationRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (exercise) {
@@ -104,14 +115,22 @@ export default function Exercise() {
     };
   }, [exercise]);
 
+  // No need to scroll with navbar - page starts at top
+
+  // Countdown effect
   useEffect(() => {
-    if (isStarted && containerRef.current) {
-      containerRef.current.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'end'
-      });
+    if (showCountdown && countdownValue > 0) {
+      const timer = setTimeout(() => {
+        setCountdownValue(prev => prev - 1);
+      }, 1500); // Slower countdown - 1.5 seconds per number
+      return () => clearTimeout(timer);
+    } else if (showCountdown && countdownValue === 0) {
+      // Countdown finished, start the actual exercise
+      setShowCountdown(false);
+      setCountdownValue(3); // Reset for next time
+      startExerciseImmediate();
     }
-  }, [isStarted]);
+  }, [showCountdown, countdownValue]);
 
   if (!exercise) {
     return <div>Exercise not found</div>;
@@ -194,30 +213,27 @@ export default function Exercise() {
 
   const startExercise = async () => {
     try {
-      console.log('Starting exercise...');
-      setIsStarted(true);
-      setIsPaused(false);
+      console.log('Starting countdown...');
+      // Show countdown instead of starting immediately
+      setShowCountdown(true);
+      setCountdownValue(3);
       
       // Start session tracking
       await startSession();
       
-      // Auto-scroll to exercise title with padding
-      setTimeout(() => {
-        if (exerciseTitleRef.current) {
-          exerciseTitleRef.current.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'start' 
-          });
-        }
-      }, 100);
-      
       await audioService.playMusic();
     } catch (error) {
       console.error('Exercise start error:', error);
-      // Continue exercise even if audio fails, but don't prompt for clicking
-      setIsStarted(true);
-      setIsPaused(false);
+      // Continue with countdown even if audio fails
+      setShowCountdown(true);
+      setCountdownValue(3);
     }
+  };
+
+  // Function to start the actual breathing exercise after countdown
+  const startExerciseImmediate = () => {
+    setIsStarted(true);
+    setIsPaused(false);
   };
 
   const handlePause = async () => {
@@ -253,6 +269,8 @@ export default function Exercise() {
     setPhaseProgress(0);
     setCurrentSessionId(null);
     setSessionStartTime(null);
+    setShowCountdown(false);
+    setCountdownValue(3);
     await audioService.stopMusic();
     toast({
       title: "Exercise Stopped",
@@ -266,12 +284,18 @@ export default function Exercise() {
       // Exercise completed
       await completeSession();
       
-      setIsStarted(false);
-      setIsPaused(false);
-      setCurrentRound(0);
-      setPhaseProgress(0);
-      setCurrentSessionId(null);
-      setSessionStartTime(null);
+      // Calculate completion data in seconds for better granularity
+      const durationSeconds = sessionStartTime 
+        ? Math.round((Date.now() - sessionStartTime.getTime()) / 1000)
+        : Math.round(totalRounds * roundDuration);
+      
+      // Set completion data and show completion screen
+      setCompletionData({
+        roundsCompleted: totalRounds,
+        durationSeconds
+      });
+      setIsCompleted(true);
+      
       await audioService.stopMusic();
     } else {
       setCurrentRound(prev => prev + 1);
@@ -283,6 +307,20 @@ export default function Exercise() {
     setPhaseProgress(progress);
   };
 
+  const handleStartAgain = () => {
+    // Reset all state to start the exercise again
+    setIsCompleted(false);
+    setCompletionData(null);
+    setIsStarted(false);
+    setIsPaused(false);
+    setCurrentRound(0);
+    setPhaseProgress(0);
+    setCurrentSessionId(null);
+    setSessionStartTime(null);
+    setShowCountdown(false);
+    setCountdownValue(3);
+  };
+
   const roundDuration = exercise.pattern.inhale + 
                        (exercise.pattern.hold || 0) + 
                        exercise.pattern.exhale +
@@ -292,31 +330,51 @@ export default function Exercise() {
 
   const totalProgress = ((currentRound / totalRounds) + (phaseProgress / totalRounds)) * 100;
 
+  // Show completion screen if exercise is completed
+  if (isCompleted && completionData && exercise) {
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          key="completion"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
+                      <ExerciseCompletion
+              exercise={exercise}
+              roundsCompleted={completionData.roundsCompleted}
+              durationSeconds={completionData.durationSeconds}
+              onStartAgain={handleStartAgain}
+            />
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-100 via-blue-50/40 to-slate-50 dark:from-primary/10 dark:via-background dark:to-background">
-      <ThemeToggle />
-      <SafetyDisclaimer 
-        isOpen={showDisclaimer} 
-        onAccept={handleDisclaimerAccept}
-        onDecline={handleDisclaimerDecline}
-      />
+    <AnimatePresence mode="wait">
+      <motion.div
+        key="exercise"
+        initial={{ opacity: 1 }}
+        exit={{ 
+          opacity: 0, 
+          scale: 0.98,
+          transition: { duration: 0.4, ease: "easeIn" }
+        }}
+        className="min-h-screen bg-gradient-to-b from-slate-100 via-blue-50/40 to-slate-50 dark:from-primary/10 dark:via-background dark:to-background"
+      >
+        <Navbar />
+        <SafetyDisclaimer 
+          isOpen={showDisclaimer} 
+          onAccept={handleDisclaimerAccept}
+          onDecline={handleDisclaimerDecline}
+        />
 
-      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-25 dark:opacity-20 will-change-transform" role="presentation" aria-hidden="true" />
-      <div ref={containerRef} className="container relative mx-auto px-4 pt-12 pb-[140px]">
+        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-25 dark:opacity-20 will-change-transform" role="presentation" aria-hidden="true" />
+        <div ref={containerRef} className={`container relative mx-auto px-4 pb-[140px] ${!isStarted && !showCountdown ? 'pt-32' : 'pt-20'}`}>
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-between mb-12">
-            <Link href="/" className="inline-block">
-              <Button
-                variant="ghost"
-                className="text-primary hover:text-primary/80"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Exercises
-              </Button>
-            </Link>
-          </div>
 
-          {!isStarted && (
+          {!isStarted && !showCountdown && (
             <div className="flex justify-center">
               <Alert className="mb-8 border-yellow-600/50 bg-yellow-50/50 dark:bg-yellow-500/10 dark:border-yellow-500/50 inline-flex w-auto">
                 <AlertDescription className="text-sm text-yellow-800 dark:text-yellow-500 flex flex-col sm:flex-row items-center gap-2">
@@ -352,7 +410,84 @@ export default function Exercise() {
             </div>
 
             <AnimatePresence mode="wait">
-              {isStarted ? (
+              {showCountdown ? (
+                <motion.div
+                  key="countdown"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.05 }}
+                  transition={{ duration: 0.8, ease: "easeOut" }}
+                  className="text-center space-y-8"
+                >
+                  <h2 className="text-xl text-muted-foreground/80">
+                    Take a deep breath and relax...
+                  </h2>
+                  <div className="relative w-64 h-64 mx-auto">
+                    {/* Outer breathing circle */}
+                    <motion.div
+                      className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-100/40 to-indigo-100/40 dark:from-blue-900/20 dark:to-indigo-900/20"
+                      animate={{ 
+                        scale: [1, 1.15, 1],
+                        opacity: [0.4, 0.7, 0.4]
+                      }}
+                      transition={{ 
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                    />
+                    {/* Middle breathing circle */}
+                    <motion.div
+                      className="absolute inset-4 rounded-full bg-gradient-to-r from-blue-200/30 to-indigo-200/30 dark:from-blue-800/15 dark:to-indigo-800/15"
+                      animate={{ 
+                        scale: [1, 1.1, 1],
+                        opacity: [0.5, 0.8, 0.5]
+                      }}
+                      transition={{ 
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 0.5
+                      }}
+                    />
+                    {/* Inner circle */}
+                    <motion.div
+                      className="absolute inset-8 rounded-full border-2 border-primary/30"
+                      animate={{ 
+                        scale: [1, 1.05, 1],
+                        opacity: [0.6, 1, 0.6]
+                      }}
+                      transition={{ 
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 1
+                      }}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <motion.div
+                        className="text-5xl font-light text-primary/90"
+                        key={countdownValue}
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.8, opacity: 0 }}
+                        transition={{ duration: 0.6, ease: "easeOut" }}
+                      >
+                        {countdownValue}
+                      </motion.div>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <p className="text-lg text-muted-foreground/70">
+                      Starting in {countdownValue}...
+                    </p>
+                    <p className="text-sm text-muted-foreground/60 max-w-md mx-auto leading-relaxed">
+                      Find a comfortable position and prepare to breathe mindfully. 
+                      Let your shoulders relax and your breath flow naturally.
+                    </p>
+                  </div>
+                </motion.div>
+              ) : isStarted ? (
                 <motion.div
                   key="exercise"
                   initial={{ opacity: 0 }}
@@ -369,13 +504,15 @@ export default function Exercise() {
                       <Progress value={totalProgress} className="h-1" />
                     </div>
 
-                    <BreathingAnimation
-                      exercise={exercise}
-                      isActive={isStarted && !isPaused}
-                      currentRound={currentRound}
-                      onRoundComplete={handleRoundComplete}
-                      onPhaseProgress={handlePhaseProgress}
-                    />
+                    <div ref={breathingAnimationRef}>
+                      <BreathingAnimation
+                        exercise={exercise}
+                        isActive={isStarted && !isPaused}
+                        currentRound={currentRound}
+                        onRoundComplete={handleRoundComplete}
+                        onPhaseProgress={handlePhaseProgress}
+                      />
+                    </div>
 
                     {isStarted && (
                       <ControlsBar
@@ -429,7 +566,10 @@ export default function Exercise() {
             </AnimatePresence>
           </motion.div>
         </div>
-      </div>
-    </div>
+        
+
+        </div>
+      </motion.div>
+    </AnimatePresence>
   );
 }
