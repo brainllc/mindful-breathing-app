@@ -59,10 +59,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <HelmetProvider>
-      <AuthProvider>
-        <Router />
-        <Toaster />
-      </AuthProvider>
+        <AuthProvider>
+          <Router />
+          <Toaster />
+        </AuthProvider>
       </HelmetProvider>
     </QueryClientProvider>
   );

@@ -21,7 +21,9 @@ import {
   Shield,
   Calendar,
   Activity,
-  Target
+  Target,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -35,23 +37,40 @@ interface UserStats {
 }
 
 export default function Profile() {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, login, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [userStats, setUserStats] = useState<UserStats | null>(null);
+  const [isOAuthUser, setIsOAuthUser] = useState(false);
   const [formData, setFormData] = useState({
     displayName: user?.displayName || "",
     email: user?.email || ""
   });
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: ""
+  });
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false
+  });
 
-  // Fetch user stats
+  // Fetch user stats and check OAuth status
   useEffect(() => {
     const fetchUserStats = async () => {
       try {
         const storedSession = localStorage.getItem("supabase.auth.token");
         if (storedSession) {
           const session = JSON.parse(storedSession);
+          
+          // Check if user is OAuth (Google) user
+          const isOAuth = session.provider_token && session.user?.app_metadata?.provider !== 'email';
+          setIsOAuthUser(isOAuth);
+          
           const response = await fetch("/api/user/stats", {
             headers: {
               "Authorization": `Bearer ${session.access_token}`,
@@ -127,19 +146,30 @@ export default function Profile() {
         });
 
         if (response.ok) {
+          const data = await response.json();
+          
+          // Update auth context with new user data
+          login({
+            id: data.user.id,
+            email: data.user.email,
+            displayName: data.user.displayName,
+            isPremium: data.user.isPremium,
+          }, session);
+          
           toast({
             title: "Profile Updated",
             description: "Your profile has been successfully updated.",
           });
           setIsEditing(false);
         } else {
-          throw new Error("Failed to update profile");
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to update profile");
         }
       }
     } catch (error) {
       toast({
         title: "Update Failed",
-        description: "Failed to update your profile. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to update your profile. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -163,6 +193,110 @@ export default function Profile() {
     });
   };
 
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setPasswordData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const togglePasswordVisibility = (field: 'current' | 'new' | 'confirm') => {
+    setShowPasswords(prev => ({
+      ...prev,
+      [field]: !prev[field]
+    }));
+  };
+
+  const handleChangePassword = async () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast({
+        title: "Password Mismatch",
+        description: "New password and confirmation don't match.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (passwordData.newPassword.length < 8) {
+      toast({
+        title: "Password Too Short",
+        description: "Password must be at least 8 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const storedSession = localStorage.getItem("supabase.auth.token");
+      if (storedSession) {
+        const session = JSON.parse(storedSession);
+        const response = await fetch("/api/auth/change-password", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            currentPassword: passwordData.currentPassword,
+            newPassword: passwordData.newPassword,
+          }),
+        });
+
+        if (response.ok) {
+          toast({
+            title: "Password Changed",
+            description: "Your password has been successfully updated.",
+          });
+          setIsChangingPassword(false);
+          setPasswordData({
+            currentPassword: "",
+            newPassword: "",
+            confirmPassword: ""
+          });
+        } else {
+          const error = await response.json();
+          let errorMessage = "Failed to change password. Please try again.";
+          
+          if (error.error) {
+            if (error.error.includes("Current password is incorrect")) {
+              errorMessage = "Your current password is incorrect. Please check and try again.";
+            } else if (error.error.includes("New password must be at least")) {
+              errorMessage = "New password must be at least 8 characters long.";
+            } else {
+              errorMessage = error.error;
+            }
+          }
+          
+          throw new Error(errorMessage);
+        }
+      }
+    } catch (error) {
+      toast({
+        title: "Password Change Failed",
+        description: error instanceof Error ? error.message : "Failed to change password. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const cancelPasswordChange = () => {
+    setIsChangingPassword(false);
+    setPasswordData({
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: ""
+    });
+    setShowPasswords({
+      current: false,
+      new: false,
+      confirm: false
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 via-blue-50/40 to-slate-50 dark:from-primary/10 dark:via-background dark:to-background">
       <Navbar />
@@ -182,7 +316,7 @@ export default function Profile() {
               </div>
             </div>
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Profile Settings
+              User Settings
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-300">
               Manage your account information and preferences
@@ -215,15 +349,18 @@ export default function Profile() {
                 <CardContent className="space-y-6">
                   <div>
                     <Label htmlFor="displayName">Display Name</Label>
-                    <Input
-                      id="displayName"
-                      name="displayName"
-                      value={formData.displayName}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                      className={!isEditing ? "bg-muted" : ""}
-                      placeholder="How you'd like to be addressed"
-                    />
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="displayName"
+                        name="displayName"
+                        value={formData.displayName}
+                        onChange={handleInputChange}
+                        disabled={!isEditing}
+                        className={!isEditing ? "bg-muted" : ""}
+                        placeholder="How you'd like to be addressed"
+                      />
+                    </div>
                   </div>
 
                   <div>
@@ -284,26 +421,148 @@ export default function Profile() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Lock className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium">Password</p>
-                        <p className="text-sm text-muted-foreground">Last updated 30 days ago</p>
+                  {isOAuthUser ? (
+                    <div className="p-4 border rounded-lg bg-blue-50/50 dark:bg-blue-900/10">
+                      <div className="flex items-center gap-3">
+                        <Lock className="h-5 w-5 text-blue-600" />
+                        <div>
+                          <p className="font-medium text-blue-900 dark:text-blue-100">Google Account</p>
+                          <p className="text-sm text-blue-700 dark:text-blue-300">
+                            Your account is secured by Google. Password changes are managed through your Google account settings.
+                          </p>
+                        </div>
                       </div>
                     </div>
-                    <Button variant="outline" size="sm">
-                      Change Password
-                    </Button>
-                  </div>
+                  ) : !isChangingPassword ? (
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Lock className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium">Password</p>
+                          <p className="text-sm text-muted-foreground">Last updated 30 days ago</p>
+                        </div>
+                      </div>
+                      <Button variant="outline" size="sm" onClick={() => setIsChangingPassword(true)}>
+                        Change Password
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="p-4 border rounded-lg space-y-4">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Lock className="h-5 w-5 text-muted-foreground" />
+                        <h3 className="font-medium">Change Password</h3>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="currentPassword">Current Password</Label>
+                        <div className="relative">
+                          <Input
+                            id="currentPassword"
+                            name="currentPassword"
+                            type={showPasswords.current ? "text" : "password"}
+                            value={passwordData.currentPassword}
+                            onChange={handlePasswordChange}
+                            placeholder="Enter your current password"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            onClick={() => togglePasswordVisibility('current')}
+                          >
+                            {showPasswords.current ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
 
-                  <Alert>
-                    <Shield className="h-4 w-4" />
-                    <AlertDescription>
-                      Your account is secured with industry-standard encryption. 
-                      We never store your passwords in plain text.
-                    </AlertDescription>
-                  </Alert>
+                      <div>
+                        <Label htmlFor="newPassword">New Password</Label>
+                        <div className="relative">
+                          <Input
+                            id="newPassword"
+                            name="newPassword"
+                            type={showPasswords.new ? "text" : "password"}
+                            value={passwordData.newPassword}
+                            onChange={handlePasswordChange}
+                            placeholder="Enter your new password"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            onClick={() => togglePasswordVisibility('new')}
+                          >
+                            {showPasswords.new ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                        <div className="relative">
+                          <Input
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            type={showPasswords.confirm ? "text" : "password"}
+                            value={passwordData.confirmPassword}
+                            onChange={handlePasswordChange}
+                            placeholder="Confirm your new password"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            onClick={() => togglePasswordVisibility('confirm')}
+                          >
+                            {showPasswords.confirm ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2 pt-2">
+                        <Button 
+                          onClick={handleChangePassword} 
+                          disabled={isLoading || !passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
+                          className="flex items-center gap-2"
+                        >
+                          <Save className="h-4 w-4" />
+                          {isLoading ? "Changing..." : "Change Password"}
+                        </Button>
+                        <Button 
+                          onClick={cancelPasswordChange} 
+                          variant="outline"
+                          disabled={isLoading}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {!isOAuthUser && (
+                    <Alert>
+                      <Shield className="h-4 w-4" />
+                      <AlertDescription>
+                        Your account is secured with industry-standard encryption. 
+                        We never store your passwords in plain text.
+                      </AlertDescription>
+                    </Alert>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -342,7 +601,7 @@ export default function Profile() {
                         <div className="flex items-center gap-2 text-sm">
                           <Target className="h-4 w-4 text-muted-foreground" />
                           <span className="text-muted-foreground">Favorite:</span>
-                          <span className="font-medium">{userStats.favoriteExercise}</span>
+                          <span className="font-medium">{userStats.favoriteExercise || "None yet"}</span>
                         </div>
                         
                         <div className="flex items-center gap-2 text-sm">
@@ -351,11 +610,17 @@ export default function Profile() {
                           <span className="font-medium">{formatDate(userStats.joinedDate)}</span>
                         </div>
 
-                        {userStats.lastSessionDate && (
+                        {userStats.lastSessionDate ? (
                           <div className="flex items-center gap-2 text-sm">
                             <Activity className="h-4 w-4 text-muted-foreground" />
                             <span className="text-muted-foreground">Last session:</span>
                             <span className="font-medium">{formatDate(userStats.lastSessionDate)}</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 text-sm">
+                            <Activity className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-muted-foreground">Last session:</span>
+                            <span className="font-medium">No sessions yet</span>
                           </div>
                         )}
                       </div>

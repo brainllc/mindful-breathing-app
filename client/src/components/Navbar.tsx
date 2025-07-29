@@ -98,11 +98,6 @@ export function Navbar() {
       href: "/",
       active: location === "/",
     },
-    ...(isAuthenticated ? [{
-      label: "Dashboard",
-      href: "/dashboard",
-      active: location === "/dashboard",
-    }] : []),
     {
       label: "Stress Guide",
       href: "/stress-guide",
@@ -114,6 +109,11 @@ export function Navbar() {
       active: location.startsWith("/library"),
       disabled: false,
     },
+    ...(isAuthenticated ? [{
+      label: "Dashboard",
+      href: "/dashboard",
+      active: location === "/dashboard",
+    }] : []),
   ];
 
   const NavLinks = ({ mobile = false }) => (

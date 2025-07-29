@@ -109,6 +109,9 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
           displayName: data.user.displayName,
           isPremium: data.user.isPremium,
         }, data.session);
+      } else {
+        setError("Login data incomplete. Please try again.");
+        return;
       }
 
       toast({
@@ -118,7 +121,8 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
       
       onSuccess?.();
     } catch (err) {
-      setError("Something went wrong. Please try again.");
+      console.error("Login error:", err);
+      setError("An error occurred during login. Please try again.");
     } finally {
       setIsLoading(false);
     }

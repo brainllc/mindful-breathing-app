@@ -182,14 +182,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(eq(users.id, data.user.id));
 
       // Get user profile
-      const [userProfile] = await db.select().from(users).where(eq(users.id, data.user.id));
+      let [userProfile] = await db.select().from(users).where(eq(users.id, data.user.id));
 
+      // If user doesn't exist in our database, create them automatically
+      if (!userProfile) {
+        // Extract name from Supabase user metadata
+        const displayName = data.user.user_metadata?.full_name || 
+                           data.user.user_metadata?.name || 
+                           data.user.email?.split('@')[0] || 
+                           "User";
+        
+        const newUser = {
+          id: data.user.id,
+          email: data.user.email!,
+          displayName: displayName,
+          isAgeVerified: true, // Assume verified for existing auth users
+          acceptedTermsAt: new Date(), // Auto-accept for existing auth users
+          acceptedPrivacyAt: new Date(), // Auto-accept for existing auth users
+          createdAt: new Date(),
+          lastLoginAt: new Date(),
+        };
+
+        try {
+          [userProfile] = await db.insert(users).values(newUser).returning();
+        } catch (dbError) {
+          console.error("Failed to create user record:", dbError);
+          return res.status(500).json({ error: "Failed to create user profile" });
+        }
+      }
+
+      // Don't send sensitive data
+      const { hashedPassword, ...safeProfile } = userProfile;
+      
       res.json({
-        message: "Login successful",
-        user: userProfile,
-        session: data.session
+        session: data.session,
+        user: safeProfile,
       });
     } catch (error) {
+      console.error("Login error:", error);
       next(error);
     }
   });
@@ -201,6 +231,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error) throw error;
       
       res.json({ message: "Logout successful" });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Change password
+  app.post("/api/auth/change-password", authenticateUser, async (req, res, next) => {
+    try {
+      const { currentPassword, newPassword } = req.body;
+      
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: "Current password and new password are required" });
+      }
+
+      if (newPassword.length < 8) {
+        return res.status(400).json({ error: "New password must be at least 8 characters long" });
+      }
+
+      // Check if user is OAuth user (they won't have a password to verify)
+      const isOAuthUser = req.user.app_metadata?.provider && req.user.app_metadata.provider !== 'email';
+      
+      if (isOAuthUser) {
+        return res.status(400).json({ 
+          error: `This account is authenticated through ${req.user.app_metadata.provider}. Please manage your password through your ${req.user.app_metadata.provider} account settings.` 
+        });
+      }
+
+      // First verify the current password by attempting to sign in
+      const { error: verifyError } = await supabase.auth.signInWithPassword({
+        email: req.user.email,
+        password: currentPassword,
+      });
+
+      if (verifyError) {
+        return res.status(400).json({ error: "Current password is incorrect" });
+      }
+
+      // Change the password
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) {
+        return res.status(400).json({ error: error.message });
+      }
+
+      res.json({ message: "Password changed successfully" });
     } catch (error) {
       next(error);
     }
@@ -299,6 +376,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update user profile
+  app.put("/api/user/profile", authenticateUser, async (req, res, next) => {
+    try {
+      if (!req.user) throw new Error("User not authenticated");
+      
+      const { displayName, email } = req.body;
+      
+      // Validate input
+      if (!displayName || displayName.trim().length === 0) {
+        return res.status(400).json({ error: "Display name is required" });
+      }
+      
+      if (displayName.length > 50) {
+        return res.status(400).json({ error: "Display name must be 50 characters or less" });
+      }
+
+      // Update user profile in database
+      const [updatedUser] = await db.update(users)
+        .set({ 
+          displayName: displayName.trim(),
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, req.user.id))
+        .returning();
+
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Don't send sensitive data
+      const { hashedPassword, ...safeProfile } = updatedUser;
+      res.json({
+        message: "Profile updated successfully",
+        user: safeProfile
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   // Get user statistics
   app.get("/api/user/stats", authenticateUser, async (req, res, next) => {
     try {
@@ -309,10 +426,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const newStats = await db.insert(userStats).values({
           userId: req.user.id,
         }).returning();
-        return res.json(newStats[0]);
+        
+        // Get user info for joinedDate
+        const [userInfo] = await db.select().from(users).where(eq(users.id, req.user.id));
+        
+        return res.json({
+          ...newStats[0],
+          joinedDate: userInfo?.createdAt?.toISOString() || new Date().toISOString(),
+          lastSessionDate: null,
+        });
       }
 
-      res.json(stats);
+      // Get user info for joinedDate
+      const [userInfo] = await db.select().from(users).where(eq(users.id, req.user.id));
+
+      res.json({
+        ...stats,
+        joinedDate: userInfo?.createdAt?.toISOString() || new Date().toISOString(),
+        lastSessionDate: stats.lastSessionAt?.toISOString() || null,
+      });
     } catch (error) {
       next(error);
     }

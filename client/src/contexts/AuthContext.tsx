@@ -17,93 +17,88 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    console.error("useAuth called outside of AuthProvider!");
+    console.trace("Stack trace:");
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const isAuthenticated = !!user;
 
-  // Check for existing session on app load
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const storedSession = localStorage.getItem("supabase.auth.token");
-        if (storedSession) {
-          const session = JSON.parse(storedSession);
-          
-          // Verify session with backend
-          const response = await fetch("/api/user/profile", {
-            headers: {
-              "Authorization": `Bearer ${session.access_token}`,
-            },
-          });
-
-          if (response.ok) {
-            const userData = await response.json();
-            setUser({
-              id: userData.id,
-              email: userData.email,
-              displayName: userData.displayName,
-              isPremium: userData.isPremium,
-            });
-          } else {
-            // Invalid session, remove it
-            localStorage.removeItem("supabase.auth.token");
-          }
-        }
-      } catch (error) {
-        console.error("Auth check failed:", error);
-        localStorage.removeItem("supabase.auth.token");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
+    checkSession();
   }, []);
 
+  const checkSession = async () => {
+    try {
+      const storedSession = localStorage.getItem("supabase.auth.token");
+      if (!storedSession) {
+        setIsLoading(false);
+        return;
+      }
+
+      const session = JSON.parse(storedSession);
+      if (!session.access_token) {
+        setIsLoading(false);
+        return;
+      }
+
+      // Verify the session with our backend
+      const response = await fetch("/api/user/profile", {
+        headers: {
+          "Authorization": `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+      } else {
+        // Clear invalid session
+        localStorage.removeItem("supabase.auth.token");
+      }
+    } catch (error) {
+      console.error("Session check failed:", error);
+      localStorage.removeItem("supabase.auth.token");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const login = (userData: User, session: any) => {
-    setUser(userData);
+    // Store session in localStorage
     localStorage.setItem("supabase.auth.token", JSON.stringify(session));
+    setUser(userData);
   };
 
   const logout = async () => {
     try {
-      const storedSession = localStorage.getItem("supabase.auth.token");
-      if (storedSession) {
-        const session = JSON.parse(storedSession);
-        
-        // Call logout endpoint
-        await fetch("/api/auth/logout", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${session.access_token}`,
-          },
-        });
-      }
+      await fetch("/api/auth/logout", { method: "POST" });
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      setUser(null);
       localStorage.removeItem("supabase.auth.token");
+      setUser(null);
     }
   };
 
-  const value = {
-    user,
-    isLoading,
-    login,
-    logout,
-    isAuthenticated,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
+  return (
+    <AuthContext.Provider value={{
+      user,
+      login,
+      logout,
+      isLoading,
+      isAuthenticated,
+    }}>
+      {children}
+    </AuthContext.Provider>
+  );
 } 
