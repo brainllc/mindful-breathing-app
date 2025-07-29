@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { Menu, User, LogIn, LogOut, Settings } from "lucide-react";
+import { Menu, User, LogIn, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -98,6 +98,11 @@ export function Navbar() {
       href: "/",
       active: location === "/",
     },
+    ...(isAuthenticated ? [{
+      label: "Dashboard",
+      href: "/dashboard",
+      active: location === "/dashboard",
+    }] : []),
     {
       label: "Stress Guide",
       href: "/stress-guide",
@@ -180,12 +185,6 @@ export function Navbar() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuItem asChild>
-                      <Link href="/dashboard">
-                        <Settings className="w-4 h-4 mr-2" />
-                        Dashboard
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
                       <Link href="/profile">
                         <User className="w-4 h-4 mr-2" />
                         Profile
@@ -231,12 +230,6 @@ export function Navbar() {
                   <div className="flex flex-col space-y-4 pt-4 border-t">
                     {isAuthenticated ? (
                       <>
-                        <Button variant="ghost" asChild>
-                          <Link href="/dashboard" onClick={() => setIsOpen(false)}>
-                            <Settings className="w-4 h-4 mr-2" />
-                            Dashboard
-                          </Link>
-                        </Button>
                         <Button variant="ghost" asChild>
                           <Link href="/profile" onClick={() => setIsOpen(false)}>
                             <User className="w-4 h-4 mr-2" />
