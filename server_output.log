@@ -1,0 +1,11 @@
+
+> rest-express@1.0.0 dev
+> tsx server/index.ts
+
+9:42:16 AM [express] Server running in development mode
+9:42:16 AM [express] Server listening on port 3000
+Forgot password - Email: dash@alum.northwestern.edu
+Forgot password - User found: false
+Forgot password - Attempting to send reset email via Supabase
+Password reset email sent successfully via Supabase
+9:42:33 AM [express] POST /api/auth/forgot-password 200 in 1955ms

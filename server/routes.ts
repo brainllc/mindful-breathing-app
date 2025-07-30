@@ -164,8 +164,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { email } = req.body;
       
-      console.log("Forgot password - Email:", email);
-      
       if (!email) {
         return res.status(400).json({ error: "Email is required" });
       }
@@ -173,14 +171,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user exists in our database and if they're an OAuth user
       const [existingUser] = await db.select().from(users).where(eq(users.email, email));
       
-      console.log("Forgot password - User found:", !!existingUser);
-      
-      if (existingUser) {
-        console.log("Forgot password - User hashedPassword:", existingUser.hashedPassword ? "exists" : "null");
-        
+      if (existingUser) {        
         // Check if user is OAuth (no hashed password means they use OAuth)
         if (!existingUser.hashedPassword) {
-          console.log("Forgot password - Detected OAuth user, returning OAuth message");
           return res.json({
             isOAuthUser: true,
             message: "This account uses Google Sign-In. Please use 'Continue with Google' on the login page instead of resetting your password."
@@ -189,16 +182,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Always attempt to send reset email via Supabase (for both local DB users and Supabase-only users)
-      console.log("Forgot password - Attempting to send reset email via Supabase");
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${process.env.FRONTEND_URL || 'https://breathwork.fyi'}/auth/reset-password`,
       });
 
       if (error) {
+        // Handle rate limiting specifically
+        if (error.message?.includes("rate limit") || error.message?.includes("too many")) {
+          return res.status(429).json({ 
+            error: "Too many password reset requests. Please wait a few minutes before trying again.",
+            rateLimited: true
+          });
+        }
         console.error("Password reset error:", error.message);
-        console.error("Password reset error details:", error);
-      } else {
-        console.log("Password reset email sent successfully via Supabase");
       }
 
       // Always return success message for security (to prevent email enumeration)
@@ -206,7 +202,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "If an account with that email exists, we've sent password reset instructions."
       });
     } catch (error) {
-      console.error("Forgot password - Unexpected error:", error);
       next(error);
     }
   });

@@ -350,7 +350,9 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
                   value={formData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
                   required
+                  autoComplete="email"
                   className="pl-10"
+                  style={{ backgroundColor: 'transparent' }}
                 />
               </div>
             </div>
