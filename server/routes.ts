@@ -10,7 +10,7 @@ import {
   emailCaptureLeads,
   insertUserSchema,
   insertEmailLeadSchema 
-} from "@shared/schema";
+} from "../shared/schema.js";
 import { eq, desc, count, sum, and } from "drizzle-orm";
 import fs from "fs";
 import path from "path";
