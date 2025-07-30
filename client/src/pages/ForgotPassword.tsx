@@ -74,7 +74,6 @@ export default function ForgotPassword() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <Alert>
-                  <Mail className="h-4 w-4" />
                   <AlertDescription>
                     If you don't see the email in your inbox, check your spam folder. 
                     The link will expire in 1 hour for security.
