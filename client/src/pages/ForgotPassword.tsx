@@ -32,7 +32,12 @@ export default function ForgotPassword() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "Failed to send reset email");
+        // Handle rate limiting with a more user-friendly message
+        if (response.status === 429 || data.rateLimited || data.error?.includes("rate limit") || data.error?.includes("too many")) {
+          setError("We've sent you several password reset emails recently. Please check your inbox (and spam folder) first, or wait about 15 minutes before requesting another reset link.");
+        } else {
+          setError(data.error || "Failed to send reset email");
+        }
         return;
       }
 

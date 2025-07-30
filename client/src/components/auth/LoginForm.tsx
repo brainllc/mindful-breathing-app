@@ -97,7 +97,12 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "Login failed. Please check your credentials.");
+        // Handle rate limiting with a more user-friendly message
+        if (response.status === 429 || data.rateLimited || data.error?.includes("rate limit") || data.error?.includes("too many")) {
+          setError("Too many login attempts. Please wait about 15 minutes before trying again for security reasons.");
+        } else {
+          setError(data.error || "Login failed. Please check your credentials.");
+        }
         return;
       }
 

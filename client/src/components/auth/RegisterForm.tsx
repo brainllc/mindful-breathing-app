@@ -184,7 +184,12 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "Registration failed");
+        // Handle rate limiting with a more user-friendly message
+        if (response.status === 429 || data.rateLimited || data.error?.includes("rate limit") || data.error?.includes("too many") || data.error?.includes("email rate limit")) {
+          setError("We're temporarily limiting new registrations to prevent spam. Please wait about 15 minutes and try again, or use 'Continue with Google' instead.");
+        } else {
+          setError(data.error || "Registration failed");
+        }
         return;
       }
 
