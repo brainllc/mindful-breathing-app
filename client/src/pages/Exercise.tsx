@@ -232,8 +232,8 @@ export default function Exercise() {
 
   // Function to start the actual breathing exercise after countdown
   const startExerciseImmediate = () => {
-    setIsStarted(true);
-    setIsPaused(false);
+      setIsStarted(true);
+      setIsPaused(false);
   };
 
   const handlePause = async () => {
@@ -364,13 +364,13 @@ export default function Exercise() {
         className="min-h-screen bg-gradient-to-b from-slate-100 via-blue-50/40 to-slate-50 dark:from-primary/10 dark:via-background dark:to-background"
       >
         <Navbar />
-        <SafetyDisclaimer 
-          isOpen={showDisclaimer} 
-          onAccept={handleDisclaimerAccept}
-          onDecline={handleDisclaimerDecline}
-        />
+      <SafetyDisclaimer 
+        isOpen={showDisclaimer} 
+        onAccept={handleDisclaimerAccept}
+        onDecline={handleDisclaimerDecline}
+      />
 
-        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-25 dark:opacity-20 will-change-transform" role="presentation" aria-hidden="true" />
+      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-25 dark:opacity-20 will-change-transform" role="presentation" aria-hidden="true" />
         <div ref={containerRef} className={`container relative mx-auto px-4 pb-[140px] ${!isStarted && !showCountdown ? 'pt-32' : 'pt-20'}`}>
         <div className="max-w-4xl mx-auto">
 
@@ -505,13 +505,13 @@ export default function Exercise() {
                     </div>
 
                     <div ref={breathingAnimationRef}>
-                      <BreathingAnimation
-                        exercise={exercise}
-                        isActive={isStarted && !isPaused}
-                        currentRound={currentRound}
-                        onRoundComplete={handleRoundComplete}
-                        onPhaseProgress={handlePhaseProgress}
-                      />
+                    <BreathingAnimation
+                      exercise={exercise}
+                      isActive={isStarted && !isPaused}
+                      currentRound={currentRound}
+                      onRoundComplete={handleRoundComplete}
+                      onPhaseProgress={handlePhaseProgress}
+                    />
                     </div>
 
                     {isStarted && (
@@ -568,7 +568,7 @@ export default function Exercise() {
         </div>
         
 
-        </div>
+      </div>
       </motion.div>
     </AnimatePresence>
   );

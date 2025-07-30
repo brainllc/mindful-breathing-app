@@ -37,7 +37,7 @@ export default function StressGuide() {
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-
+    
     try {
       const formData = new FormData(e.currentTarget);
       
@@ -546,7 +546,7 @@ export default function StressGuide() {
                  </p>
                </div>
              </div>
-           </motion.div>
+          </motion.div>
 
           {/* CTA Form */}
           <motion.div
@@ -561,16 +561,16 @@ export default function StressGuide() {
                   <Download className="w-6 h-6" />
                   Get Instant Access
                 </CardTitle>
-                                 <CardDescription>
+                <CardDescription>
                    Join 15,000+ people who've transformed their relationship with stress
-                 </CardDescription>
+                </CardDescription>
                 <div className="flex justify-center gap-4 mt-4 text-xs text-muted-foreground">
                   <span>✓ Instant Download</span>
                   <span>✓ Immediately Actionable</span>
                   <span>✓ Weekly Tips Included</span>
                 </div>
               </CardHeader>
-                            <CardContent>
+              <CardContent>
                 {/* MailerLite Form - Full Version */}
                 <div className="mailerlite-form-wrapper">
                   {!isSuccess ? (
@@ -585,16 +585,16 @@ export default function StressGuide() {
                       <div className="ml-form-fieldRow space-y-2">
                         <div className="ml-field-group ml-field-email ml-validate-email ml-validate-required">
                           <Label htmlFor="ml-email">Email Address *</Label>
-                          <Input
+                    <Input
                             id="ml-email"
-                            type="email"
+                      type="email"
                             name="fields[email]"
-                            placeholder="your@email.com"
-                            required
+                      placeholder="your@email.com"
+                      required
                             className="h-12 form-control"
                             autoComplete="email"
-                          />
-                        </div>
+                    />
+                  </div>
                       </div>
 
                       {/* Required Opt-in Checkbox */}
@@ -626,26 +626,26 @@ export default function StressGuide() {
                       <input type="hidden" name="anticsrf" value="true" />
 
                       {/* Submit Button */}
-                      <Button 
-                        type="submit" 
-                        className="w-full h-12 text-lg font-semibold"
-                        disabled={isSubmitting}
-                      >
-                        {isSubmitting ? (
-                          <>
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                            Sending...
-                          </>
-                        ) : (
-                          <>
+                  <Button 
+                    type="submit" 
+                    className="w-full h-12 text-lg font-semibold"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
                             <Download className="w-5 h-5 mr-2" />
                             Yes, Send Me The Guide + Tips
-                            <ArrowRight className="w-5 h-5 ml-2" />
-                          </>
-                        )}
-                      </Button>
+                        <ArrowRight className="w-5 h-5 ml-2" />
+                      </>
+                    )}
+                  </Button>
                     </div>
-                                      </form>
+                </form>
                   ) : (
                     <div className="text-center p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
                       <h4 className="text-lg font-semibold text-green-800 dark:text-green-200 mb-2">Success!</h4>

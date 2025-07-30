@@ -38,40 +38,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const checkSession = async () => {
-    try {
-      const storedSession = localStorage.getItem("supabase.auth.token");
+      try {
+        const storedSession = localStorage.getItem("supabase.auth.token");
       if (!storedSession) {
         setIsLoading(false);
         return;
       }
 
-      const session = JSON.parse(storedSession);
+          const session = JSON.parse(storedSession);
       if (!session.access_token) {
         setIsLoading(false);
         return;
       }
-
+          
       // Verify the session with our backend
-      const response = await fetch("/api/user/profile", {
-        headers: {
-          "Authorization": `Bearer ${session.access_token}`,
-        },
-      });
+          const response = await fetch("/api/user/profile", {
+            headers: {
+              "Authorization": `Bearer ${session.access_token}`,
+            },
+          });
 
-      if (response.ok) {
-        const userData = await response.json();
+          if (response.ok) {
+            const userData = await response.json();
         setUser(userData);
-      } else {
+          } else {
         // Clear invalid session
-        localStorage.removeItem("supabase.auth.token");
-      }
-    } catch (error) {
+            localStorage.removeItem("supabase.auth.token");
+        }
+      } catch (error) {
       console.error("Session check failed:", error);
-      localStorage.removeItem("supabase.auth.token");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+        localStorage.removeItem("supabase.auth.token");
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
   const login = (userData: User, session: any) => {
     // Store session in localStorage
@@ -92,11 +92,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider value={{
-      user,
-      login,
-      logout,
+    user,
+    login,
+    logout,
       isLoading,
-      isAuthenticated,
+    isAuthenticated,
     }}>
       {children}
     </AuthContext.Provider>
