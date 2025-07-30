@@ -766,6 +766,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Simple test endpoint for debugging
+  app.get("/api/debug", (req, res) => {
+    res.json({ 
+      status: "API is working",
+      timestamp: new Date().toISOString(),
+      env: {
+        hasSupabaseUrl: !!process.env.VITE_SUPABASE_URL,
+        hasSupabaseKey: !!process.env.VITE_SUPABASE_ANON_KEY,
+        hasDatabaseUrl: !!process.env.DATABASE_URL
+      }
+    });
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
