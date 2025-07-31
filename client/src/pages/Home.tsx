@@ -20,11 +20,17 @@ export default function Home() {
   // Handle OAuth redirect if it lands on home page instead of /auth/callback
   useEffect(() => {
     const handleHomePageOAuth = async () => {
-      // Check if we have OAuth tokens in the URL hash
-      if (window.location.hash.includes('access_token')) {
+      // Only process OAuth if there are actual tokens AND this appears to be a fresh OAuth redirect
+      if (window.location.hash.includes('access_token') && 
+          window.location.hash.includes('token_type=bearer') &&
+          !isAuthenticated) {  // Only if not already authenticated
         console.log('🔍 OAuth tokens detected on home page, processing...');
         
         try {
+          // Clear the hash immediately to prevent re-processing
+          const hashContent = window.location.hash;
+          window.history.replaceState(null, '', window.location.pathname);
+          
           const { data: { session }, error: sessionError } = await supabase.auth.getSession();
           
           if (sessionError) {
@@ -42,8 +48,7 @@ export default function Home() {
               isPremium: false,
             }, session);
 
-            // Clear the hash and redirect to dashboard
-            window.history.replaceState(null, '', window.location.pathname);
+            // Redirect to dashboard
             setLocation('/dashboard');
           }
         } catch (err) {
@@ -53,7 +58,10 @@ export default function Home() {
     };
 
     handleHomePageOAuth();
-  }, [login, setLocation]);
+  }, [login, setLocation, isAuthenticated]);
+
+  // Remove the automatic dashboard redirect for authenticated users
+  // This was causing the navigation issue - users should be able to visit home page normally
 
   const handleMoodSelect = (mood: string) => {
     setSelectedMood(mood);
@@ -77,10 +85,11 @@ export default function Home() {
     exercise.moods?.includes(selectedMood || "")
   );
 
-  if (isAuthenticated) {
-    setLocation('/dashboard');
-    return null;
-  }
+  // Remove this automatic redirect - it was preventing navigation to home page
+  // if (isAuthenticated) {
+  //   setLocation('/dashboard');
+  //   return null;
+  // }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 via-blue-50/40 to-slate-50 dark:from-primary/10 dark:via-background dark:to-background">
