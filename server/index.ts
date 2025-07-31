@@ -36,27 +36,28 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 
 // For local development, start the server
 if (!process.env.VERCEL && process.env.NODE_ENV !== 'production') {
-  const { createServer } = require("http");
-  const server = createServer(app);
-  const PORT = Number(process.env.PORT) || 5000;
+  import("http").then(({ createServer }) => {
+    const server = createServer(app);
+    const PORT = Number(process.env.PORT) || 5000;
 
-  if (app.get("env") === "development") {
-    setupVite(app, server).then(() => {
+    if (app.get("env") === "development") {
+      setupVite(app, server).then(() => {
+        server.listen(PORT, "0.0.0.0", () => {
+          log(`Server running in ${app.get('env')} mode`);
+          log(`Server listening on port ${PORT}`);
+          if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
+            log(`Access your app at https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`);
+          }
+        });
+      });
+    } else {
+      serveStatic(app);
       server.listen(PORT, "0.0.0.0", () => {
         log(`Server running in ${app.get('env')} mode`);
         log(`Server listening on port ${PORT}`);
-        if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
-          log(`Access your app at https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`);
-        }
       });
-    });
-  } else {
-    serveStatic(app);
-    server.listen(PORT, "0.0.0.0", () => {
-      log(`Server running in ${app.get('env')} mode`);
-      log(`Server listening on port ${PORT}`);
-    });
-  }
+    }
+  });
 }
 
 // Export for Vercel serverless functions
