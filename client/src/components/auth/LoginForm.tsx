@@ -61,6 +61,10 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
         ? 'https://breathwork.fyi/auth/callback'
         : `${window.location.origin}/auth/callback`;
 
+      console.log('🔍 DEBUG: Google OAuth redirect URL:', redirectUrl);
+      console.log('🔍 DEBUG: Current hostname:', window.location.hostname);
+      console.log('🔍 DEBUG: Current origin:', window.location.origin);
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -69,10 +73,12 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
       });
 
       if (error) {
+        console.error('🚨 Google OAuth error:', error);
         setError(error.message);
         return;
       }
 
+      console.log('✅ Google OAuth initiated successfully');
       // The OAuth flow will redirect to the callback URL
       // The actual login will be handled by the auth callback
     } catch (err) {
