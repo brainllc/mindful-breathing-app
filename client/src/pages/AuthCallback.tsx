@@ -43,7 +43,7 @@ export default function AuthCallback() {
         
         if (isOAuth) {
           // Handle OAuth (Google) signup/signin
-          const response = await fetch('/api/auth/oauth-callback', {
+          const response = await fetch('/api/auth/callback', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
