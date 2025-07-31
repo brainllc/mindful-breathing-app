@@ -2,12 +2,6 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import 'dotenv/config';
 import { createClient } from "@supabase/supabase-js";
 
-// Initialize Supabase with service role for database operations
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL!,
-  process.env.VITE_SUPABASE_ANON_KEY!
-);
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -30,13 +24,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(401).json({ message: 'Missing or invalid authorization header' });
     }
 
+    const accessToken = authHeader.replace('Bearer ', '');
+
     if (!user || !user.id || !user.email) {
       return res.status(400).json({ message: 'Invalid user data' });
     }
 
     console.log('OAuth callback - User data:', { id: user.id, email: user.email, provider });
 
-    // Check if user already exists in our database using Supabase
+    // Initialize Supabase with the authenticated user's session token
+    const supabase = createClient(
+      process.env.VITE_SUPABASE_URL!,
+      process.env.VITE_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      }
+    );
+
+    // Check if user already exists in our database using authenticated Supabase
     const { data: existingUsers, error: selectError } = await supabase
       .from('users')
       .select('*')
@@ -69,7 +78,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     console.log('OAuth callback - Creating new user');
-    // New user - create in our database using Supabase (only essential columns)
+    // New user - create in our database using authenticated Supabase
     const displayName = user.user_metadata?.full_name || 
                        user.user_metadata?.name || 
                        user.email?.split('@')[0] || 
