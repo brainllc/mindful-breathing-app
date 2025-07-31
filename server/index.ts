@@ -6,8 +6,8 @@ import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 
-app.use(compression()); // Add compression middleware
-app.use(express.static('public')); // Serve static files from public directory
+app.use(compression());
+app.use(express.static('public'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -34,31 +34,35 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   res.status(status).json({ message });
 });
 
-// For local development, start the server
+// Handle local development vs production differently
 if (!process.env.VERCEL && process.env.NODE_ENV !== 'production') {
-  import("http").then(({ createServer }) => {
-    const server = createServer(app);
-    const PORT = Number(process.env.PORT) || 5000;
+  // For local development, start the server
+  const startServer = async () => {
+    try {
+      const { createServer } = await import("http");
+      const server = createServer(app);
+      const PORT = Number(process.env.PORT) || 3000;
 
-    if (app.get("env") === "development") {
-      setupVite(app, server).then(() => {
-        server.listen(PORT, "0.0.0.0", () => {
-          log(`Server running in ${app.get('env')} mode`);
-          log(`Server listening on port ${PORT}`);
-          if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
-            log(`Access your app at https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`);
-          }
-        });
-      });
-    } else {
-      serveStatic(app);
+      if (app.get("env") === "development") {
+        await setupVite(app, server);
+      } else {
+        serveStatic(app);
+      }
+
       server.listen(PORT, "0.0.0.0", () => {
         log(`Server running in ${app.get('env')} mode`);
         log(`Server listening on port ${PORT}`);
+        if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
+          log(`Access your app at https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`);
+        }
       });
+    } catch (error) {
+      log(`Server startup error: ${error}`);
     }
-  });
+  };
+
+  startServer();
 }
 
-// Export for Vercel serverless functions
+// Export the app for Vercel serverless functions
 export default app;
