@@ -23,7 +23,7 @@ app.use((req, res, next) => {
   next();
 });
 
-(async () => {
+async function initializeApp() {
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -39,13 +39,27 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  const PORT = Number(process.env.PORT) || 5000;
+  return server;
+}
 
-  server.listen(PORT, "0.0.0.0", () => {
-    log(`Server running in ${app.get('env')} mode`);
-    log(`Server listening on port ${PORT}`);
-    if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
-      log(`Access your app at https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`);
-    }
-  });
-})();
+// Initialize the app
+const serverPromise = initializeApp();
+
+// For local development, start the server
+if (!process.env.VERCEL) {
+  (async () => {
+    const server = await serverPromise;
+    const PORT = Number(process.env.PORT) || 5000;
+
+    server.listen(PORT, "0.0.0.0", () => {
+      log(`Server running in ${app.get('env')} mode`);
+      log(`Server listening on port ${PORT}`);
+      if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
+        log(`Access your app at https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`);
+      }
+    });
+  })();
+}
+
+// Export for Vercel
+export default app;
