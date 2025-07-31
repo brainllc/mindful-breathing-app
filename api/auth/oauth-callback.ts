@@ -17,16 +17,20 @@ const supabase = createClient(
 );
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
   try {
-    // CORS headers
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
     const { provider, user } = req.body;
     const authHeader = req.headers.authorization;
 
@@ -38,11 +42,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ message: 'Invalid user data' });
     }
 
+    console.log('OAuth callback - User data:', { id: user.id, email: user.email, provider });
+
     // Check if user already exists in our database
     const existingUsers = await db.select().from(users).where(eq(users.id, user.id));
     const existingUser = existingUsers[0];
 
     if (existingUser) {
+      console.log('OAuth callback - Existing user found');
       // User exists, return login success
       return res.status(200).json({
         message: 'Login successful',
@@ -56,6 +63,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
+    console.log('OAuth callback - Creating new user');
     // New user - create in our database
     const now = new Date();
     const displayName = user.user_metadata?.full_name || 
@@ -73,6 +81,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       acceptedPrivacyAt: now,
       marketingConsentAt: null,
     }).returning();
+
+    console.log('OAuth callback - New user created:', newUser.id);
 
     res.status(201).json({
       message: 'Registration successful',
