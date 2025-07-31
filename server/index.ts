@@ -24,7 +24,7 @@ app.use((req, res, next) => {
 });
 
 async function initializeApp() {
-  const server = await registerRoutes(app);
+  await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
@@ -34,21 +34,22 @@ async function initializeApp() {
   });
 
   if (app.get("env") === "development") {
+    const { createServer } = await import("http");
+    const server = createServer(app);
     await setupVite(app, server);
+    return server;
   } else {
     serveStatic(app);
+    return null;
   }
-
-  return server;
 }
 
-// Initialize the app
-const serverPromise = initializeApp();
+(async () => {
+  // Initialize the app
+  const server = await initializeApp();
 
-// For local development, start the server
-if (!process.env.VERCEL) {
-  (async () => {
-    const server = await serverPromise;
+  // For local development, start the server
+  if (!process.env.VERCEL && process.env.NODE_ENV !== 'production' && server) {
     const PORT = Number(process.env.PORT) || 5000;
 
     server.listen(PORT, "0.0.0.0", () => {
@@ -58,8 +59,8 @@ if (!process.env.VERCEL) {
         log(`Access your app at https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`);
       }
     });
-  })();
-}
+  }
+})();
 
-// Export for Vercel
+// Export for Vercel serverless functions
 export default app;

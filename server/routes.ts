@@ -61,7 +61,7 @@ const FREE_EXERCISES = [
   "coherent-breathing"
 ];
 
-export async function registerRoutes(app: Express): Promise<Server> {
+export async function registerRoutes(app: Express): Promise<Express> {
   // Sitemap route handler
   app.get("/sitemap.xml", (req, res) => {
     const sitemapPath = path.join(process.cwd(), "public", "sitemap.xml");
@@ -779,6 +779,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  const httpServer = createServer(app);
-  return httpServer;
+  // For Vercel serverless, just return the app
+  // For local development, the HTTP server will be created separately
+  return app;
 }
