@@ -61,16 +61,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         user: {
           id: existingUser.id,
           email: existingUser.email,
-          displayName: existingUser.displayName,
-          isAgeVerified: existingUser.isAgeVerified,
+          displayName: existingUser.display_name,
+          isAgeVerified: existingUser.is_age_verified,
           isPremium: false,
         }
       });
     }
 
     console.log('OAuth callback - Creating new user');
-    // New user - create in our database using Supabase
-    const now = new Date().toISOString();
+    // New user - create in our database using Supabase (only essential columns)
     const displayName = user.user_metadata?.full_name || 
                        user.user_metadata?.name || 
                        user.email?.split('@')[0] || 
@@ -81,12 +80,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .insert({
         id: user.id,
         email: user.email,
-        displayName: displayName,
-        isAgeVerified: true, // Assume OAuth users are age verified
-        marketingConsent: false,
-        acceptedTermsAt: now,
-        acceptedPrivacyAt: now,
-        marketingConsentAt: null,
+        display_name: displayName,
+        is_age_verified: true, // Assume OAuth users are age verified
+        marketing_consent: false,
+        // Only include essential columns that definitely exist
       })
       .select()
       .limit(1);
@@ -107,8 +104,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       user: {
         id: newUser.id,
         email: newUser.email,
-        displayName: newUser.displayName,
-        isAgeVerified: newUser.isAgeVerified,
+        displayName: newUser.display_name,
+        isAgeVerified: newUser.is_age_verified,
         isPremium: false,
       }
     });
