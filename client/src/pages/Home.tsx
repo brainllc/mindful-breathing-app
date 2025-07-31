@@ -1,16 +1,59 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MoodSelector } from "@/components/MoodSelector";
 import { ExerciseCard } from "@/components/ExerciseCard";
-import { exercises, getExercisesByMood, moods } from "@/lib/exercises";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import { exercises } from "@/lib/exercises";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/supabase';
+import { useLocation } from 'wouter';
 
 export default function Home() {
+  const { isAuthenticated, login } = useAuth();
+  const [, setLocation] = useLocation();
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
+
+  // Handle OAuth redirect if it lands on home page instead of /auth/callback
+  useEffect(() => {
+    const handleHomePageOAuth = async () => {
+      // Check if we have OAuth tokens in the URL hash
+      if (window.location.hash.includes('access_token')) {
+        console.log('🔍 OAuth tokens detected on home page, processing...');
+        
+        try {
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+          
+          if (sessionError) {
+            console.error('Session error:', sessionError);
+            return;
+          }
+
+          if (session) {
+            console.log('✅ OAuth session found, logging in user...');
+            
+            login({
+              id: session.user.id,
+              email: session.user.email || '',
+              displayName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+              isPremium: false,
+            }, session);
+
+            // Clear the hash and redirect to dashboard
+            window.history.replaceState(null, '', window.location.pathname);
+            setLocation('/dashboard');
+          }
+        } catch (err) {
+          console.error('Home page OAuth error:', err);
+        }
+      }
+    };
+
+    handleHomePageOAuth();
+  }, [login, setLocation]);
 
   const handleMoodSelect = (mood: string) => {
     setSelectedMood(mood);
@@ -20,13 +63,24 @@ export default function Home() {
     setSelectedMood(null);
   };
 
-  const recommendedExercises = selectedMood
-    ? getExercisesByMood(selectedMood)
-    : [];
+  const selectedMoodLabel = selectedMood === "stressed" ? "stressed" :
+    selectedMood === "anxious" ? "anxious" :
+    selectedMood === "tired" ? "tired" :
+    selectedMood === "restless" ? "restless" :
+    selectedMood === "focus" ? "need focus" :
+    selectedMood === "sleep" ? "need sleep" :
+    selectedMood === "overwhelmed" ? "overwhelmed" :
+    selectedMood === "sad" ? "sad" :
+    selectedMood;
 
-  const selectedMoodLabel = selectedMood
-    ? moods.find((m) => m.id === selectedMood)?.label
-    : null;
+  const recommendedExercises = exercises.filter(exercise => 
+    exercise.moods?.includes(selectedMood || "")
+  );
+
+  if (isAuthenticated) {
+    setLocation('/dashboard');
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 via-blue-50/40 to-slate-50 dark:from-primary/10 dark:via-background dark:to-background">
