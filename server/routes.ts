@@ -61,7 +61,7 @@ const FREE_EXERCISES = [
   "coherent-breathing"
 ];
 
-export async function registerRoutes(app: Express): Promise<Express> {
+export function registerRoutes(app: Express): Express {
   // Sitemap route handler
   app.get("/sitemap.xml", (req, res) => {
     const sitemapPath = path.join(process.cwd(), "public", "sitemap.xml");
