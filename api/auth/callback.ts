@@ -1,16 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import 'dotenv/config';
 import { createClient } from "@supabase/supabase-js";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
-import { users } from "../../shared/schema.js";
-import { eq } from "drizzle-orm";
 
-// Initialize database
-const client = postgres(process.env.DATABASE_URL!);
-const db = drizzle(client);
-
-// Initialize Supabase
+// Initialize Supabase with service role for database operations
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL!,
   process.env.VITE_SUPABASE_ANON_KEY!
@@ -44,9 +36,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     console.log('OAuth callback - User data:', { id: user.id, email: user.email, provider });
 
-    // Check if user already exists in our database
-    const existingUsers = await db.select().from(users).where(eq(users.id, user.id));
-    const existingUser = existingUsers[0];
+    // Check if user already exists in our database using Supabase
+    const { data: existingUsers, error: selectError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', user.id)
+      .limit(1);
+
+    if (selectError) {
+      console.error('Database select error:', selectError);
+      return res.status(500).json({ 
+        message: "Database error. Please try again.",
+        error: selectError.message 
+      });
+    }
+
+    const existingUser = existingUsers?.[0];
 
     if (existingUser) {
       console.log('OAuth callback - Existing user found');
@@ -64,25 +69,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     console.log('OAuth callback - Creating new user');
-    // New user - create in our database
-    const now = new Date();
+    // New user - create in our database using Supabase
+    const now = new Date().toISOString();
     const displayName = user.user_metadata?.full_name || 
                        user.user_metadata?.name || 
                        user.email?.split('@')[0] || 
                        'User';
 
-    const [newUser] = await db.insert(users).values({
-      id: user.id,
-      email: user.email,
-      displayName: displayName,
-      isAgeVerified: true, // Assume OAuth users are age verified
-      marketingConsent: false,
-      acceptedTermsAt: now,
-      acceptedPrivacyAt: now,
-      marketingConsentAt: null,
-    }).returning();
+    const { data: newUsers, error: insertError } = await supabase
+      .from('users')
+      .insert({
+        id: user.id,
+        email: user.email,
+        displayName: displayName,
+        isAgeVerified: true, // Assume OAuth users are age verified
+        marketingConsent: false,
+        acceptedTermsAt: now,
+        acceptedPrivacyAt: now,
+        marketingConsentAt: null,
+      })
+      .select()
+      .limit(1);
 
-    console.log('OAuth callback - New user created:', newUser.id);
+    if (insertError) {
+      console.error('Database insert error:', insertError);
+      return res.status(500).json({ 
+        message: "Failed to create user account. Please try again.",
+        error: insertError.message 
+      });
+    }
+
+    const newUser = newUsers?.[0];
+    console.log('OAuth callback - New user created:', newUser?.id);
 
     res.status(201).json({
       message: 'Registration successful',
