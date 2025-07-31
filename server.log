@@ -1,0 +1,8 @@
+
+> rest-express@1.0.0 dev
+> tsx server/index.ts
+
+7:10:46 PM [express] Server running in development mode
+7:10:46 PM [express] Server listening on port 3001
+7:10:54 PM [express] GET /api/debug 200 in 3ms
+7:10:56 PM [express] POST /api/auth/register 201 in 2619ms
