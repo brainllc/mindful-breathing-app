@@ -72,10 +72,15 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
     setError("");
 
     try {
+      // Use production URL for redirects when in production
+      const redirectUrl = window.location.hostname === 'breathwork.fyi' 
+        ? 'https://breathwork.fyi/auth/callback'
+        : `${window.location.origin}/auth/callback`;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: redirectUrl,
           queryParams: {
             marketingConsent: acceptMarketing.toString(),
           },

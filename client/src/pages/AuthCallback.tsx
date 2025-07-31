@@ -67,12 +67,12 @@ export default function AuthCallback() {
 
           // Login the user
           if (data.user) {
-                      login({
-            id: data.user.id,
-            email: data.user.email,
-            displayName: data.user.displayName,
-            isPremium: data.user.isPremium,
-          }, session);
+            login({
+              id: data.user.id,
+              email: data.user.email,
+              displayName: data.user.displayName,
+              isPremium: false, // Default for OAuth users
+            }, session);
 
             setSuccess(true);
             
@@ -102,12 +102,12 @@ export default function AuthCallback() {
               const userData = await response.json();
               
               // Login the user
-                          login({
-              id: userData.id,
-              email: userData.email,
-              displayName: userData.displayName,
-              isPremium: userData.isPremium,
-            }, session);
+              login({
+                id: userData.id,
+                email: userData.email,
+                displayName: userData.displayName,
+                isPremium: userData.isPremium || false,
+              }, session);
 
               setSuccess(true);
               
@@ -122,12 +122,12 @@ export default function AuthCallback() {
               }, 2000);
             } else {
               // Fallback: just log them in with basic Supabase user data
-                          login({
-              id: session.user.id,
-              email: session.user.email || '',
-              displayName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
-              isPremium: false,
-            }, session);
+              login({
+                id: session.user.id,
+                email: session.user.email || '',
+                displayName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+                isPremium: false,
+              }, session);
 
               setSuccess(true);
               
