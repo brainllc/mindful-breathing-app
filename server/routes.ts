@@ -692,6 +692,51 @@ export function registerRoutes(app: Express): Express {
     }
   });
 
+  // DEBUG: Get detailed user stats for troubleshooting
+  app.get("/api/debug/user-rounds", authenticateUser, async (req, res, next) => {
+    try {
+      // Get all sessions for this user
+      const sessions = await db.select()
+        .from(exerciseSessions)
+        .where(eq(exerciseSessions.userId, req.user.id))
+        .orderBy(desc(exerciseSessions.startedAt));
+      
+      // Get current user stats
+      const [stats] = await db.select().from(userStats).where(eq(userStats.userId, req.user.id));
+      
+      // Calculate totals manually
+      const [roundsTotal] = await db.select({ sum: sum(exerciseSessions.roundsCompleted) })
+        .from(exerciseSessions)
+        .where(eq(exerciseSessions.userId, req.user.id));
+      
+      res.json({
+        userId: req.user.id,
+        currentStats: stats,
+        calculatedTotalRounds: Number(roundsTotal.sum) || 0,
+        totalSessions: sessions.length,
+        recentSessions: sessions.slice(0, 10).map(s => ({
+          id: s.id,
+          exerciseId: s.exerciseId,
+          rounds: s.rounds,
+          roundsCompleted: s.roundsCompleted,
+          durationSeconds: s.durationSeconds,
+          completed: s.completed,
+          startedAt: s.startedAt,
+          completedAt: s.completedAt
+        })),
+        allSessionsRounds: sessions.map(s => ({
+          sessionId: s.id,
+          exerciseId: s.exerciseId,
+          roundsCompleted: s.roundsCompleted,
+          completed: s.completed,
+          completedAt: s.completedAt
+        }))
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   // ============================================================================
   // LEAD MAGNET ROUTES
   // ============================================================================
