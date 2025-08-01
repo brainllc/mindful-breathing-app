@@ -27,9 +27,8 @@ export default function Home() {
         console.log('🔍 OAuth tokens detected on home page, processing...');
         
         try {
-          // Clear the hash immediately to prevent re-processing
+          // DON'T clear the hash yet - Supabase needs it to process the session!
           const hashContent = window.location.hash;
-          window.history.replaceState(null, '', window.location.pathname);
           
           const { data: { session }, error: sessionError } = await supabase.auth.getSession();
           
