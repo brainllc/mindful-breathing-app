@@ -39,56 +39,16 @@ export default function Home() {
           }
 
           if (session) {
-            console.log('✅ OAuth session found, attempting profile fetch...');
+            console.log('✅ OAuth session found, using session data directly (temporary fix)');
             
-            try {
-              console.log('🔍 Attempting to fetch user profile from:', window.location.origin + '/api/user/profile');
-              console.log('🔐 Using token:', session.access_token?.substring(0, 20) + '...');
-              
-              // Try to fetch user profile from our database
-              const profileResponse = await fetch("/api/user/profile", {
-                headers: {
-                  "Authorization": `Bearer ${session.access_token}`,
-                },
-              });
-
-              console.log('📡 Profile fetch response status:', profileResponse.status);
-
-              if (profileResponse.ok) {
-                const userData = await profileResponse.json();
-                console.log('✅ User profile fetched, logging in user...');
-                
-                login({
-                  id: userData.id,
-                  email: userData.email,
-                  displayName: userData.displayName,
-                  isPremium: userData.isPremium || false,
-                }, session);
-              } else {
-                console.log('⚠️ Profile fetch failed with status:', profileResponse.status);
-                const errorText = await profileResponse.text();
-                console.log('⚠️ Error details:', errorText);
-                
-                // Use session data as fallback
-                login({
-                  id: session.user.id,
-                  email: session.user.email || '',
-                  displayName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
-                  isPremium: false,
-                }, session);
-              }
-            } catch (fetchError) {
-              console.error('🚨 Profile fetch error:', fetchError);
-              console.log('⚠️ Using session data due to fetch error');
-              
-              // Always fallback to session data on any error
-              login({
-                id: session.user.id,
-                email: session.user.email || '',
-                displayName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
-                isPremium: false,
-              }, session);
-            }
+            // TEMPORARY: Skip profile fetch entirely, use session data directly
+            // This bypasses the NetworkError issue while we debug the API call
+            login({
+              id: session.user.id,
+              email: session.user.email || '',
+              displayName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+              isPremium: false,
+            }, session);
 
             // Redirect to dashboard
             setLocation('/dashboard');
