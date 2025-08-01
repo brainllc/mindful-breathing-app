@@ -313,11 +313,13 @@ export default function Dashboard() {
   const formatDate = (dateStr: string) => {
     if (!dateStr) return 'Unknown date';
     try {
-      return new Date(dateStr).toLocaleDateString('en-US', { 
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-US', { 
         month: 'short', 
         day: 'numeric',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone // Use user's local timezone
       });
     } catch (error) {
       console.warn('Invalid date format:', dateStr);

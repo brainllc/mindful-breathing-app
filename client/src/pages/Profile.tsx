@@ -189,7 +189,8 @@ export default function Profile() {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone // Use user's local timezone
     });
   };
 
