@@ -39,28 +39,41 @@ export default function Home() {
           }
 
           if (session) {
-            console.log('✅ OAuth session found, fetching user profile...');
+            console.log('✅ OAuth session found, attempting profile fetch...');
             
-            // Fetch user profile from our database to get updated display name
-            const profileResponse = await fetch("/api/user/profile", {
-              headers: {
-                "Authorization": `Bearer ${session.access_token}`,
-              },
-            });
+            try {
+              // Try to fetch user profile from our database
+              const profileResponse = await fetch("/api/user/profile", {
+                headers: {
+                  "Authorization": `Bearer ${session.access_token}`,
+                },
+              });
 
-            if (profileResponse.ok) {
-              const userData = await profileResponse.json();
-              console.log('✅ User profile fetched, logging in user...');
+              if (profileResponse.ok) {
+                const userData = await profileResponse.json();
+                console.log('✅ User profile fetched, logging in user...');
+                
+                login({
+                  id: userData.id,
+                  email: userData.email,
+                  displayName: userData.displayName,
+                  isPremium: userData.isPremium || false,
+                }, session);
+              } else {
+                console.log('⚠️ Profile fetch failed, using session data as fallback');
+                // Use session data as fallback
+                login({
+                  id: session.user.id,
+                  email: session.user.email || '',
+                  displayName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+                  isPremium: false,
+                }, session);
+              }
+            } catch (fetchError) {
+              console.error('Profile fetch error:', fetchError);
+              console.log('⚠️ Using session data due to fetch error');
               
-              login({
-                id: userData.id,
-                email: userData.email,
-                displayName: userData.displayName,
-                isPremium: userData.isPremium || false,
-              }, session);
-            } else {
-              // Fallback to session data if profile fetch fails
-              console.log('⚠️ Profile fetch failed, using session data as fallback');
+              // Always fallback to session data on any error
               login({
                 id: session.user.id,
                 email: session.user.email || '',

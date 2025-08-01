@@ -54,8 +54,54 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .single();
     
     if (profileError || !userProfile) {
-      console.error('Error fetching user profile:', profileError);
-      return res.status(404).json({ error: "User profile not found" });
+      console.log('User profile not found, creating new OAuth user:', user.id);
+      
+      // Create new OAuth user in database
+      const displayName = user.user_metadata?.full_name || 
+                         user.user_metadata?.name || 
+                         user.email?.split('@')[0] || 
+                         'User';
+      
+      const now = new Date();
+      const { data: newUserProfile, error: createError } = await supabase
+        .from('users')
+        .insert({
+          id: user.id,
+          email: user.email,
+          display_name: displayName,
+          is_age_verified: true, // OAuth users assumed verified
+          marketing_consent: false,
+          accepted_terms_at: now.toISOString(),
+          accepted_privacy_at: now.toISOString(),
+          is_email_verified: true, // OAuth providers verify emails
+          created_at: now.toISOString(),
+          updated_at: now.toISOString(),
+        })
+        .select()
+        .single();
+      
+      if (createError) {
+        console.error('Failed to create user profile:', createError);
+        return res.status(500).json({ error: "Failed to create user profile" });
+      }
+      
+      console.log('✅ New OAuth user created:', newUserProfile.id);
+      
+      // Use the newly created profile
+      const userProfile = newUserProfile;
+      
+      // Return user profile
+      return res.json({
+        id: userProfile.id,
+        email: userProfile.email,
+        displayName: userProfile.display_name,
+        isPremium: userProfile.is_premium || false,
+        createdAt: userProfile.created_at,
+        isAgeVerified: userProfile.is_age_verified,
+        marketingConsent: userProfile.marketing_consent,
+        acceptedTermsAt: userProfile.accepted_terms_at,
+        acceptedPrivacyAt: userProfile.accepted_privacy_at,
+      });
     }
 
     // Return user profile
