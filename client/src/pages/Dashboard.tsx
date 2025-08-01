@@ -506,52 +506,111 @@ export default function Dashboard() {
               </Card>
             </motion.section>
 
-            {/* Weekly Progress & Achievements */}
+            {/* Weekly Progress - Full Width */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.3 }}
+            >
+              <Card className="bg-white/80 dark:bg-background/80 backdrop-blur-sm border-primary/10">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5 text-primary" />
+                    Weekly Progress
+                  </CardTitle>
+                  <CardDescription>
+                    Your practice this week
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {/* Goal Progress */}
+                    <div>
+                      <div className="flex justify-between text-sm mb-2">
+                        <span>Weekly Goal</span>
+                        <span>{thisWeekSessions}/{weeklyGoal} sessions</span>
+                      </div>
+                      <Progress value={Math.min(goalProgress, 100)} className="h-2" />
+                    </div>
+                    
+                    {/* Daily bars with max height to prevent overflow */}
+                    <div className="flex items-end justify-between h-24 gap-2">
+                      {weeklyData.map((day, index) => (
+                        <div key={day.day} className="flex flex-col items-center flex-1">
+                          <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-t-sm min-h-[4px] flex flex-col justify-end">
+                            <div 
+                              className="w-full bg-primary rounded-t-sm transition-all duration-300"
+                              style={{ 
+                                height: `${Math.min(Math.max(day.sessions * 20, day.sessions > 0 ? 8 : 0), 80)}px` 
+                              }}
+                              title={`${day.sessions} session${day.sessions !== 1 ? 's' : ''}`}
+                            />
+                          </div>
+                          <span className="text-xs text-muted-foreground mt-1">{day.day}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Recent Sessions & Achievements */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Weekly Progress Chart */}
+              {/* Recent Sessions */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.3 }}
+                transition={{ duration: 0.4, delay: 0.4 }}
               >
                 <Card className="bg-white/80 dark:bg-background/80 backdrop-blur-sm border-primary/10">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <BarChart3 className="h-5 w-5 text-primary" />
-                      Weekly Progress
+                      <Activity className="h-5 w-5 text-primary" />
+                      Recent Sessions
                     </CardTitle>
                     <CardDescription>
-                      Your practice this week
+                      Your latest breathing exercises
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      {/* Goal Progress */}
-                      <div>
-                        <div className="flex justify-between text-sm mb-2">
-                          <span>Weekly Goal</span>
-                          <span>{thisWeekSessions}/{weeklyGoal} sessions</span>
-                        </div>
-                        <Progress value={Math.min(goalProgress, 100)} className="h-2" />
+                    {loading ? (
+                      <div className="flex items-center justify-center py-12">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                       </div>
-                      
-                      {/* Daily bars */}
-                      <div className="flex items-end justify-between h-24 gap-2">
-                        {weeklyData.map((day, index) => (
-                          <div key={day.day} className="flex flex-col items-center flex-1">
-                            <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-t-sm min-h-[4px] flex flex-col justify-end">
-                              <div 
-                                className="w-full bg-primary rounded-t-sm transition-all duration-300"
-                                style={{ 
-                                  height: `${Math.max(day.sessions * 20, day.sessions > 0 ? 8 : 0)}px` 
-                                }}
-                              />
+                    ) : recentSessions.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Activity className="h-16 w-16 mx-auto mb-4 text-primary/20" />
+                        <h3 className="text-lg font-medium mb-2">No sessions yet</h3>
+                        <p className="text-muted-foreground">Complete your first breathing exercise to see your progress!</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {recentSessions.slice(0, 5).map((session) => (
+                          <div key={session.id} className="flex items-center justify-between p-4 bg-slate-50/50 dark:bg-slate-800/50 rounded-lg border border-primary/5 hover:border-primary/10 transition-colors">
+                            <div className="flex items-center space-x-4">
+                              <div className="w-3 h-3 rounded-full bg-primary/80"></div>
+                              <div>
+                                <p className="font-medium text-sm">{formatExerciseName(session.exerciseId)}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {session.roundsCompleted} rounds • {Math.floor(session.durationSeconds / 60)}m {session.durationSeconds % 60}s
+                                </p>
+                              </div>
                             </div>
-                            <span className="text-xs text-muted-foreground mt-1">{day.day}</span>
+                            <div className="text-right">
+                              <p className="text-sm text-muted-foreground">
+                                {session.completedAt ? formatDate(session.completedAt) : 'In progress'}
+                              </p>
+                              {session.completed && (
+                                <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
+                                  Completed
+                                </Badge>
+                              )}
+                            </div>
                           </div>
                         ))}
                       </div>
-                    </div>
+                    )}
                   </CardContent>
                 </Card>
               </motion.div>
@@ -560,7 +619,7 @@ export default function Dashboard() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.4 }}
+                transition={{ duration: 0.4, delay: 0.5 }}
               >
                 <Card className="bg-white/80 dark:bg-background/80 backdrop-blur-sm border-primary/10">
                   <CardHeader>
@@ -616,64 +675,6 @@ export default function Dashboard() {
                 </Card>
               </motion.div>
             </div>
-
-            {/* Recent Sessions */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.5 }}
-            >
-              <Card className="bg-white/80 dark:bg-background/80 backdrop-blur-sm border-primary/10">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Activity className="h-5 w-5 text-primary" />
-                    Recent Sessions
-                  </CardTitle>
-                  <CardDescription>
-                    Your latest breathing exercises
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {loading ? (
-                    <div className="flex items-center justify-center py-12">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    </div>
-                  ) : recentSessions.length === 0 ? (
-                    <div className="text-center py-12">
-                      <Activity className="h-16 w-16 mx-auto mb-4 text-primary/20" />
-                      <h3 className="text-lg font-medium mb-2">No sessions yet</h3>
-                      <p className="text-muted-foreground">Complete your first breathing exercise to see your progress!</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {recentSessions.slice(0, 5).map((session) => (
-                        <div key={session.id} className="flex items-center justify-between p-4 bg-slate-50/50 dark:bg-slate-800/50 rounded-lg border border-primary/5 hover:border-primary/10 transition-colors">
-                          <div className="flex items-center space-x-4">
-                            <div className="w-3 h-3 rounded-full bg-primary/80"></div>
-                            <div>
-                              <p className="font-medium text-sm">{formatExerciseName(session.exerciseId)}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {session.roundsCompleted} rounds • {Math.floor(session.durationSeconds / 60)}m {session.durationSeconds % 60}s
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm text-muted-foreground">
-                              {session.completedAt ? formatDate(session.completedAt) : 'In progress'}
-                            </p>
-                            {session.completed && (
-                              <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
-                                Completed
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
 
             {/* Favorite Exercises */}
             <motion.section
