@@ -49,16 +49,19 @@ export default function AuthCallback() {
           return;
         }
 
-        console.log('Session found, using session data directly (temporary fix)');
+        console.log('✅ AuthCallback: OAuth session found, processing login...');
         
-        // TEMPORARY: Skip profile fetch entirely, use session data directly
-        // This bypasses the NetworkError issue while we debug the API call
+        // Use session data directly (no API calls to avoid NetworkError)
         login({
           id: session.user.id,
           email: session.user.email || '',
           displayName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
           isPremium: false,
         }, session);
+
+        // Clean up the URL hash after successful login
+        console.log('🧹 AuthCallback: Cleaning OAuth tokens from URL after login');
+        window.history.replaceState({}, document.title, '/dashboard');
 
         toast({
           title: "Welcome!",

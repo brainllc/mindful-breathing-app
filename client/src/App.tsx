@@ -73,11 +73,9 @@ function App() {
     const currentPath = window.location.pathname;
     const currentHash = window.location.hash;
     
-    // If we're not on auth callback but have auth tokens in URL, clean them
-    if (currentPath !== '/auth/callback' && currentHash.includes('access_token')) {
-      console.log("🧹 App.tsx: Cleaning auth tokens from URL");
-      window.history.replaceState({}, document.title, currentPath);
-    }
+    // Don't clean OAuth tokens - let the appropriate components handle them
+    // This was preventing OAuth login from working!
+    console.log("🔍 App.tsx: OAuth tokens detected, letting components handle them");
     console.log("✅ App.tsx: useEffect completed");
   }, []);
 

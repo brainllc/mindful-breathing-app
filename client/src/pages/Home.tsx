@@ -39,10 +39,9 @@ export default function Home() {
           }
 
           if (session) {
-            console.log('✅ OAuth session found, using session data directly (temporary fix)');
+            console.log('✅ Home.tsx: OAuth session found, processing login...');
             
-            // TEMPORARY: Skip profile fetch entirely, use session data directly
-            // This bypasses the NetworkError issue while we debug the API call
+            // Use session data directly (no API calls to avoid NetworkError)
             login({
               id: session.user.id,
               email: session.user.email || '',
@@ -50,7 +49,12 @@ export default function Home() {
               isPremium: false,
             }, session);
 
+            // Clean up the URL hash after successful login
+            console.log('🧹 Home.tsx: Cleaning OAuth tokens from URL after login');
+            window.history.replaceState({}, document.title, window.location.pathname);
+
             // Redirect to dashboard
+            console.log('📍 Home.tsx: Redirecting to dashboard...');
             setLocation('/dashboard');
           }
         } catch (err) {
