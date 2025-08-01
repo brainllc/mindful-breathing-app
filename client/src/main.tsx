@@ -3,11 +3,17 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
+console.log("🚀 main.tsx: Starting app initialization...");
+console.log("🔍 main.tsx: Current URL:", window.location.href);
+console.log("🔍 main.tsx: Has OAuth tokens?", window.location.hash.includes("access_token"));
+
 // Create a separate chunk for the app
 const root = createRoot(document.getElementById("root")!);
 
 // Hydrate the app with React 18's createRoot
+console.log("🚀 main.tsx: Rendering React app...");
 root.render(<App />);
+console.log("✅ main.tsx: React app rendered successfully");
 
 // Preload critical routes
 const preloadRoutes = () => {

@@ -63,17 +63,25 @@ function Router() {
 }
 
 function App() {
+  console.log("🚀 App.tsx: App component initializing...");
+  console.log("🔍 App.tsx: Current pathname:", window.location.pathname);
+  console.log("🔍 App.tsx: Current hash:", window.location.hash);
+  
   // Clean up any lingering auth fragments that might interfere with navigation
   React.useEffect(() => {
+    console.log("🚀 App.tsx: useEffect running...");
     const currentPath = window.location.pathname;
     const currentHash = window.location.hash;
     
     // If we're not on auth callback but have auth tokens in URL, clean them
     if (currentPath !== '/auth/callback' && currentHash.includes('access_token')) {
+      console.log("🧹 App.tsx: Cleaning auth tokens from URL");
       window.history.replaceState({}, document.title, currentPath);
     }
+    console.log("✅ App.tsx: useEffect completed");
   }, []);
 
+  console.log("🚀 App.tsx: About to render providers...");
   return (
     <QueryClientProvider client={queryClient}>
       <HelmetProvider>
