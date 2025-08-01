@@ -4,7 +4,7 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, Calendar, Activity, Target, Star, Trophy, Flame, Zap, Clock, ChevronRight, Award, BarChart3, Play, ChevronDown, ChevronUp } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Navbar } from "@/components/Navbar";
 import { Link } from "wouter";
@@ -32,86 +32,104 @@ interface ExerciseSession {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  
+  // Always call hooks in the same order - no early returns!
   const [stats, setStats] = useState<UserStats | null>(null);
   const [recentSessions, setRecentSessions] = useState<ExerciseSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [achievementsExpanded, setAchievementsExpanded] = useState(false);
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      if (!user) return;
+  const fetchDashboardData = useCallback(async () => {
+    if (!user) return;
 
-      try {
-        const storedSession = localStorage.getItem('supabase.auth.token');
-        if (!storedSession) return;
-        
-        const session = JSON.parse(storedSession);
-        const headers = {
-          'Authorization': `Bearer ${session.access_token}`
-        };
+    try {
+      const storedSession = localStorage.getItem('supabase.auth.token');
+      if (!storedSession) return;
+      
+      const session = JSON.parse(storedSession);
+      const headers = {
+        'Authorization': `Bearer ${session.access_token}`
+      };
 
-        // Fetch user stats and exercise history in parallel
-        const [statsResponse, historyResponse] = await Promise.all([
-          fetch('/api/user/stats', { headers }),
-          fetch('/api/exercises/history', { headers })
-        ]);
+      // Fetch user stats and exercise history in parallel
+      const [statsResponse, historyResponse] = await Promise.all([
+        fetch('/api/user/stats', { headers }),
+        fetch('/api/exercises/history', { headers })
+      ]);
 
-        if (statsResponse.ok) {
-          const statsData = await statsResponse.json();
-          setStats(statsData);
-        }
-
-        if (historyResponse.ok) {
-          const historyData = await historyResponse.json();
-          setRecentSessions(historyData);
-        }
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-      } finally {
-        setLoading(false);
+      if (statsResponse.ok) {
+        const statsData = await statsResponse.json();
+        console.log('Fetched stats:', statsData);
+        setStats(statsData);
+      } else {
+        console.warn('Failed to fetch user stats:', statsResponse.status);
       }
-    };
 
-    fetchDashboardData();
+      if (historyResponse.ok) {
+        const historyData = await historyResponse.json();
+        console.log('Fetched history:', historyData);
+        // Ensure historyData is an array and filter out invalid sessions
+        const validSessions = Array.isArray(historyData) ? historyData.filter(session => 
+          session && typeof session === 'object' && session.id
+        ) : [];
+        setRecentSessions(validSessions);
+      } else {
+        console.warn('Failed to fetch exercise history:', historyResponse.status);
+        setRecentSessions([]); // Set empty array as fallback
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
   }, [user]);
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-100 via-blue-50/40 to-slate-50 dark:from-primary/10 dark:via-background dark:to-background">
-        <Navbar />
-        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-25 dark:opacity-20" role="presentation" aria-hidden="true" />
-        <div className="relative container mx-auto px-4 pt-24 pb-16">
-          <div className="max-w-md mx-auto text-center mt-20">
-            <h2 className="text-2xl font-bold mb-4">Please log in to view your dashboard</h2>
-            <p className="text-muted-foreground">Track your breathing journey and see your progress.</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
-  // Calculate this week's sessions
-  const oneWeekAgo = new Date();
-  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-  const thisWeekSessions = recentSessions.filter(session => 
-    session.completed && new Date(session.completedAt!) > oneWeekAgo
-  ).length;
+  // Auto-refresh dashboard data every 30 seconds
+  useEffect(() => {
+    if (!user) return;
+    
+    const interval = setInterval(() => {
+      fetchDashboardData();
+    }, 30000); // 30 seconds
 
-  // Calculate average daily sessions (last 30 days)
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  const last30DaysSessions = recentSessions.filter(session => 
-    session.completed && new Date(session.completedAt!) > thirtyDaysAgo
-  ).length;
-  const avgDailySessions = (last30DaysSessions / 30).toFixed(1);
+    return () => clearInterval(interval);
+  }, [user, fetchDashboardData]);
 
-  // Calculate current streak (consecutive days with sessions)
-  const calculateStreak = () => {
+  // Listen for immediate refresh events from completed exercises
+  useEffect(() => {
+    if (!user) return;
+
+    const handleExerciseCompleted = () => {
+      console.log('🔄 Exercise completed - refreshing dashboard immediately');
+      fetchDashboardData();
+    };
+
+    // Listen for custom event
+    window.addEventListener('exerciseCompleted', handleExerciseCompleted);
+    
+    return () => {
+      window.removeEventListener('exerciseCompleted', handleExerciseCompleted);
+    };
+  }, [user, fetchDashboardData]);
+
+  // Calculate current streak (consecutive days with sessions) - using useMemo to prevent recalculation
+  const currentStreak = useMemo(() => {
     if (recentSessions.length === 0) return 0;
     
-    const completedSessions = recentSessions.filter(s => s.completed).sort((a, b) => 
-      new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime()
-    );
+    const completedSessions = recentSessions
+      .filter(s => s.completed && s.completedAt)
+      .sort((a, b) => {
+        try {
+          return new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime();
+        } catch (error) {
+          console.warn('Invalid date in streak calculation:', a.completedAt, b.completedAt);
+          return 0;
+        }
+      });
     
     if (completedSessions.length === 0) return 0;
     
@@ -122,29 +140,58 @@ export default function Dashboard() {
     let currentDate = new Date(today);
     
     for (const session of completedSessions) {
-      const sessionDate = new Date(session.completedAt!);
-      sessionDate.setHours(0, 0, 0, 0);
-      
-      if (sessionDate.getTime() === currentDate.getTime()) {
-        streak++;
-        currentDate.setDate(currentDate.getDate() - 1);
-      } else if (sessionDate.getTime() < currentDate.getTime()) {
-        break;
+      try {
+        const sessionDate = new Date(session.completedAt!);
+        sessionDate.setHours(0, 0, 0, 0);
+        
+        if (sessionDate.getTime() === currentDate.getTime()) {
+          streak++;
+          currentDate.setDate(currentDate.getDate() - 1);
+        } else if (sessionDate.getTime() < currentDate.getTime()) {
+          break;
+        }
+      } catch (error) {
+        console.warn('Invalid date in session:', session.completedAt);
+        continue;
       }
     }
     
     return streak;
-  };
+  }, [recentSessions]);
+
+  // Calculate this week's sessions
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+  const thisWeekSessions = recentSessions.filter(session => {
+    try {
+      return session.completed && session.completedAt && new Date(session.completedAt) > oneWeekAgo;
+    } catch (error) {
+      return false;
+    }
+  }).length;
+
+  // Calculate average daily sessions (last 30 days)
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const last30DaysSessions = recentSessions.filter(session => {
+    try {
+      return session.completed && session.completedAt && new Date(session.completedAt) > thirtyDaysAgo;
+    } catch (error) {
+      return false;
+    }
+  }).length;
+  const avgDailySessions = (last30DaysSessions / 30).toFixed(1);
 
   // Get most practiced exercises
   const exerciseCount = recentSessions.reduce((acc, session) => {
-    if (session.completed) {
+    if (session.completed && session.exerciseId) {
       acc[session.exerciseId] = (acc[session.exerciseId] || 0) + 1;
     }
     return acc;
   }, {} as Record<string, number>);
 
   const sortedExercises = Object.entries(exerciseCount)
+    .filter(([exerciseId]) => exerciseId) // Filter out undefined/null exercise IDs
     .sort(([, a], [, b]) => b - a)
     .slice(0, 5);
 
@@ -161,11 +208,15 @@ export default function Dashboard() {
     });
 
     recentSessions.forEach(session => {
-      if (session.completed && session.completedAt) {
-        const sessionDate = new Date(session.completedAt).toISOString().split('T')[0];
-        const dayData = last7Days.find(d => d.date === sessionDate);
-        if (dayData) {
-          dayData.sessions++;
+      if (session.completed && session.completedAt && session.completedAt !== null) {
+        try {      
+          const sessionDate = new Date(session.completedAt).toISOString().split('T')[0];
+          const dayData = last7Days.find(d => d.date === sessionDate);
+          if (dayData) {
+            dayData.sessions++;
+          }
+        } catch (error) {
+          console.warn('Invalid date in session:', session.completedAt);
         }
       }
     });
@@ -177,7 +228,6 @@ export default function Dashboard() {
   const getAchievements = () => {
     const achievements = [];
     const totalSessions = stats?.totalSessions || 0;
-    const currentStreak = calculateStreak();
     const totalMinutes = stats?.totalMinutes || 0;
     const totalRounds = stats?.totalRounds || 0;
 
@@ -255,24 +305,46 @@ export default function Dashboard() {
   };
 
   const formatExerciseName = (id: string) => {
+    if (!id) return 'Unknown Exercise';
     const exercise = exercises.find(ex => ex.id === id);
     return exercise ? exercise.name : id.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   };
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    if (!dateStr) return 'Unknown date';
+    try {
+      return new Date(dateStr).toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      console.warn('Invalid date format:', dateStr);
+      return 'Invalid date';
+    }
   };
 
-  const currentStreak = calculateStreak();
   const weeklyData = getWeeklyData();
   const achievements = getAchievements();
   const weeklyGoal = 5; // Could be user-configurable later
   const goalProgress = (thisWeekSessions / weeklyGoal) * 100;
+
+  // Handle null user case after all hooks are called
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-100 via-blue-50/40 to-slate-50 dark:from-primary/10 dark:via-background dark:to-background">
+        <Navbar />
+        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-25 dark:opacity-20" role="presentation" aria-hidden="true" />
+        <div className="relative container mx-auto px-4 pt-24 pb-16">
+          <div className="max-w-md mx-auto text-center mt-20">
+            <h2 className="text-2xl font-bold mb-4">Please log in to view your dashboard</h2>
+            <p className="text-muted-foreground">Track your breathing journey and see your progress.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 via-blue-50/40 to-slate-50 dark:from-primary/10 dark:via-background dark:to-background">

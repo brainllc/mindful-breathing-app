@@ -7,14 +7,30 @@ import { useLocation } from 'wouter';
 export default function AuthCallback() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [processed, setProcessed] = useState(false);
   const { login } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
   useEffect(() => {
+    if (processed) return; // Prevent multiple executions
+    
     const handleAuthCallback = async () => {
       try {
         console.log('AuthCallback: Starting...');
+        
+        // Check if this is actually an auth callback by looking for auth tokens in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlHash = window.location.hash;
+        const hasAuthTokens = urlHash.includes('access_token') || urlParams.has('code') || urlParams.has('access_token');
+        
+        if (!hasAuthTokens) {
+          console.log('No auth tokens found, redirecting to dashboard');
+          setLocation('/dashboard');
+          return;
+        }
+        
+        setProcessed(true); // Mark as processed immediately
         
         // Get the session from the URL
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -33,25 +49,44 @@ export default function AuthCallback() {
           return;
         }
 
-        console.log('Session found, logging in user...');
+        console.log('Session found, fetching user profile...');
         
-        // Simple login with session data
-        login({
-          id: session.user.id,
-          email: session.user.email || '',
-          displayName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
-          isPremium: false,
-        }, session);
+        // Fetch user profile from our database to get updated display name
+        const profileResponse = await fetch("/api/user/profile", {
+          headers: {
+            "Authorization": `Bearer ${session.access_token}`,
+          },
+        });
+
+        if (profileResponse.ok) {
+          const userData = await profileResponse.json();
+          console.log('✅ User profile fetched, logging in user...');
+          
+          login({
+            id: userData.id,
+            email: userData.email,
+            displayName: userData.displayName,
+            isPremium: userData.isPremium || false,
+          }, session);
+        } else {
+          // Fallback to session data if profile fetch fails  
+          console.log('⚠️ Profile fetch failed, using session data as fallback');
+          login({
+            id: session.user.id,
+            email: session.user.email || '',
+            displayName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+            isPremium: false,
+          }, session);
+        }
 
         toast({
           title: "Welcome!",
           description: "Successfully signed in!",
         });
 
-        // Redirect to dashboard
-        setTimeout(() => {
-          setLocation('/dashboard');
-        }, 1000);
+        // Clean the URL and redirect to dashboard
+        window.history.replaceState({}, document.title, '/dashboard');
+        setLocation('/dashboard');
 
       } catch (err) {
         console.error('Auth callback error:', err);
@@ -61,7 +96,7 @@ export default function AuthCallback() {
     };
 
     handleAuthCallback();
-  }, [login, toast, setLocation]);
+  }, [processed, setLocation, login, toast]); // Add proper dependencies
 
   if (loading) {
     return (

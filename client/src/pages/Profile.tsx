@@ -347,26 +347,26 @@ export default function Profile() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="displayName">Display Name</Label>
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-muted-foreground" />
+                    <div className="relative">
+                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="displayName"
                         name="displayName"
                         value={formData.displayName}
                         onChange={handleInputChange}
                         disabled={!isEditing}
-                        className={!isEditing ? "bg-muted" : ""}
+                        className={`pl-10 ${!isEditing ? "bg-muted" : ""}`}
                         placeholder="How you'd like to be addressed"
                       />
                     </div>
                   </div>
 
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="email">Email Address</Label>
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="email"
                         name="email"
@@ -374,7 +374,7 @@ export default function Profile() {
                         value={formData.email}
                         onChange={handleInputChange}
                         disabled={!isEditing}
-                        className={!isEditing ? "bg-muted" : ""}
+                        className={`pl-10 ${!isEditing ? "bg-muted" : ""}`}
                       />
                     </div>
                   </div>
@@ -453,9 +453,10 @@ export default function Profile() {
                         <h3 className="font-medium">Change Password</h3>
                       </div>
                       
-                      <div>
+                      <div className="space-y-2">
                         <Label htmlFor="currentPassword">Current Password</Label>
                         <div className="relative">
+                          <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                           <Input
                             id="currentPassword"
                             name="currentPassword"
@@ -463,6 +464,7 @@ export default function Profile() {
                             value={passwordData.currentPassword}
                             onChange={handlePasswordChange}
                             placeholder="Enter your current password"
+                            className="pl-10 pr-10"
                           />
                           <Button
                             type="button"
@@ -480,9 +482,10 @@ export default function Profile() {
                         </div>
                       </div>
 
-                      <div>
+                      <div className="space-y-2">
                         <Label htmlFor="newPassword">New Password</Label>
                         <div className="relative">
+                          <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                           <Input
                             id="newPassword"
                             name="newPassword"
@@ -490,6 +493,7 @@ export default function Profile() {
                             value={passwordData.newPassword}
                             onChange={handlePasswordChange}
                             placeholder="Enter your new password"
+                            className="pl-10 pr-10"
                           />
                           <Button
                             type="button"
@@ -507,9 +511,10 @@ export default function Profile() {
                         </div>
                       </div>
 
-                      <div>
+                      <div className="space-y-2">
                         <Label htmlFor="confirmPassword">Confirm New Password</Label>
                         <div className="relative">
+                          <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                           <Input
                             id="confirmPassword"
                             name="confirmPassword"
@@ -517,6 +522,7 @@ export default function Profile() {
                             value={passwordData.confirmPassword}
                             onChange={handlePasswordChange}
                             placeholder="Confirm your new password"
+                            className="pl-10 pr-10"
                           />
                           <Button
                             type="button"

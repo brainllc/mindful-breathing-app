@@ -112,7 +112,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
         if (response.status === 429 || data.rateLimited || data.error?.includes("rate limit") || data.error?.includes("too many")) {
           setError("Too many login attempts. Please wait about 15 minutes before trying again for security reasons.");
         } else {
-          setError(data.error || "Login failed. Please check your credentials.");
+        setError(data.error || "Login failed. Please check your credentials.");
         }
         return;
       }

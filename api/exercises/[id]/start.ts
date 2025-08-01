@@ -24,7 +24,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).end();
   }
 
-  if (req.method !== 'GET') {
+  if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
@@ -46,43 +46,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    // Get user's exercise history using Supabase
-    const { data: history, error: historyError } = await supabase
-      .from('exercise_sessions')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('started_at', { ascending: false })
-      .limit(50);
-    
-    if (historyError) {
-      console.error('Error fetching exercise history:', historyError);
-      return res.status(500).json({ error: 'Failed to fetch exercise history' });
+    // Get exercise ID from URL
+    const exerciseId = req.query.id as string;
+    if (!exerciseId) {
+      return res.status(400).json({ error: "Exercise ID is required" });
     }
-    
-    // Map snake_case database fields to camelCase for frontend
-    const mappedHistory = (history || []).map(session => ({
-      id: session.id,
+
+    // Create new exercise session using Supabase
+    const { data: session, error: sessionError } = await supabase
+      .from('exercise_sessions')
+      .insert({
+        user_id: user.id,
+        exercise_id: exerciseId,
+        rounds: req.body?.rounds || 5, // Default to 5 rounds
+        started_at: new Date().toISOString(),
+        mood_before: req.body?.moodBefore || null,
+      })
+      .select()
+      .single();
+
+    if (sessionError) {
+      console.error('Error creating exercise session:', sessionError);
+      return res.status(500).json({ error: 'Failed to create exercise session' });
+    }
+
+    res.json({
+      sessionId: session.id,
       exerciseId: session.exercise_id,
-      userId: session.user_id,
-      rounds: session.rounds,
-      roundsCompleted: session.rounds_completed || 0,
-      durationSeconds: session.duration_seconds || 0,
-      completed: session.completed || false,
       startedAt: session.started_at,
-      completedAt: session.completed_at,
-      moodBefore: session.mood_before,
-      moodAfter: session.mood_after,
-      notes: session.notes
-    }));
-    
-    res.json(mappedHistory);
+      status: 'started'
+    });
 
   } catch (error) {
-    console.error('Exercise History API Error:', error);
-    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-    res.status(500).json({ 
-      error: 'Internal server error', 
-      details: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined 
-    });
+    console.error('API Error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
-} 
+}

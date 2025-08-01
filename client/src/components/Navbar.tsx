@@ -183,16 +183,16 @@ export function Navbar() {
                       {user?.displayName}
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem asChild>
+                  <DropdownMenuContent align="end" className="w-48 p-2">
+                    <DropdownMenuItem asChild className="px-3 py-2">
                       <Link href="/profile">
-                        <User className="w-4 h-4 mr-2" />
+                        <User className="w-4 h-4 mr-3" />
                         Profile
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={logout}>
-                      <LogOut className="w-4 h-4 mr-2" />
+                    <DropdownMenuSeparator className="mx-2" />
+                    <DropdownMenuItem onClick={logout} className="px-3 py-2">
+                      <LogOut className="w-4 h-4 mr-3" />
                       Logout
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -232,7 +232,7 @@ export function Navbar() {
                       <>
                         <Button variant="ghost" asChild>
                           <Link href="/profile" onClick={() => setIsOpen(false)}>
-                            <User className="w-4 h-4 mr-2" />
+                            <User className="w-4 h-4 mr-3" />
                             Profile
                           </Link>
                         </Button>
@@ -240,7 +240,7 @@ export function Navbar() {
                           logout();
                           setIsOpen(false);
                         }}>
-                          <LogOut className="w-4 h-4 mr-2" />
+                          <LogOut className="w-4 h-4 mr-3" />
                           Logout
                         </Button>
                       </>

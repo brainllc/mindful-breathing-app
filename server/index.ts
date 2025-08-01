@@ -27,12 +27,12 @@ app.use((req, res, next) => {
 registerRoutes(app);
 
 // Error handling middleware
-app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-  const status = err.status || err.statusCode || 500;
-  const message = err.message || "Internal Server Error";
-  log(`Error: ${message}`);
-  res.status(status).json({ message });
-});
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
+    log(`Error: ${message}`);
+    res.status(status).json({ message });
+  });
 
 // Handle local development vs production differently
 if (!process.env.VERCEL && process.env.NODE_ENV !== 'production') {
@@ -43,19 +43,19 @@ if (!process.env.VERCEL && process.env.NODE_ENV !== 'production') {
       const server = createServer(app);
       const PORT = Number(process.env.PORT) || 3000;
 
-      if (app.get("env") === "development") {
-        await setupVite(app, server);
-      } else {
-        serveStatic(app);
-      }
+  if (app.get("env") === "development") {
+    await setupVite(app, server);
+  } else {
+    serveStatic(app);
+  }
 
-      server.listen(PORT, "0.0.0.0", () => {
-        log(`Server running in ${app.get('env')} mode`);
-        log(`Server listening on port ${PORT}`);
-        if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
-          log(`Access your app at https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`);
-        }
-      });
+  server.listen(PORT, "0.0.0.0", () => {
+    log(`Server running in ${app.get('env')} mode`);
+    log(`Server listening on port ${PORT}`);
+    if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
+      log(`Access your app at https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`);
+    }
+  });
     } catch (error) {
       log(`Server startup error: ${error}`);
     }

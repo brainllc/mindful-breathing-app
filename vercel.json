@@ -3,21 +3,56 @@
   "outputDirectory": "dist/public",
   "routes": [
     {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      }
-    },
-    {
       "src": "/api/(.*)",
       "dest": "/api/$1"
     },
     {
-      "src": "/(.*\\.(js|css|svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf))",
+      "src": "/assets/(.*\\.mp3)$",
+      "dest": "/assets/$1",
+      "headers": {
+        "Content-Type": "audio/mpeg"
+      }
+    },
+    {
+      "src": "/assets/(.*\\.css)$",
+      "dest": "/assets/$1",
+      "headers": {
+        "Content-Type": "text/css"
+      }
+    },
+    {
+      "src": "/assets/(.*\\.js)$",
+      "dest": "/assets/$1",
+      "headers": {
+        "Content-Type": "application/javascript"
+      }
+    },
+    {
+      "src": "/(.*\\.mp3)$",
       "dest": "/$1",
       "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
+        "Content-Type": "audio/mpeg"
+      }
+    },
+    {
+      "src": "(.*\\.css)$",
+      "dest": "/$1",
+      "headers": {
+        "Content-Type": "text/css"
+      }
+    },
+    {
+      "src": "/(.*\\.js)$",
+      "dest": "/$1",
+      "headers": {
+        "Content-Type": "application/javascript"
+      }
+    },
+    {
+      "src": "/favicon\\.ico$",
+      "dest": "/favicon.ico",
+      "headers": {
+        "Content-Type": "image/x-icon"
       }
     },
     {

@@ -11,7 +11,8 @@ import {
   TrendingUp,
   Star,
   Sparkles,
-  Heart
+  Heart,
+  BarChart3
 } from "lucide-react";
 import { Exercise } from "@/lib/exercises";
 import { useAuth } from "@/contexts/AuthContext";
@@ -223,27 +224,66 @@ export function ExerciseCompletion({
              transition={{ delay: 0.8, duration: 0.6 }}
              className="space-y-3 mb-8"
            >
-             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-               <Button 
-                 onClick={onStartAgain}
-                 className="flex items-center gap-2 justify-center"
-                 size="lg"
-               >
-                 <Repeat className="w-4 h-4" />
-                 Practice Again
-               </Button>
-               
-               <Link href="/">
+             {user ? (
+               // Logged-in users get Dashboard as prominent option
+               <div className="space-y-3">
+                 <Link href="/dashboard">
+                   <Button 
+                     className="w-full flex items-center gap-2 justify-center bg-green-600 hover:bg-green-700"
+                     size="lg"
+                   >
+                     <BarChart3 className="w-4 h-4" />
+                     View Your Progress
+                   </Button>
+                 </Link>
+                 
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                   <Button 
+                     onClick={onStartAgain}
+                     variant="outline"
+                     className="flex items-center gap-2 justify-center"
+                     size="lg"
+                   >
+                     <Repeat className="w-4 h-4" />
+                     Practice Again
+                   </Button>
+                   
+                   <Link href="/">
+                     <Button 
+                       variant="outline" 
+                       className="w-full flex items-center gap-2 justify-center"
+                       size="lg"
+                     >
+                       <Home className="w-4 h-4" />
+                       Try Another Exercise
+                     </Button>
+                   </Link>
+                 </div>
+               </div>
+             ) : (
+               // Non-logged-in users get original layout
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                  <Button 
-                   variant="outline" 
-                   className="w-full flex items-center gap-2 justify-center"
+                   onClick={onStartAgain}
+                   className="flex items-center gap-2 justify-center"
                    size="lg"
                  >
-                   <Home className="w-4 h-4" />
-                   Try Another Exercise
+                   <Repeat className="w-4 h-4" />
+                   Practice Again
                  </Button>
-               </Link>
-             </div>
+                 
+                 <Link href="/">
+                   <Button 
+                     variant="outline" 
+                     className="w-full flex items-center gap-2 justify-center"
+                     size="lg"
+                   >
+                     <Home className="w-4 h-4" />
+                     Try Another Exercise
+                   </Button>
+                 </Link>
+               </div>
+             )}
              
              {/* Subtle divider */}
              <div className="flex items-center py-2">

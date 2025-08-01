@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { lazy, Suspense } from "react";
+import React from "react";
 import { Loader2 } from "lucide-react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { HelmetProvider } from "react-helmet-async";
@@ -34,6 +35,8 @@ function LoadingSpinner() {
   );
 }
 
+
+
 function Router() {
   return (
     <Suspense fallback={<LoadingSpinner />}>
@@ -60,13 +63,24 @@ function Router() {
 }
 
 function App() {
+  // Clean up any lingering auth fragments that might interfere with navigation
+  React.useEffect(() => {
+    const currentPath = window.location.pathname;
+    const currentHash = window.location.hash;
+    
+    // If we're not on auth callback but have auth tokens in URL, clean them
+    if (currentPath !== '/auth/callback' && currentHash.includes('access_token')) {
+      window.history.replaceState({}, document.title, currentPath);
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <HelmetProvider>
-      <AuthProvider>
-        <Router />
-        <Toaster />
-      </AuthProvider>
+        <AuthProvider>
+          <Router />
+          <Toaster />
+        </AuthProvider>
       </HelmetProvider>
     </QueryClientProvider>
   );

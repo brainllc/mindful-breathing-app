@@ -46,43 +46,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    // Get user's exercise history using Supabase
-    const { data: history, error: historyError } = await supabase
-      .from('exercise_sessions')
+    // Get user profile from database using Supabase
+    const { data: userProfile, error: profileError } = await supabase
+      .from('users')
       .select('*')
-      .eq('user_id', user.id)
-      .order('started_at', { ascending: false })
-      .limit(50);
+      .eq('id', user.id)
+      .single();
     
-    if (historyError) {
-      console.error('Error fetching exercise history:', historyError);
-      return res.status(500).json({ error: 'Failed to fetch exercise history' });
+    if (profileError || !userProfile) {
+      console.error('Error fetching user profile:', profileError);
+      return res.status(404).json({ error: "User profile not found" });
     }
-    
-    // Map snake_case database fields to camelCase for frontend
-    const mappedHistory = (history || []).map(session => ({
-      id: session.id,
-      exerciseId: session.exercise_id,
-      userId: session.user_id,
-      rounds: session.rounds,
-      roundsCompleted: session.rounds_completed || 0,
-      durationSeconds: session.duration_seconds || 0,
-      completed: session.completed || false,
-      startedAt: session.started_at,
-      completedAt: session.completed_at,
-      moodBefore: session.mood_before,
-      moodAfter: session.mood_after,
-      notes: session.notes
-    }));
-    
-    res.json(mappedHistory);
+
+    // Return user profile
+    res.json({
+      id: userProfile.id,
+      email: userProfile.email,
+      displayName: userProfile.display_name,
+      isPremium: userProfile.is_premium || false,
+      createdAt: userProfile.created_at,
+      isAgeVerified: userProfile.is_age_verified,
+      marketingConsent: userProfile.marketing_consent,
+      acceptedTermsAt: userProfile.accepted_terms_at,
+      acceptedPrivacyAt: userProfile.accepted_privacy_at,
+    });
 
   } catch (error) {
-    console.error('Exercise History API Error:', error);
+    console.error('User Profile API Error:', error);
     console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     res.status(500).json({ 
       error: 'Internal server error', 
       details: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined 
     });
   }
-} 
+}

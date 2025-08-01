@@ -132,10 +132,6 @@ export default function Exercise() {
     }
   }, [showCountdown, countdownValue]);
 
-  if (!exercise) {
-    return <div>Exercise not found</div>;
-  }
-
   // Function to start a session in the backend
   const startSession = async () => {
     if (!user || !exercise) return;
@@ -158,8 +154,11 @@ export default function Exercise() {
 
       if (response.ok) {
         const sessionData = await response.json();
-        setCurrentSessionId(sessionData.id);
+        setCurrentSessionId(sessionData.sessionId);
         setSessionStartTime(new Date());
+        console.log('Session started:', sessionData);
+      } else {
+        console.error('Failed to start session:', response.status, await response.text());
       }
     } catch (error) {
       console.error('Error starting session:', error);
@@ -190,12 +189,40 @@ export default function Exercise() {
       });
 
       if (response.ok) {
-        const minutes = Math.floor(durationSeconds / 60);
-        const minuteText = minutes === 1 ? "minute" : "minutes";
+        const completionData = await response.json();
+        console.log('Session completed:', completionData);
+        
+        // Trigger immediate dashboard refresh
+        window.dispatchEvent(new CustomEvent('exerciseCompleted', { 
+          detail: { 
+            sessionId: completionData.sessionId, 
+            exerciseId: completionData.exerciseId,
+            durationSeconds 
+          } 
+        }));
+        
+        // Format duration display
+        let durationText;
+        if (durationSeconds < 60) {
+          durationText = `${durationSeconds} seconds`;
+        } else {
+          const minutes = Math.floor(durationSeconds / 60);
+          const remainingSeconds = durationSeconds % 60;
+          if (remainingSeconds === 0) {
+            const minuteText = minutes === 1 ? "minute" : "minutes";
+            durationText = `${minutes} ${minuteText}`;
+          } else {
+            const minuteText = minutes === 1 ? "minute" : "minutes";
+            durationText = `${minutes} ${minuteText} and ${remainingSeconds} seconds`;
+          }
+        }
+        
         toast({
           title: "Great job!",
-          description: `You completed ${currentRound + 1} rounds in ${minutes} ${minuteText}.`,
+          description: `You completed ${currentRound + 1} rounds in ${durationText}.`,
         });
+      } else {
+        console.error('Failed to complete session:', response.status, await response.text());
       }
     } catch (error) {
       console.error('Error completing session:', error);
@@ -321,14 +348,38 @@ export default function Exercise() {
     setCountdownValue(3);
   };
 
-  const roundDuration = exercise.pattern.inhale + 
-                       (exercise.pattern.hold || 0) + 
-                       exercise.pattern.exhale +
-                       (exercise.pattern.holdEmpty || 0);
+  const roundDuration = exercise ? (
+    exercise.pattern.inhale + 
+    (exercise.pattern.hold || 0) + 
+    exercise.pattern.exhale +
+    (exercise.pattern.holdEmpty || 0)
+  ) : 0;
 
   const totalDuration = roundDuration * totalRounds;
 
   const totalProgress = ((currentRound / totalRounds) + (phaseProgress / totalRounds)) * 100;
+
+  // Scroll to top when completion screen is shown
+  useEffect(() => {
+    if (isCompleted && completionData && exercise) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [isCompleted, completionData, exercise]);
+
+  // Handle case where exercise is not found - after all hooks are called
+  if (!exercise) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-100 via-blue-50/40 to-slate-50 dark:from-primary/10 dark:via-background dark:to-background">
+        <Navbar />
+        <div className="relative container mx-auto px-4 pt-24 pb-16">
+          <div className="max-w-md mx-auto text-center mt-20">
+            <h2 className="text-2xl font-bold mb-4">Exercise not found</h2>
+            <p className="text-muted-foreground">The exercise you're looking for doesn't exist.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Show completion screen if exercise is completed
   if (isCompleted && completionData && exercise) {

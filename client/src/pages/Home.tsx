@@ -39,14 +39,35 @@ export default function Home() {
           }
 
           if (session) {
-            console.log('✅ OAuth session found, logging in user...');
+            console.log('✅ OAuth session found, fetching user profile...');
             
-            login({
-              id: session.user.id,
-              email: session.user.email || '',
-              displayName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
-              isPremium: false,
-            }, session);
+            // Fetch user profile from our database to get updated display name
+            const profileResponse = await fetch("/api/user/profile", {
+              headers: {
+                "Authorization": `Bearer ${session.access_token}`,
+              },
+            });
+
+            if (profileResponse.ok) {
+              const userData = await profileResponse.json();
+              console.log('✅ User profile fetched, logging in user...');
+              
+              login({
+                id: userData.id,
+                email: userData.email,
+                displayName: userData.displayName,
+                isPremium: userData.isPremium || false,
+              }, session);
+            } else {
+              // Fallback to session data if profile fetch fails
+              console.log('⚠️ Profile fetch failed, using session data as fallback');
+              login({
+                id: session.user.id,
+                email: session.user.email || '',
+                displayName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+                isPremium: false,
+              }, session);
+            }
 
             // Redirect to dashboard
             setLocation('/dashboard');

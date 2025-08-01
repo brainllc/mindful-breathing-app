@@ -21,14 +21,30 @@ export function BreathingAnimation({ exercise, isActive, currentRound, onRoundCo
   }>({ scale: 1, opacity: 0.5 });
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Track if this is the first time the component becomes active (not a resume)
+  const [hasStarted, setHasStarted] = useState(false);
+  
   // Reset round completion when exercise starts or round changes
   useEffect(() => {
-    if (isActive) {
+    if (isActive && !hasStarted) {
+      // First time starting - reset everything
       setRoundCompleted(false);
       setPhase("inhale");
       setPhaseTimeLeft(exercise.pattern.inhale);
+      setHasStarted(true);
+    } else if (isActive && hasStarted) {
+      // Resuming - don't reset state, just clear round completion if needed
+      setRoundCompleted(false);
     }
-  }, [isActive, currentRound, exercise.pattern.inhale]);
+  }, [isActive, hasStarted]);
+
+  // Reset hasStarted when round changes (new round should start from beginning)
+  useEffect(() => {
+    setHasStarted(false);
+    setRoundCompleted(false);
+    setPhase("inhale");
+    setPhaseTimeLeft(exercise.pattern.inhale);
+  }, [currentRound, exercise.pattern.inhale]);
 
   // Get the duration for a given phase
   const getPhaseDuration = (phase: string) => {
