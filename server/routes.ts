@@ -693,6 +693,48 @@ export function registerRoutes(app: Express): Express {
     }
   });
 
+  // HOTFIX: Force recalculate user stats (temporary fix for rounds issue)
+  app.post("/api/user/stats/recalculate", authenticateUser, async (req, res, next) => {
+    try {
+      console.log('🔧 Recalculating stats for user:', req.user.id);
+      
+      // Get all completed sessions
+      const sessions = await db.select()
+        .from(exerciseSessions)
+        .where(and(
+          eq(exerciseSessions.userId, req.user.id),
+          eq(exerciseSessions.completed, true)
+        ));
+      
+      // Calculate totals
+      const totalSessions = sessions.length;
+      const totalRounds = sessions.reduce((sum, session) => sum + (Number(session.roundsCompleted) || 0), 0);
+      const totalSeconds = sessions.reduce((sum, session) => sum + (Number(session.durationSeconds) || 0), 0);
+      const totalMinutes = Math.floor(totalSeconds / 60);
+      
+      // Update user stats
+      await db.update(userStats)
+        .set({
+          totalSessions,
+          totalRounds,
+          totalMinutes,
+          lastSessionAt: sessions.length > 0 ? sessions[sessions.length - 1].completedAt : null,
+          updatedAt: new Date()
+        })
+        .where(eq(userStats.userId, req.user.id));
+      
+      console.log('✅ Stats recalculated:', { totalSessions, totalRounds, totalMinutes });
+      
+      res.json({
+        message: "Stats recalculated successfully",
+        newStats: { totalSessions, totalRounds, totalMinutes }
+      });
+    } catch (error) {
+      console.error('❌ Error recalculating stats:', error);
+      next(error);
+    }
+  });
+
   // DEBUG: Get detailed user stats for troubleshooting
   app.get("/api/debug/user-rounds", authenticateUser, async (req, res, next) => {
     try {
