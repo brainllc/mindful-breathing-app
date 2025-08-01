@@ -471,6 +471,7 @@ export function registerRoutes(app: Express): Express {
   // Update user profile
   app.put("/api/user/profile", authenticateUser, async (req, res, next) => {
     try {
+      console.log('🔧 PUT /api/user/profile called with body:', req.body);
       if (!req.user) throw new Error("User not authenticated");
       
       const { displayName, email } = req.body;
