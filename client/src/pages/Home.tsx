@@ -42,12 +42,17 @@ export default function Home() {
             console.log('✅ OAuth session found, attempting profile fetch...');
             
             try {
+              console.log('🔍 Attempting to fetch user profile from:', window.location.origin + '/api/user/profile');
+              console.log('🔐 Using token:', session.access_token?.substring(0, 20) + '...');
+              
               // Try to fetch user profile from our database
               const profileResponse = await fetch("/api/user/profile", {
                 headers: {
                   "Authorization": `Bearer ${session.access_token}`,
                 },
               });
+
+              console.log('📡 Profile fetch response status:', profileResponse.status);
 
               if (profileResponse.ok) {
                 const userData = await profileResponse.json();
@@ -60,7 +65,10 @@ export default function Home() {
                   isPremium: userData.isPremium || false,
                 }, session);
               } else {
-                console.log('⚠️ Profile fetch failed, using session data as fallback');
+                console.log('⚠️ Profile fetch failed with status:', profileResponse.status);
+                const errorText = await profileResponse.text();
+                console.log('⚠️ Error details:', errorText);
+                
                 // Use session data as fallback
                 login({
                   id: session.user.id,
@@ -70,7 +78,7 @@ export default function Home() {
                 }, session);
               }
             } catch (fetchError) {
-              console.error('Profile fetch error:', fetchError);
+              console.error('🚨 Profile fetch error:', fetchError);
               console.log('⚠️ Using session data due to fetch error');
               
               // Always fallback to session data on any error

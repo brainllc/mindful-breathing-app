@@ -52,6 +52,9 @@ export default function AuthCallback() {
         console.log('Session found, attempting profile fetch...');
         
         try {
+          console.log('🔍 AuthCallback attempting to fetch user profile from:', window.location.origin + '/api/user/profile');
+          console.log('🔐 AuthCallback using token:', session.access_token?.substring(0, 20) + '...');
+          
           // Try to fetch user profile from our database
           const profileResponse = await fetch("/api/user/profile", {
             headers: {
@@ -59,9 +62,11 @@ export default function AuthCallback() {
             },
           });
 
+          console.log('📡 AuthCallback profile fetch response status:', profileResponse.status);
+
           if (profileResponse.ok) {
             const userData = await profileResponse.json();
-            console.log('✅ User profile fetched, logging in user...');
+            console.log('✅ AuthCallback user profile fetched, logging in user...');
             
             login({
               id: userData.id,
@@ -70,7 +75,10 @@ export default function AuthCallback() {
               isPremium: userData.isPremium || false,
             }, session);
           } else {
-            console.log('⚠️ Profile fetch failed, using session data as fallback');
+            console.log('⚠️ AuthCallback profile fetch failed with status:', profileResponse.status);
+            const errorText = await profileResponse.text();
+            console.log('⚠️ AuthCallback error details:', errorText);
+            
             // Use session data as fallback
             login({
               id: session.user.id,
@@ -80,8 +88,8 @@ export default function AuthCallback() {
             }, session);
           }
         } catch (fetchError) {
-          console.error('Profile fetch error:', fetchError);
-          console.log('⚠️ Using session data due to fetch error');
+          console.error('🚨 AuthCallback profile fetch error:', fetchError);
+          console.log('⚠️ AuthCallback using session data due to fetch error');
           
           // Always fallback to session data on any error
           login({
