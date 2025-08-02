@@ -647,20 +647,29 @@ export function registerRoutes(app: Express): Express {
         return res.status(404).json({ error: "Session not found" });
       }
       
-      // Update user stats with separate queries
+      // Update user stats with separate queries (FIXED: Only count completed sessions)
       if (!req.user) throw new Error("User not authenticated");
       
       const [sessionCount] = await db.select({ count: count() })
         .from(exerciseSessions)
-        .where(eq(exerciseSessions.userId, req.user.id));
+        .where(and(
+          eq(exerciseSessions.userId, req.user.id),
+          eq(exerciseSessions.completed, true)
+        ));
       
       const [roundsTotal] = await db.select({ sum: sum(exerciseSessions.roundsCompleted) })
         .from(exerciseSessions)
-        .where(eq(exerciseSessions.userId, req.user.id));
+        .where(and(
+          eq(exerciseSessions.userId, req.user.id),
+          eq(exerciseSessions.completed, true)
+        ));
       
       const [minutesTotal] = await db.select({ sum: sum(exerciseSessions.durationSeconds) })
         .from(exerciseSessions)
-        .where(eq(exerciseSessions.userId, req.user.id));
+        .where(and(
+          eq(exerciseSessions.userId, req.user.id),
+          eq(exerciseSessions.completed, true)
+        ));
       
               await db.update(userStats)
         .set({
