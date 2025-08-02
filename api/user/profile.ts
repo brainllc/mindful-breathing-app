@@ -96,6 +96,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       console.log('User profile not found, creating new OAuth user:', user.id);
       
       // Create new OAuth user in database
+      // Only use OAuth metadata for initial display name when creating new user
       const displayName = user.user_metadata?.full_name || 
                          user.user_metadata?.name || 
                          user.email?.split('@')[0] || 
@@ -107,7 +108,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .insert({
           id: user.id,
           email: user.email,
-          display_name: displayName,
+          display_name: displayName, // This will only be set on first creation
           is_age_verified: true, // OAuth users assumed verified
           marketing_consent: false,
           accepted_terms_at: now.toISOString(),

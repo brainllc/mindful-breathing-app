@@ -51,13 +51,37 @@ export default function AuthCallback() {
 
         console.log('✅ AuthCallback: OAuth session found, processing login...');
         
-        // Use session data directly (no API calls to avoid NetworkError)
-        login({
-          id: session.user.id,
-          email: session.user.email || '',
-          displayName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
-          isPremium: false,
-        }, session);
+        // Fetch the user's actual profile from the database to get their custom display name
+        try {
+          const profileResponse = await fetch("/api/user/profile", {
+            headers: {
+              "Authorization": `Bearer ${session.access_token}`,
+            },
+          });
+
+          if (profileResponse.ok) {
+            const userData = await profileResponse.json();
+            // Use the saved display name from database, not OAuth metadata
+            login(userData, session);
+          } else {
+            // Fallback to OAuth metadata only if profile fetch fails
+            login({
+              id: session.user.id,
+              email: session.user.email || '',
+              displayName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+              isPremium: false,
+            }, session);
+          }
+        } catch (error) {
+          console.error('Failed to fetch user profile:', error);
+          // Fallback to OAuth metadata if API call fails
+          login({
+            id: session.user.id,
+            email: session.user.email || '',
+            displayName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+            isPremium: false,
+          }, session);
+        }
 
         // Clean up the URL hash after successful login
         console.log('🧹 AuthCallback: Cleaning OAuth tokens from URL after login');
