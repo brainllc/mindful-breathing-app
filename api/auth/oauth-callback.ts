@@ -1,25 +1,11 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from "@supabase/supabase-js";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
-import { users } from "../../shared/schema.js";
-import { eq } from "drizzle-orm";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Initialize database connection inside handler
-  const connectionString = process.env.DATABASE_URL!;
-  const client = postgres(connectionString, {
-    ssl: { rejectUnauthorized: false },
-    max: 1,
-    idle_timeout: 20,
-    connect_timeout: 10
-  });
-  const db = drizzle(client);
-
-  // Initialize Supabase
+  // Initialize Supabase - use service role key for admin operations
   const supabase = createClient(
     process.env.VITE_SUPABASE_URL!,
-    process.env.VITE_SUPABASE_ANON_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -49,8 +35,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.log('OAuth callback - User data:', { id: user.id, email: user.email, provider });
 
     // Check if user already exists in our database
-    const existingUsers = await db.select().from(users).where(eq(users.id, user.id));
-    const existingUser = existingUsers[0];
+    const { data: existingUser, error: selectError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (selectError && selectError.code !== 'PGRST116') { // PGRST116 is "not found"
+      console.error('Database select error:', selectError);
+      return res.status(500).json({ 
+        message: "Database error. Please try again.",
+        error: selectError.message 
+      });
+    }
 
     if (existingUser) {
       console.log('OAuth callback - Existing user found');
@@ -60,8 +57,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         user: {
           id: existingUser.id,
           email: existingUser.email,
-          displayName: existingUser.displayName,
-          isAgeVerified: existingUser.isAgeVerified,
+          displayName: existingUser.display_name,
+          isAgeVerified: existingUser.is_age_verified,
           isPremium: false,
         }
       });
@@ -75,16 +72,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                        user.email?.split('@')[0] || 
                        'User';
 
-    const [newUser] = await db.insert(users).values({
-      id: user.id,
-      email: user.email,
-      displayName: displayName,
-      isAgeVerified: true, // Assume OAuth users are age verified
-      marketingConsent: false,
-      acceptedTermsAt: now,
-      acceptedPrivacyAt: now,
-      marketingConsentAt: null,
-    }).returning();
+    const { data: newUser, error: insertError } = await supabase
+      .from('users')
+      .insert({
+        id: user.id,
+        email: user.email,
+        display_name: displayName,
+        is_age_verified: true, // Assume OAuth users are age verified
+        marketing_consent: false,
+        accepted_terms_at: now.toISOString(),
+        accepted_privacy_at: now.toISOString(),
+        marketing_consent_at: null,
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('Database insert error:', insertError);
+      return res.status(500).json({ 
+        message: "Failed to create user account. Please try again.",
+        error: insertError.message 
+      });
+    }
 
     console.log('OAuth callback - New user created:', newUser.id);
 
@@ -93,8 +102,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       user: {
         id: newUser.id,
         email: newUser.email,
-        displayName: newUser.displayName,
-        isAgeVerified: newUser.isAgeVerified,
+        displayName: newUser.display_name,
+        isAgeVerified: newUser.is_age_verified,
         isPremium: false,
       }
     });
@@ -105,8 +114,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       message: "Something went wrong. Please try again.",
       error: error.message 
     });
-  } finally {
-    // Close database connection
-    await client.end();
   }
 } 

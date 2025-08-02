@@ -1,24 +1,11 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from "@supabase/supabase-js";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
-import { users, userStats, exerciseUnlocks } from "../../shared/schema.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Initialize database connection inside handler
-  const connectionString = process.env.DATABASE_URL!;
-  const client = postgres(connectionString, {
-    ssl: { rejectUnauthorized: false },
-    max: 1,
-    idle_timeout: 20,
-    connect_timeout: 10
-  });
-  const db = drizzle(client);
-
-  // Initialize Supabase
+  // Initialize Supabase - use service role key for admin operations
   const supabase = createClient(
     process.env.VITE_SUPABASE_URL!,
-    process.env.VITE_SUPABASE_ANON_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -68,22 +55,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Create user in local database
     const now = new Date();
-    const [newUser] = await db.insert(users).values({
-      id: authData.user.id,
-      email: email,
-      displayName: displayName,
-      isAgeVerified: isAgeVerified,
-      marketingConsent: marketingConsent || false,
-      acceptedTermsAt: now,
-      acceptedPrivacyAt: now,
-      marketingConsentAt: marketingConsent ? now : null,
-      isEmailVerified: false,
-    }).returning();
+    const { data: newUser, error: insertError } = await supabase
+      .from('users')
+      .insert({
+        id: authData.user.id,
+        email: email,
+        display_name: displayName,
+        is_age_verified: isAgeVerified,
+        marketing_consent: marketingConsent || false,
+        accepted_terms_at: now.toISOString(),
+        accepted_privacy_at: now.toISOString(),
+        marketing_consent_at: marketingConsent ? now.toISOString() : null,
+        is_email_verified: false,
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('User creation error:', insertError);
+      return res.status(500).json({ 
+        message: "Failed to create user account. Please try again.",
+        error: insertError.message 
+      });
+    }
 
     // Initialize user stats
-    await db.insert(userStats).values({
-      userId: authData.user.id,
-    });
+    const { error: statsError } = await supabase
+      .from('user_stats')
+      .insert({
+        user_id: authData.user.id,
+      });
+
+    if (statsError) {
+      console.error('User stats creation error:', statsError);
+      // Continue even if stats creation fails
+    }
 
     // Unlock exercises for registered users (premium exercises)
     const registrationUnlocks = [
@@ -94,11 +100,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     ];
 
     for (const exerciseId of registrationUnlocks) {
-      await db.insert(exerciseUnlocks).values({
-        userId: authData.user.id,
-        exerciseId,
-        unlockedBy: "registration"
-      });
+      const { error: unlockError } = await supabase
+        .from('exercise_unlocks')
+        .insert({
+          user_id: authData.user.id,
+          exercise_id: exerciseId,
+          unlocked_by: "registration"
+        });
+
+      if (unlockError) {
+        console.error(`Failed to unlock exercise ${exerciseId}:`, unlockError);
+        // Continue with other unlocks even if one fails
+      }
     }
 
     // Sign in the user to get a session
@@ -117,8 +130,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       user: {
         id: newUser.id,
         email: newUser.email,
-        displayName: newUser.displayName,
-        isAgeVerified: newUser.isAgeVerified,
+        displayName: newUser.display_name,
+        isAgeVerified: newUser.is_age_verified,
         isPremium: false,
       },
       session: sessionData?.session || authData.session
@@ -130,8 +143,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       message: "Registration failed", 
       error: error.message
     });
-  } finally {
-    // Close database connection
-    await client.end();
   }
 } 
