@@ -3,7 +3,7 @@ import 'dotenv/config';
 import { createClient } from "@supabase/supabase-js";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { users } from "../../shared/schema.js";
+import { users } from "../../shared/schema";
 import { eq } from "drizzle-orm";
 
 // Initialize database

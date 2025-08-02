@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from "@supabase/supabase-js";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { users, userStats, exerciseUnlocks } from "../../shared/schema.js";
+import { users, userStats, exerciseUnlocks } from "../../shared/schema";
 
 // Initialize database
 const client = postgres(process.env.DATABASE_URL!);

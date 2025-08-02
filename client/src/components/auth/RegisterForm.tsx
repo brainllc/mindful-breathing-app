@@ -362,12 +362,7 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
                   required
                   autoComplete="email"
                   className="pl-10"
-                  style={{
-                    backgroundColor: 'transparent',
-                    WebkitBoxShadow: '0 0 0 1000px transparent inset',
-                    WebkitTextFillColor: 'currentColor',
-                    transition: 'background-color 5000s ease-in-out 0s'
-                  }}
+
                 />
               </div>
             </div>
@@ -402,12 +397,7 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
                   onChange={(e) => handleInputChange("password", e.target.value)}
                   required
                   className="pl-10 pr-10"
-                  style={{
-                    backgroundColor: 'transparent',
-                    WebkitBoxShadow: '0 0 0 1000px transparent inset',
-                    WebkitTextFillColor: 'currentColor',
-                    transition: 'background-color 5000s ease-in-out 0s'
-                  }}
+
                 />
                 <button
                   type="button"
@@ -434,12 +424,7 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
                   onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
                   required
                   className="pl-10 pr-10"
-                  style={{
-                    backgroundColor: 'transparent',
-                    WebkitBoxShadow: '0 0 0 1000px transparent inset',
-                    WebkitTextFillColor: 'currentColor',
-                    transition: 'background-color 5000s ease-in-out 0s'
-                  }}
+
                 />
                 <button
                   type="button"
