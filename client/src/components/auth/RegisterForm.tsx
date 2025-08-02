@@ -365,7 +365,7 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
                   style={{
                     backgroundColor: 'transparent',
                     WebkitBoxShadow: '0 0 0 1000px transparent inset',
-                    WebkitTextFillColor: 'inherit',
+                    WebkitTextFillColor: 'currentColor',
                     transition: 'background-color 5000s ease-in-out 0s'
                   }}
                 />
@@ -405,7 +405,7 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
                   style={{
                     backgroundColor: 'transparent',
                     WebkitBoxShadow: '0 0 0 1000px transparent inset',
-                    WebkitTextFillColor: 'inherit',
+                    WebkitTextFillColor: 'currentColor',
                     transition: 'background-color 5000s ease-in-out 0s'
                   }}
                 />
@@ -437,7 +437,7 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
                   style={{
                     backgroundColor: 'transparent',
                     WebkitBoxShadow: '0 0 0 1000px transparent inset',
-                    WebkitTextFillColor: 'inherit',
+                    WebkitTextFillColor: 'currentColor',
                     transition: 'background-color 5000s ease-in-out 0s'
                   }}
                 />
