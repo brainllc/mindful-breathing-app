@@ -6,8 +6,12 @@ import { users, userStats, exerciseUnlocks } from "../../shared/schema.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Initialize database connection inside handler
-  const client = postgres(process.env.DATABASE_URL!, {
-    ssl: 'require'
+  const connectionString = process.env.DATABASE_URL!;
+  const client = postgres(connectionString, {
+    ssl: { rejectUnauthorized: false },
+    max: 1,
+    idle_timeout: 20,
+    connect_timeout: 10
   });
   const db = drizzle(client);
 
