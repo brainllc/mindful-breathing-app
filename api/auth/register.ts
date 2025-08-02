@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from "@supabase/supabase-js";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { users, userStats, exerciseUnlocks } from "../../shared/schema";
+import { users, userStats, exerciseUnlocks } from "../../shared/schema.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Initialize database connection inside handler
