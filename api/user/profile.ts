@@ -24,7 +24,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).end();
   }
 
-  if (req.method !== 'GET') {
+  if (req.method !== 'GET' && req.method !== 'PUT') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
@@ -46,7 +46,46 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    // Get user profile from database using Supabase
+    // Handle PUT request to update profile
+    if (req.method === 'PUT') {
+      const { displayName } = req.body;
+      
+      if (!displayName || displayName.trim().length === 0) {
+        return res.status(400).json({ error: "Display name is required" });
+      }
+      
+      if (displayName.length > 50) {
+        return res.status(400).json({ error: "Display name must be 50 characters or less" });
+      }
+      
+      // Update user profile in database
+      const { data: updatedProfile, error: updateError } = await supabase
+        .from('users')
+        .update({
+          display_name: displayName.trim(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id)
+        .select()
+        .single();
+      
+      if (updateError) {
+        console.error('Error updating user profile:', updateError);
+        return res.status(500).json({ error: "Failed to update profile" });
+      }
+      
+      return res.json({
+        message: "Profile updated successfully",
+        user: {
+          id: updatedProfile.id,
+          email: updatedProfile.email,
+          displayName: updatedProfile.display_name,
+          isPremium: updatedProfile.is_premium || false,
+        }
+      });
+    }
+
+    // Handle GET request - Get user profile from database using Supabase
     const { data: userProfile, error: profileError } = await supabase
       .from('users')
       .select('*')
