@@ -101,6 +101,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const minutes = Math.floor(durationSeconds / 60);
     const newTotalSessions = (stats?.total_sessions || 0) + 1;
     const newTotalMinutes = (stats?.total_minutes || 0) + minutes;
+    const newTotalRounds = (stats?.total_rounds || 0) + roundsCompleted;
 
     if (!stats) {
       // Create new stats record
@@ -110,6 +111,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           user_id: user.id,
           total_sessions: newTotalSessions,
           total_minutes: newTotalMinutes,
+          total_rounds: newTotalRounds,
           longest_streak: 1,
           current_streak: 1,
           last_session_at: new Date().toISOString()
@@ -126,6 +128,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .update({
           total_sessions: newTotalSessions,
           total_minutes: newTotalMinutes,
+          total_rounds: newTotalRounds,
           last_session_at: new Date().toISOString(),
           // Note: Streak calculation could be more sophisticated
           current_streak: (stats.current_streak || 0) + 1,
