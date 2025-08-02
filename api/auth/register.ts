@@ -4,17 +4,18 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { users, userStats, exerciseUnlocks } from "../../shared/schema";
 
-// Initialize database
-const client = postgres(process.env.DATABASE_URL!);
-const db = drizzle(client);
-
-// Initialize Supabase
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL!,
-  process.env.VITE_SUPABASE_ANON_KEY!
-);
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Initialize database connection inside handler
+  const client = postgres(process.env.DATABASE_URL!, {
+    ssl: 'require'
+  });
+  const db = drizzle(client);
+
+  // Initialize Supabase
+  const supabase = createClient(
+    process.env.VITE_SUPABASE_URL!,
+    process.env.VITE_SUPABASE_ANON_KEY!
+  );
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -123,8 +124,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.error('Registration error:', error);
     res.status(500).json({ 
       message: "Registration failed", 
-      error: error.message,
-      stack: error.stack
+      error: error.message
     });
+  } finally {
+    // Close database connection
+    await client.end();
   }
 } 

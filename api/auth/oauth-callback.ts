@@ -5,17 +5,18 @@ import postgres from "postgres";
 import { users } from "../../shared/schema";
 import { eq } from "drizzle-orm";
 
-// Initialize database
-const client = postgres(process.env.DATABASE_URL!);
-const db = drizzle(client);
-
-// Initialize Supabase
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL!,
-  process.env.VITE_SUPABASE_ANON_KEY!
-);
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Initialize database connection inside handler
+  const client = postgres(process.env.DATABASE_URL!, {
+    ssl: 'require'
+  });
+  const db = drizzle(client);
+
+  // Initialize Supabase
+  const supabase = createClient(
+    process.env.VITE_SUPABASE_URL!,
+    process.env.VITE_SUPABASE_ANON_KEY!
+  );
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -100,5 +101,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       message: "Something went wrong. Please try again.",
       error: error.message 
     });
+  } finally {
+    // Close database connection
+    await client.end();
   }
 } 
