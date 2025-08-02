@@ -4,7 +4,7 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/api/index"
+      "dest": "/api/$1"
     },
     {
       "src": "/assets/(.*\\.mp3)$",
