@@ -128,7 +128,9 @@ export default function Exercise() {
       // Countdown finished, start the actual exercise
       setShowCountdown(false);
       setCountdownValue(3); // Reset for next time
-      startExerciseImmediate();
+      startExerciseImmediate().catch(error => {
+        console.error('Error starting exercise after countdown:', error);
+      });
     }
   }, [showCountdown, countdownValue]);
 
@@ -248,7 +250,7 @@ export default function Exercise() {
       // Start session tracking
       await startSession();
       
-      await audioService.playMusic();
+      // Music will start when actual exercise begins, not during countdown
     } catch (error) {
       console.error('Exercise start error:', error);
       // Continue with countdown even if audio fails
@@ -258,9 +260,17 @@ export default function Exercise() {
   };
 
   // Function to start the actual breathing exercise after countdown
-  const startExerciseImmediate = () => {
+  const startExerciseImmediate = async () => {
       setIsStarted(true);
       setIsPaused(false);
+      
+      // Start music now that the actual exercise is beginning
+      try {
+        await audioService.playMusic();
+      } catch (error) {
+        console.error('Failed to start music for exercise:', error);
+        // Continue with exercise even if music fails
+      }
   };
 
   const handlePause = async () => {
