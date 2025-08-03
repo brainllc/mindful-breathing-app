@@ -167,14 +167,27 @@ export default function Dashboard() {
     
                     // Group sessions by date to handle multiple sessions per day (use UTC for consistency)
                 const sessionsByDate = new Map<string, number>();
-                for (const session of completedSessions) {
+                for (let i = 0; i < completedSessions.length; i++) {
+                  const session = completedSessions[i];
                   try {
                     const sessionDate = new Date(session.completedAt!);
+                    
+                    // DETAILED DEBUG: Check what's happening with date parsing (only for first session to avoid spam)
+                    if (i === 0) {
+                      console.log('🔥 STREAK DEBUG: Raw timestamp (first session):', session.completedAt);
+                      console.log('🔥 STREAK DEBUG: Parsed Date object (first session):', sessionDate);
+                      console.log('🔥 STREAK DEBUG: Date.getTime() (first session):', sessionDate.getTime());
+                      console.log('🔥 STREAK DEBUG: Date.toISOString() (first session):', sessionDate.toISOString());
+                    }
                     
                     // IMPORTANT: Use UTC dates for consistency since sessions are stored in UTC
                     const year = sessionDate.getUTCFullYear();
                     const month = sessionDate.getUTCMonth() + 1; // getUTCMonth() returns 0-11, so add 1
                     const day = sessionDate.getUTCDate();
+                    
+                    if (i === 0) {
+                      console.log('🔥 STREAK DEBUG: Extracted UTC components (first session):', { year, month: sessionDate.getUTCMonth(), monthPlusOne: month, day });
+                    }
                     
                     const dateString = year + '-' + 
                                       String(month).padStart(2, '0') + '-' + 
@@ -202,10 +215,17 @@ export default function Dashboard() {
                 // Use UTC for today as well to match session date format
                 const today = new Date();
                 
+                // DETAILED DEBUG: Check today calculation
+                console.log('🔥 STREAK DEBUG: Today Date object:', today);
+                console.log('🔥 STREAK DEBUG: Today.toISOString():', today.toISOString());
+                
                 // Calculate today's date in UTC to match session dates
                 const todayYear = today.getUTCFullYear();
                 const todayMonth = today.getUTCMonth() + 1;
                 const todayDay = today.getUTCDate();
+                
+                console.log('🔥 STREAK DEBUG: Today UTC components:', { year: todayYear, month: today.getUTCMonth(), monthPlusOne: todayMonth, day: todayDay });
+                
                 const todayString = todayYear + '-' + 
                                    String(todayMonth).padStart(2, '0') + '-' + 
                                    String(todayDay).padStart(2, '0');
