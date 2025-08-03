@@ -170,11 +170,17 @@ export default function Dashboard() {
                 for (let i = 0; i < completedSessions.length; i++) {
                   const session = completedSessions[i];
                   try {
-                    const sessionDate = new Date(session.completedAt!);
+                    // CRITICAL FIX: Ensure timestamp is treated as UTC by adding 'Z' if missing
+                    let timestamp = session.completedAt!;
+                    if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
+                      timestamp = timestamp + 'Z';
+                    }
+                    const sessionDate = new Date(timestamp);
                     
                     // DETAILED DEBUG: Check what's happening with date parsing (only for first session to avoid spam)
                     if (i === 0) {
                       console.log('🔥 STREAK DEBUG: Raw timestamp (first session):', session.completedAt);
+                      console.log('🔥 STREAK DEBUG: Corrected timestamp (first session):', timestamp);
                       console.log('🔥 STREAK DEBUG: Parsed Date object (first session):', sessionDate);
                       console.log('🔥 STREAK DEBUG: Date.getTime() (first session):', sessionDate.getTime());
                       console.log('🔥 STREAK DEBUG: Date.toISOString() (first session):', sessionDate.toISOString());
@@ -193,7 +199,9 @@ export default function Dashboard() {
                                       String(month).padStart(2, '0') + '-' + 
                                       String(day).padStart(2, '0');
                     
-                    console.log('🔥 STREAK DEBUG: Session date conversion (UTC):', session.completedAt, '→', dateString);
+                    if (i === 0) {
+                      console.log('🔥 STREAK DEBUG: Session date conversion (UTC):', session.completedAt, '→', dateString);
+                    }
                     sessionsByDate.set(dateString, (sessionsByDate.get(dateString) || 0) + 1);
                   } catch (error) {
                     console.warn('Invalid date in session:', session.completedAt);
@@ -294,7 +302,12 @@ export default function Dashboard() {
     const sessionsByDate = new Map<string, number>();
     for (const session of completedSessions) {
       try {
-        const sessionDate = new Date(session.completedAt!);
+        // CRITICAL FIX: Ensure timestamp is treated as UTC by adding 'Z' if missing
+        let timestamp = session.completedAt!;
+        if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
+          timestamp = timestamp + 'Z';
+        }
+        const sessionDate = new Date(timestamp);
         const year = sessionDate.getUTCFullYear();
         const month = sessionDate.getUTCMonth() + 1;
         const day = sessionDate.getUTCDate();
@@ -359,7 +372,13 @@ export default function Dashboard() {
   oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
   const thisWeekSessions = recentSessions.filter(session => {
     try {
-      return session.completed && session.completedAt && new Date(session.completedAt) > oneWeekAgo;
+      if (!session.completed || !session.completedAt) return false;
+      // CRITICAL FIX: Ensure timestamp is treated as UTC by adding 'Z' if missing
+      let timestamp = session.completedAt;
+      if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
+        timestamp = timestamp + 'Z';
+      }
+      return new Date(timestamp) > oneWeekAgo;
     } catch (error) {
       return false;
     }
@@ -370,7 +389,13 @@ export default function Dashboard() {
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const last30DaysSessions = recentSessions.filter(session => {
     try {
-      return session.completed && session.completedAt && new Date(session.completedAt) > thirtyDaysAgo;
+      if (!session.completed || !session.completedAt) return false;
+      // CRITICAL FIX: Ensure timestamp is treated as UTC by adding 'Z' if missing
+      let timestamp = session.completedAt;
+      if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
+        timestamp = timestamp + 'Z';
+      }
+      return new Date(timestamp) > thirtyDaysAgo;
     } catch (error) {
       return false;
     }
@@ -387,7 +412,12 @@ export default function Dashboard() {
     // Get the earliest session date
     const firstSessionDate = allCompletedSessions.reduce((earliest, session) => {
       try {
-        const sessionDate = new Date(session.completedAt!);
+        // CRITICAL FIX: Ensure timestamp is treated as UTC by adding 'Z' if missing
+        let timestamp = session.completedAt!;
+        if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
+          timestamp = timestamp + 'Z';
+        }
+        const sessionDate = new Date(timestamp);
         return sessionDate < earliest ? sessionDate : earliest;
       } catch (error) {
         return earliest;
@@ -434,7 +464,12 @@ export default function Dashboard() {
     recentSessions.forEach(session => {
       if (session.completed && session.completedAt && session.completedAt !== null) {
         try {      
-          const sessionDate = new Date(session.completedAt).toISOString().split('T')[0];
+          // CRITICAL FIX: Ensure timestamp is treated as UTC by adding 'Z' if missing
+          let timestamp = session.completedAt;
+          if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
+            timestamp = timestamp + 'Z';
+          }
+          const sessionDate = new Date(timestamp).toISOString().split('T')[0];
           const dayData = last7Days.find(d => d.date === sessionDate);
           if (dayData) {
             dayData.sessions++;
@@ -516,8 +551,17 @@ export default function Dashboard() {
     const daySessionCounts = Array(7).fill(0);
     recentSessions.forEach(session => {
       if (session.completed && session.completedAt) {
-        const dayOfWeek = new Date(session.completedAt).getDay();
-        daySessionCounts[dayOfWeek]++;
+        try {
+          // CRITICAL FIX: Ensure timestamp is treated as UTC by adding 'Z' if missing
+          let timestamp = session.completedAt;
+          if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
+            timestamp = timestamp + 'Z';
+          }
+          const dayOfWeek = new Date(timestamp).getDay();
+          daySessionCounts[dayOfWeek]++;
+        } catch (error) {
+          console.warn('Invalid date in session for day calculation:', session.completedAt);
+        }
       }
     });
     
