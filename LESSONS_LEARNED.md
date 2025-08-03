@@ -73,12 +73,22 @@ We successfully fixed a complex registration system that was failing due to data
   - Fixed daily average: Use actual days since first session (min 1, max 30) instead of always 30
 - **Result**: New users now see correct streak = 1 day and meaningful daily averages
 
-### 9. **Fixed Timezone Mismatch in Streak Calculation**
-- **Problem**: After initial fixes, streak still showed 0 days despite daily average working correctly
-- **Why**: Session dates stored in UTC but "today" comparison used browser's local timezone, causing dates like "2025-08-03" vs "2025-08-02" mismatch
-- **Solution**: Use local timezone consistently for all date comparisons with `formatLocalDate()` helper function instead of `toISOString().split('T')[0]`
-- **Debug Tip**: Added console logging with 🔥 emojis to track date conversion issues in real-time
-- **Result**: Streak calculation now works correctly across all timezones
+### 9. **Fixed Timezone Mismatch in Streak Calculation (Complex Debug)**
+- **Problem**: After initial fixes, streak still showed 0 days despite daily average working correctly. Sessions existed but dates weren't matching.
+- **Root Cause**: Session timestamps stored in UTC (`2025-08-03T04:47:45.415Z`) but JavaScript `Date` methods use local timezone by default
+  - Session date: `getFullYear()` on UTC timestamp → converted to user's local timezone (e.g., PST = UTC-8)
+  - "Today" date: `getFullYear()` on current time → also in user's local timezone 
+  - **BUT**: UTC 4:47 AM on Aug 3rd = 8:47 PM on Aug 2nd in PST
+  - **Result**: Sessions showed `2025-08-03` but "today" showed `2025-08-02` → no match = 0 streak
+- **Failed Attempts**: 
+  - First tried local timezone consistently with `getFullYear()`, `getMonth()`, `getDate()` - still had mismatches
+  - Then tried `formatLocalDate()` helper function - didn't solve the core issue
+- **Winning Solution**: **Use UTC consistently for all date operations**
+  - Sessions: `getUTCFullYear()`, `getUTCMonth()`, `getUTCDate()`
+  - Today: `getUTCFullYear()`, `getUTCMonth()`, `getUTCDate()`  
+  - Date arithmetic: `setUTCDate()` instead of `setDate()`
+- **Debug Strategy**: Console logs with `🔥 STREAK DEBUG:` prefix to trace exact date conversions
+- **Result**: Both session dates and "today" now calculated in UTC, perfect matching across all timezones
 
 ---
 
@@ -99,6 +109,15 @@ We successfully fixed a complex registration system that was failing due to data
 2. **Theme consistency**: Test forms in both light and dark modes
 3. **Error handling**: Always have fallbacks for API failures
 4. **Email confirmation flow**: Don't auto-login users who need to confirm email first
+
+### **Timezone & Date Handling**
+1. **Database timestamps are UTC**: Modern databases store timestamps in UTC by default
+2. **JavaScript Date() methods default to local timezone**: `getFullYear()`, `getMonth()`, `getDate()` convert UTC to user's local time
+3. **Date comparison consistency**: When comparing dates from database with "today", use same timezone for both:
+   - **UTC approach**: `getUTCFullYear()`, `getUTCMonth()`, `getUTCDate()` for all dates
+   - **Local approach**: Only works if database also stores in local time (not recommended)
+4. **Debugging date issues**: Always log the exact date strings being compared, timezone differences can be subtle
+5. **Timezone arithmetic**: Use `setUTCDate()` for date math when working with UTC dates
 
 ---
 
@@ -143,6 +162,12 @@ We successfully fixed a complex registration system that was failing due to data
 - Autofill not working correctly → Browser compatibility issues
 - "Email not confirmed" errors → User registration flow trying to auto-login before email confirmation
 
+### **Date/Timezone Issues**
+- Statistics showing 0 when data exists → Date comparison mismatches
+- Features working for some users but not others → Timezone-dependent bugs  
+- Dates off by one day → UTC vs local timezone conversion errors
+- Console shows dates like "2025-08-03 vs 2025-08-02" → Classic timezone mismatch pattern
+
 ---
 
 ## 💡 **Future Recommendations**
@@ -162,6 +187,13 @@ We successfully fixed a complex registration system that was failing due to data
 2. **Isolate the problem**: Test one component at a time
 3. **Start with simpler solutions**: Try platform-native approaches before custom solutions
 
+### **Debugging Date/Timezone Issues**
+1. **Add extensive logging**: Log both input timestamps and output date strings
+2. **Use distinctive log prefixes**: Like `🔥 STREAK DEBUG:` to easily filter console output
+3. **Test with users in different timezones**: Or simulate by changing system timezone
+4. **Compare actual values**: Log the exact strings being compared, don't assume they match
+5. **Check database timezone**: Verify whether timestamps are stored in UTC or local time
+
 ---
 
 ## 📚 **Technical References**
@@ -169,6 +201,8 @@ We successfully fixed a complex registration system that was failing due to data
 - **Supabase Client Documentation**: Better than direct postgres for web apps
 - **Vercel Function Best Practices**: Guidelines for serverless database connections
 - **CSS Autofill Styling**: Webkit-specific rules for form input styling
+- **JavaScript Date UTC Methods**: Use `getUTCFullYear()`, `getUTCMonth()`, `getUTCDate()` for timezone-consistent date handling
+- **Database Timezone Best Practices**: Store timestamps in UTC, convert to local time only for display
 
 ---
 
