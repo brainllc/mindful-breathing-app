@@ -150,85 +150,85 @@ export default function Dashboard() {
       return 0;
     }
     
-    // Group sessions by date to handle multiple sessions per day (use local timezone)
-    const sessionsByDate = new Map<string, number>();
-    for (const session of completedSessions) {
-      try {
-        const sessionDate = new Date(session.completedAt!);
-        
-        // IMPORTANT: Get the date in the user's local timezone, not UTC
-        const year = sessionDate.getFullYear();
-        const month = sessionDate.getMonth() + 1; // getMonth() returns 0-11, so add 1
-        const day = sessionDate.getDate();
-        
-        const dateString = year + '-' + 
-                          String(month).padStart(2, '0') + '-' + 
-                          String(day).padStart(2, '0');
-        
-        console.log('🔥 STREAK DEBUG: Session date conversion:', session.completedAt, '→', dateString);
-        sessionsByDate.set(dateString, (sessionsByDate.get(dateString) || 0) + 1);
-      } catch (error) {
-        console.warn('Invalid date in session:', session.completedAt);
-        continue;
-      }
-    }
+                    // Group sessions by date to handle multiple sessions per day (use UTC for consistency)
+                const sessionsByDate = new Map<string, number>();
+                for (const session of completedSessions) {
+                  try {
+                    const sessionDate = new Date(session.completedAt!);
+                    
+                    // IMPORTANT: Use UTC dates for consistency since sessions are stored in UTC
+                    const year = sessionDate.getUTCFullYear();
+                    const month = sessionDate.getUTCMonth() + 1; // getUTCMonth() returns 0-11, so add 1
+                    const day = sessionDate.getUTCDate();
+                    
+                    const dateString = year + '-' + 
+                                      String(month).padStart(2, '0') + '-' + 
+                                      String(day).padStart(2, '0');
+                    
+                    console.log('🔥 STREAK DEBUG: Session date conversion (UTC):', session.completedAt, '→', dateString);
+                    sessionsByDate.set(dateString, (sessionsByDate.get(dateString) || 0) + 1);
+                  } catch (error) {
+                    console.warn('Invalid date in session:', session.completedAt);
+                    continue;
+                  }
+                }
+                
+                // Get unique dates and sort them (newest first)
+                const uniqueDates = Array.from(sessionsByDate.keys()).sort().reverse();
+                
+                console.log('🔥 STREAK DEBUG: Sessions by date:', Object.fromEntries(sessionsByDate));
+                console.log('🔥 STREAK DEBUG: Unique dates (sorted newest first):', uniqueDates);
+                
+                if (uniqueDates.length === 0) {
+                  console.log('🔥 STREAK DEBUG: No unique dates, returning 0');
+                  return 0;
+                }
+                
+                // Use UTC for today as well to match session date format
+                const today = new Date();
+                
+                // Calculate today's date in UTC to match session dates
+                const todayYear = today.getUTCFullYear();
+                const todayMonth = today.getUTCMonth() + 1;
+                const todayDay = today.getUTCDate();
+                const todayString = todayYear + '-' + 
+                                   String(todayMonth).padStart(2, '0') + '-' + 
+                                   String(todayDay).padStart(2, '0');
+                
+                console.log('🔥 STREAK DEBUG: Today is:', todayString, '(calculated from UTC)');
     
-    // Get unique dates and sort them (newest first)
-    const uniqueDates = Array.from(sessionsByDate.keys()).sort().reverse();
-    
-    console.log('🔥 STREAK DEBUG: Sessions by date:', Object.fromEntries(sessionsByDate));
-    console.log('🔥 STREAK DEBUG: Unique dates (sorted newest first):', uniqueDates);
-    
-    if (uniqueDates.length === 0) {
-      console.log('🔥 STREAK DEBUG: No unique dates, returning 0');
-      return 0;
-    }
-    
-    // Use local timezone for date comparison to avoid server/client timezone mismatches
-    const today = new Date();
-    
-    // Calculate today's date the exact same way as session dates
-    const todayYear = today.getFullYear();
-    const todayMonth = today.getMonth() + 1;
-    const todayDay = today.getDate();
-    const todayString = todayYear + '-' + 
-                       String(todayMonth).padStart(2, '0') + '-' + 
-                       String(todayDay).padStart(2, '0');
-    
-    console.log('🔥 STREAK DEBUG: Today is:', todayString, '(calculated from local timezone)');
-    
-    let streak = 0;
-    let currentDate = new Date(today);
-    
-    for (const dateString of uniqueDates) {
-      // Calculate current date string the exact same way as session dates
-      const currentYear = currentDate.getFullYear();
-      const currentMonth = currentDate.getMonth() + 1;
-      const currentDay = currentDate.getDate();
-      const currentDateString = currentYear + '-' + 
-                               String(currentMonth).padStart(2, '0') + '-' + 
-                               String(currentDay).padStart(2, '0');
-      
-      console.log(`🔥 STREAK DEBUG: Checking ${dateString} === ${currentDateString}?`);
-      
-      if (dateString === currentDateString) {
-        streak++;
-        currentDate.setDate(currentDate.getDate() - 1);
-        
-        // Calculate next date for debug output
-        const nextYear = currentDate.getFullYear();
-        const nextMonth = currentDate.getMonth() + 1;
-        const nextDay = currentDate.getDate();
-        const nextDateString = nextYear + '-' + 
-                              String(nextMonth).padStart(2, '0') + '-' + 
-                              String(nextDay).padStart(2, '0');
-        
-        console.log(`🔥 STREAK DEBUG: Match! Streak now ${streak}, next check date: ${nextDateString}`);
-      } else {
-        console.log('🔥 STREAK DEBUG: No match, breaking streak');
-        break;
-      }
-    }
+                    let streak = 0;
+                let currentDate = new Date(today);
+                
+                for (const dateString of uniqueDates) {
+                  // Calculate current date string using UTC to match session dates
+                  const currentYear = currentDate.getUTCFullYear();
+                  const currentMonth = currentDate.getUTCMonth() + 1;
+                  const currentDay = currentDate.getUTCDate();
+                  const currentDateString = currentYear + '-' + 
+                                           String(currentMonth).padStart(2, '0') + '-' + 
+                                           String(currentDay).padStart(2, '0');
+                  
+                  console.log(`🔥 STREAK DEBUG: Checking ${dateString} === ${currentDateString}?`);
+                  
+                  if (dateString === currentDateString) {
+                    streak++;
+                    currentDate.setUTCDate(currentDate.getUTCDate() - 1);
+                    
+                    // Calculate next date for debug output
+                    const nextYear = currentDate.getUTCFullYear();
+                    const nextMonth = currentDate.getUTCMonth() + 1;
+                    const nextDay = currentDate.getUTCDate();
+                    const nextDateString = nextYear + '-' + 
+                                          String(nextMonth).padStart(2, '0') + '-' + 
+                                          String(nextDay).padStart(2, '0');
+                    
+                    console.log(`🔥 STREAK DEBUG: Match! Streak now ${streak}, next check date: ${nextDateString}`);
+                  } else {
+                    console.log('🔥 STREAK DEBUG: No match, breaking streak');
+                    break;
+                  }
+                }
     
     console.log('🔥 STREAK DEBUG: Final streak:', streak);
     return streak;
