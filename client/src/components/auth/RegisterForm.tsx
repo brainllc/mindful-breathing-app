@@ -198,22 +198,31 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
         return;
       }
 
-      // Use auth context to login the new user
-      if (data.session && data.user) {
-        login({
-          id: data.user.id,
-          email: data.user.email,
-          displayName: data.user.displayName,
-          isPremium: data.user.isPremium,
-        }, data.session);
+      // Check if email confirmation is required
+      if (data.requiresEmailConfirmation) {
+        toast({
+          title: "Account Created!",
+          description: "Please check your email and click the confirmation link to activate your account. Then you can sign in.",
+        });
+        // Don't redirect or login - user needs to confirm email first
+      } else {
+        // Use auth context to login the new user (for cases where email confirmation is disabled)
+        if (data.session && data.user) {
+          login({
+            id: data.user.id,
+            email: data.user.email,
+            displayName: data.user.displayName,
+            isPremium: data.user.isPremium,
+          }, data.session);
+        }
+        
+        toast({
+          title: "Welcome to breathwork.fyi!",
+          description: "Your account has been created successfully. You now have access to premium exercises!",
+        });
+        
+        onSuccess?.();
       }
-      
-      toast({
-        title: "Welcome to breathwork.fyi!",
-        description: "Your account has been created successfully. You now have access to premium exercises!",
-      });
-      
-      onSuccess?.();
     } catch (err) {
       setError("Something went wrong. Please try again.");
     } finally {

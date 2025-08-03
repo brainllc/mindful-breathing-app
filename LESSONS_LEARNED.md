@@ -46,6 +46,11 @@ We successfully fixed a complex registration system that was failing due to data
 - **Problem**: Browser autofill was overriding text colors
 - **Solution**: Added specific CSS rules to handle autofill styling in both light and dark themes
 
+### 5. **Fixed Email Confirmation Flow**
+- **Problem**: After registration, users were auto-logged in and redirected to home, but Supabase requires email confirmation first
+- **Why**: Registration endpoint was trying to `signInWithPassword` immediately after account creation
+- **Solution**: Remove auto sign-in attempt, show "check your email" message instead, don't redirect until email is confirmed
+
 ---
 
 ## 🧠 **Key Technical Insights**
@@ -64,6 +69,7 @@ We successfully fixed a complex registration system that was failing due to data
 1. **Autofill styling**: Browsers override CSS, need specific webkit rules
 2. **Theme consistency**: Test forms in both light and dark modes
 3. **Error handling**: Always have fallbacks for API failures
+4. **Email confirmation flow**: Don't auto-login users who need to confirm email first
 
 ---
 
@@ -106,6 +112,7 @@ We successfully fixed a complex registration system that was failing due to data
 ### **Form/UI Issues**
 - Styling works in development but not production → CSS specificity or browser differences
 - Autofill not working correctly → Browser compatibility issues
+- "Email not confirmed" errors → User registration flow trying to auto-login before email confirmation
 
 ---
 

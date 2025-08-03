@@ -114,19 +114,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    // Sign in the user to get a session
-    const { data: sessionData, error: sessionError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (sessionError) {
-      console.error('Auto sign-in error:', sessionError);
-      // Still return success even if auto sign-in fails
-    }
-
     res.status(201).json({
-      message: "User registered successfully",
+      message: "Registration successful! Please check your email to confirm your account.",
       user: {
         id: newUser.id,
         email: newUser.email,
@@ -134,7 +123,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         isAgeVerified: newUser.is_age_verified,
         isPremium: false,
       },
-      session: sessionData?.session || authData.session
+      requiresEmailConfirmation: true
     });
 
   } catch (error: any) {
