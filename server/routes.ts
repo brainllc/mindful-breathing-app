@@ -48,7 +48,7 @@ const authenticateUser = async (req: Request, res: Response, next: NextFunction)
       return res.status(401).json({ error: "Bearer token is missing" });
     }
 
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
 
     if (error || !user) {
       return res.status(401).json({ error: "Unauthorized" });
