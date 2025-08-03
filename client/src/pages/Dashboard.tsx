@@ -155,8 +155,17 @@ export default function Dashboard() {
     for (const session of completedSessions) {
       try {
         const sessionDate = new Date(session.completedAt!);
-        // Use local timezone date string to match with today comparison
-        const dateString = formatLocalDate(sessionDate);
+        
+        // IMPORTANT: Get the date in the user's local timezone, not UTC
+        const year = sessionDate.getFullYear();
+        const month = sessionDate.getMonth() + 1; // getMonth() returns 0-11, so add 1
+        const day = sessionDate.getDate();
+        
+        const dateString = year + '-' + 
+                          String(month).padStart(2, '0') + '-' + 
+                          String(day).padStart(2, '0');
+        
+        console.log('🔥 STREAK DEBUG: Session date conversion:', session.completedAt, '→', dateString);
         sessionsByDate.set(dateString, (sessionsByDate.get(dateString) || 0) + 1);
       } catch (error) {
         console.warn('Invalid date in session:', session.completedAt);
@@ -177,22 +186,44 @@ export default function Dashboard() {
     
     // Use local timezone for date comparison to avoid server/client timezone mismatches
     const today = new Date();
-    const todayString = formatLocalDate(today);
-    console.log('🔥 STREAK DEBUG: Today is:', todayString);
+    
+    // Calculate today's date the exact same way as session dates
+    const todayYear = today.getFullYear();
+    const todayMonth = today.getMonth() + 1;
+    const todayDay = today.getDate();
+    const todayString = todayYear + '-' + 
+                       String(todayMonth).padStart(2, '0') + '-' + 
+                       String(todayDay).padStart(2, '0');
+    
+    console.log('🔥 STREAK DEBUG: Today is:', todayString, '(calculated from local timezone)');
     
     let streak = 0;
     let currentDate = new Date(today);
     
     for (const dateString of uniqueDates) {
-      // Use local timezone for current date string as well
-      const currentDateString = formatLocalDate(currentDate);
+      // Calculate current date string the exact same way as session dates
+      const currentYear = currentDate.getFullYear();
+      const currentMonth = currentDate.getMonth() + 1;
+      const currentDay = currentDate.getDate();
+      const currentDateString = currentYear + '-' + 
+                               String(currentMonth).padStart(2, '0') + '-' + 
+                               String(currentDay).padStart(2, '0');
       
       console.log(`🔥 STREAK DEBUG: Checking ${dateString} === ${currentDateString}?`);
       
       if (dateString === currentDateString) {
         streak++;
         currentDate.setDate(currentDate.getDate() - 1);
-        console.log(`🔥 STREAK DEBUG: Match! Streak now ${streak}, next check date: ${formatLocalDate(currentDate)}`);
+        
+        // Calculate next date for debug output
+        const nextYear = currentDate.getFullYear();
+        const nextMonth = currentDate.getMonth() + 1;
+        const nextDay = currentDate.getDate();
+        const nextDateString = nextYear + '-' + 
+                              String(nextMonth).padStart(2, '0') + '-' + 
+                              String(nextDay).padStart(2, '0');
+        
+        console.log(`🔥 STREAK DEBUG: Match! Streak now ${streak}, next check date: ${nextDateString}`);
       } else {
         console.log('🔥 STREAK DEBUG: No match, breaking streak');
         break;
