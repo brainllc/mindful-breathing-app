@@ -118,6 +118,8 @@ export default function Dashboard() {
 
   // Calculate current streak (consecutive days with sessions) - using useMemo to prevent recalculation
   const currentStreak = useMemo(() => {
+    console.log('🔥 STREAK DEBUG: Starting calculation with', recentSessions.length, 'sessions');
+    
     // Helper function to format date in local timezone as YYYY-MM-DD
     const formatLocalDate = (date: Date): string => {
       return date.getFullYear() + '-' + 
@@ -125,7 +127,10 @@ export default function Dashboard() {
              String(date.getDate()).padStart(2, '0');
     };
     
-    if (recentSessions.length === 0) return 0;
+    if (recentSessions.length === 0) {
+      console.log('🔥 STREAK DEBUG: No sessions, returning 0');
+      return 0;
+    }
     
     const completedSessions = recentSessions
       .filter(s => s.completed && s.completedAt)
@@ -138,7 +143,12 @@ export default function Dashboard() {
         }
       });
     
-    if (completedSessions.length === 0) return 0;
+    console.log('🔥 STREAK DEBUG: Completed sessions:', completedSessions.length, completedSessions.map(s => ({ completed: s.completed, completedAt: s.completedAt })));
+    
+    if (completedSessions.length === 0) {
+      console.log('🔥 STREAK DEBUG: No completed sessions, returning 0');
+      return 0;
+    }
     
     // Group sessions by date to handle multiple sessions per day (use local timezone)
     const sessionsByDate = new Map<string, number>();
@@ -157,10 +167,19 @@ export default function Dashboard() {
     // Get unique dates and sort them (newest first)
     const uniqueDates = Array.from(sessionsByDate.keys()).sort().reverse();
     
-    if (uniqueDates.length === 0) return 0;
+    console.log('🔥 STREAK DEBUG: Sessions by date:', Object.fromEntries(sessionsByDate));
+    console.log('🔥 STREAK DEBUG: Unique dates (sorted newest first):', uniqueDates);
+    
+    if (uniqueDates.length === 0) {
+      console.log('🔥 STREAK DEBUG: No unique dates, returning 0');
+      return 0;
+    }
     
     // Use local timezone for date comparison to avoid server/client timezone mismatches
     const today = new Date();
+    const todayString = formatLocalDate(today);
+    console.log('🔥 STREAK DEBUG: Today is:', todayString);
+    
     let streak = 0;
     let currentDate = new Date(today);
     
@@ -168,15 +187,19 @@ export default function Dashboard() {
       // Use local timezone for current date string as well
       const currentDateString = formatLocalDate(currentDate);
       
+      console.log(`🔥 STREAK DEBUG: Checking ${dateString} === ${currentDateString}?`);
+      
       if (dateString === currentDateString) {
         streak++;
         currentDate.setDate(currentDate.getDate() - 1);
+        console.log(`🔥 STREAK DEBUG: Match! Streak now ${streak}, next check date: ${formatLocalDate(currentDate)}`);
       } else {
-        // Break the streak if there's a gap
+        console.log('🔥 STREAK DEBUG: No match, breaking streak');
         break;
       }
     }
     
+    console.log('🔥 STREAK DEBUG: Final streak:', streak);
     return streak;
   }, [recentSessions]);
 
