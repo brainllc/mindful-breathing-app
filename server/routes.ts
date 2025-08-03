@@ -358,18 +358,12 @@ export function registerRoutes(app: Express): Express {
         return res.status(401).json({ error: error.message });
       }
 
-      // Update last login time and get user profile
+      // First, get the existing user profile
       const { data: userProfile, error: profileError } = await supabaseAdmin
         .from('users')
-        .update({ last_login_at: new Date().toISOString() })
-        .eq('id', data.user.id)
         .select()
+        .eq('id', data.user.id)
         .single();
-
-      if (profileError) {
-        console.error("Failed to update user profile:", profileError);
-        // Continue anyway, login succeeded
-      }
 
       // If user doesn't exist in our database, create them automatically
       if (!userProfile) {
@@ -409,6 +403,12 @@ export function registerRoutes(app: Express): Express {
           user: newUser,
         });
       }
+
+      // Update last login time for existing user
+      await supabaseAdmin
+        .from('users')
+        .update({ last_login_at: new Date().toISOString() })
+        .eq('id', data.user.id);
 
       res.json({
         session: data.session,
@@ -492,17 +492,22 @@ export function registerRoutes(app: Express): Express {
       }
 
       // Check if user already exists
-      const existingUser = await db.select().from(users).where(eq(users.email, user.email));
+      const { data: existingUser } = await supabaseAdmin
+        .from('users')
+        .select()
+        .eq('email', user.email)
+        .single();
       
-      if (existingUser.length > 0) {
+      if (existingUser) {
         // User exists, update last login
-        await db.update(users)
-          .set({ lastLoginAt: new Date() })
-          .where(eq(users.id, existingUser[0].id));
+        await supabaseAdmin
+          .from('users')
+          .update({ last_login_at: new Date().toISOString() })
+          .eq('id', existingUser.id);
           
         return res.json({
           message: "Login successful",
-          user: existingUser[0]
+          user: existingUser
         });
       }
 
@@ -511,21 +516,32 @@ export function registerRoutes(app: Express): Express {
       const displayName = user.user_metadata?.full_name || user.email.split('@')[0] || 'User';
 
       // Create user in our database
-      const newUser = await db.insert(users).values({
-        id: user.id,
-        email: user.email,
-        displayName,
-        isAgeVerified: true, // OAuth users are assumed to be verified adults through their provider
-        acceptedTermsAt: new Date(),
-        acceptedPrivacyAt: new Date(),
-        marketingConsent: req.body.marketingConsent === 'true',
-        marketingConsentAt: req.body.marketingConsent === 'true' ? new Date() : null,
-        isEmailVerified: true, // OAuth providers verify emails
-      }).returning();
+      const { data: newUser, error: createError } = await supabaseAdmin
+        .from('users')
+        .insert({
+          id: user.id,
+          email: user.email,
+          display_name: displayName,
+          is_age_verified: true, // OAuth users are assumed to be verified adults through their provider
+          accepted_terms_at: new Date().toISOString(),
+          accepted_privacy_at: new Date().toISOString(),
+          marketing_consent: req.body.marketingConsent === 'true',
+          marketing_consent_at: req.body.marketingConsent === 'true' ? new Date().toISOString() : null,
+          is_email_verified: true, // OAuth providers verify emails
+          created_at: new Date().toISOString(),
+          last_login_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (createError) {
+        console.error("Failed to create OAuth user:", createError);
+        return res.status(500).json({ error: "Failed to create user profile" });
+      }
 
       // Initialize user stats
-      await db.insert(userStats).values({
-        userId: user.id,
+      await supabaseAdmin.from('user_stats').insert({
+        user_id: user.id,
       });
 
       // Unlock exercises for OAuth users (same as registration)
@@ -537,16 +553,16 @@ export function registerRoutes(app: Express): Express {
       ];
 
       for (const exerciseId of registrationUnlocks) {
-        await db.insert(exerciseUnlocks).values({
-          userId: user.id,
-          exerciseId,
-          unlockedBy: "registration"
+        await supabaseAdmin.from('exercise_unlocks').insert({
+          user_id: user.id,
+          exercise_id: exerciseId,
+          unlocked_by: "registration"
         });
       }
 
       res.status(201).json({
         message: "OAuth registration successful",
-        user: newUser[0]
+        user: newUser
       });
     } catch (error) {
       next(error);
