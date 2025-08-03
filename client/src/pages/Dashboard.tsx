@@ -118,8 +118,6 @@ export default function Dashboard() {
 
   // Calculate current streak (consecutive days with sessions) - using useMemo to prevent recalculation
   const currentStreak = useMemo(() => {
-    console.log('🔥 Calculating streak with sessions:', recentSessions.length);
-    
     // Helper function to format date in local timezone as YYYY-MM-DD
     const formatLocalDate = (date: Date): string => {
       return date.getFullYear() + '-' + 
@@ -140,8 +138,6 @@ export default function Dashboard() {
         }
       });
     
-    console.log('🔥 Completed sessions for streak:', completedSessions.length, completedSessions.map(s => s.completedAt));
-    
     if (completedSessions.length === 0) return 0;
     
     // Group sessions by date to handle multiple sessions per day (use local timezone)
@@ -161,17 +157,10 @@ export default function Dashboard() {
     // Get unique dates and sort them (newest first)
     const uniqueDates = Array.from(sessionsByDate.keys()).sort().reverse();
     
-    console.log('🔥 Sessions by date:', Object.fromEntries(sessionsByDate));
-    console.log('🔥 Unique dates (sorted):', uniqueDates);
-    
     if (uniqueDates.length === 0) return 0;
     
     // Use local timezone for date comparison to avoid server/client timezone mismatches
     const today = new Date();
-    const todayString = formatLocalDate(today);
-    
-    console.log('🔥 Today string for comparison (local):', todayString);
-    
     let streak = 0;
     let currentDate = new Date(today);
     
@@ -179,20 +168,15 @@ export default function Dashboard() {
       // Use local timezone for current date string as well
       const currentDateString = formatLocalDate(currentDate);
       
-      console.log(`🔥 Checking: ${dateString} === ${currentDateString}?`);
-      
       if (dateString === currentDateString) {
         streak++;
         currentDate.setDate(currentDate.getDate() - 1);
-        const nextDateString = formatLocalDate(currentDate);
-        console.log(`🔥 Streak incremented to ${streak}, next date to check: ${nextDateString}`);
       } else {
-        console.log('🔥 Streak broken, stopping');
+        // Break the streak if there's a gap
         break;
       }
     }
     
-    console.log('🔥 Final streak:', streak);
     return streak;
   }, [recentSessions]);
 
