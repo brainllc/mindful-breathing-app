@@ -1,6 +1,6 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
-import { db, supabase } from "./db";
+import { db, supabase } from "./db.js";
 import { createClient } from "@supabase/supabase-js";
 
 // Service role client for admin operations (auth, user management)
