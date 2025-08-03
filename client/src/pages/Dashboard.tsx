@@ -38,11 +38,13 @@ export default function Dashboard() {
   const [recentSessions, setRecentSessions] = useState<ExerciseSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [achievementsExpanded, setAchievementsExpanded] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchDashboardData = useCallback(async () => {
     if (!user) return;
 
     try {
+      setRefreshing(true);
       const storedSession = localStorage.getItem('supabase.auth.token');
       if (!storedSession) return;
       
@@ -81,6 +83,7 @@ export default function Dashboard() {
       console.error('Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [user]);
 
@@ -105,6 +108,11 @@ export default function Dashboard() {
 
     const handleExerciseCompleted = () => {
       console.log('🔄 Exercise completed - refreshing dashboard immediately');
+      // Add a small delay to ensure the backend has processed the session
+      setTimeout(() => {
+        fetchDashboardData();
+      }, 1000);
+      // Also fetch immediately in case the session is already processed
       fetchDashboardData();
     };
 
@@ -116,9 +124,16 @@ export default function Dashboard() {
     };
   }, [user, fetchDashboardData]);
 
+  // Manual refresh function for debugging
+  const handleManualRefresh = async () => {
+    console.log('🔄 Manual refresh triggered');
+    await fetchDashboardData();
+  };
+
   // Calculate current streak (consecutive days with sessions) - using useMemo to prevent recalculation
   const currentStreak = useMemo(() => {
     console.log('🔥 STREAK DEBUG: Starting calculation with', recentSessions.length, 'sessions');
+    console.log('🔥 STREAK DEBUG: All sessions:', recentSessions.map(s => ({ id: s.id, completed: s.completed, completedAt: s.completedAt, exerciseId: s.exerciseId })));
     
     // Helper function to format date in local timezone as YYYY-MM-DD
     const formatLocalDate = (date: Date): string => {
@@ -549,7 +564,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="max-w-4xl mx-auto text-center mb-16"
+            className="max-w-4xl mx-auto text-center mb-16 relative"
           >
             <h1 className="text-5xl font-bold tracking-tight mb-4 text-primary/90">
               Welcome back, {user.displayName}!
@@ -557,6 +572,17 @@ export default function Dashboard() {
             <p className="text-xl text-muted-foreground leading-relaxed">
               Here's your breathing journey progress
             </p>
+            {/* Debug refresh button */}
+            <button
+              onClick={handleManualRefresh}
+              disabled={refreshing}
+              className="absolute top-0 right-0 p-2 text-muted-foreground hover:text-primary transition-colors rounded-lg hover:bg-muted/50"
+              title="Refresh dashboard data"
+            >
+              <svg className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
           </motion.header>
 
           <div className="max-w-7xl mx-auto space-y-12">
