@@ -33,10 +33,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .single();
     
     if (existingUser) {        
-      // Check if this user was created via OAuth (they won't have a Supabase Auth account)
-      const { data: authUser } = await supabase.auth.admin.getUserByEmail(email);
+      // Check if this user was created via OAuth by looking at Supabase auth users
+      const { data: authUsers } = await supabase.auth.admin.listUsers();
+      const authUser = authUsers.users?.find(user => user.email === email);
       
-      if (authUser.user && authUser.user.app_metadata?.provider && authUser.user.app_metadata.provider !== 'email') {
+      if (authUser && authUser.app_metadata?.provider && authUser.app_metadata.provider !== 'email') {
         return res.json({
           isOAuthUser: true,
           message: "This account uses Google Sign-In. Please use 'Continue with Google' on the login page instead of resetting your password."
