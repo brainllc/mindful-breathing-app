@@ -118,6 +118,8 @@ export default function Dashboard() {
 
   // Calculate current streak (consecutive days with sessions) - using useMemo to prevent recalculation
   const currentStreak = useMemo(() => {
+    console.log('🔥 Calculating streak with sessions:', recentSessions.length);
+    
     if (recentSessions.length === 0) return 0;
     
     const completedSessions = recentSessions
@@ -131,31 +133,57 @@ export default function Dashboard() {
         }
       });
     
+    console.log('🔥 Completed sessions for streak:', completedSessions.length, completedSessions.map(s => s.completedAt));
+    
     if (completedSessions.length === 0) return 0;
     
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    let streak = 0;
-    let currentDate = new Date(today);
-    
+    // Group sessions by date to handle multiple sessions per day
+    const sessionsByDate = new Map<string, number>();
     for (const session of completedSessions) {
       try {
         const sessionDate = new Date(session.completedAt!);
         sessionDate.setHours(0, 0, 0, 0);
-        
-        if (sessionDate.getTime() === currentDate.getTime()) {
-          streak++;
-          currentDate.setDate(currentDate.getDate() - 1);
-        } else if (sessionDate.getTime() < currentDate.getTime()) {
-          break;
-        }
+        const dateString = sessionDate.toISOString().split('T')[0];
+        sessionsByDate.set(dateString, (sessionsByDate.get(dateString) || 0) + 1);
       } catch (error) {
         console.warn('Invalid date in session:', session.completedAt);
         continue;
       }
     }
     
+    // Get unique dates and sort them (newest first)
+    const uniqueDates = Array.from(sessionsByDate.keys()).sort().reverse();
+    
+    console.log('🔥 Sessions by date:', Object.fromEntries(sessionsByDate));
+    console.log('🔥 Unique dates (sorted):', uniqueDates);
+    
+    if (uniqueDates.length === 0) return 0;
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayString = today.toISOString().split('T')[0];
+    
+    console.log('🔥 Today string for comparison:', todayString);
+    
+    let streak = 0;
+    let currentDate = new Date(today);
+    
+    for (const dateString of uniqueDates) {
+      const currentDateString = currentDate.toISOString().split('T')[0];
+      
+      console.log(`🔥 Checking: ${dateString} === ${currentDateString}?`);
+      
+      if (dateString === currentDateString) {
+        streak++;
+        currentDate.setDate(currentDate.getDate() - 1);
+        console.log(`🔥 Streak incremented to ${streak}, next date to check: ${currentDate.toISOString().split('T')[0]}`);
+      } else {
+        console.log('🔥 Streak broken, stopping');
+        break;
+      }
+    }
+    
+    console.log('🔥 Final streak:', streak);
     return streak;
   }, [recentSessions]);
 
@@ -170,7 +198,7 @@ export default function Dashboard() {
     }
   }).length;
 
-  // Calculate average daily sessions (last 30 days)
+  // Calculate average daily sessions (smarter calculation for new vs established users)
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const last30DaysSessions = recentSessions.filter(session => {
@@ -180,7 +208,36 @@ export default function Dashboard() {
       return false;
     }
   }).length;
-  const avgDailySessions = (last30DaysSessions / 30).toFixed(1);
+  
+  // For more meaningful daily average calculation
+  const getAvgDailySessions = () => {
+    if (last30DaysSessions === 0) return "0.0";
+    
+    // Find the first session date
+    const allCompletedSessions = recentSessions.filter(s => s.completed && s.completedAt);
+    if (allCompletedSessions.length === 0) return "0.0";
+    
+    // Get the earliest session date
+    const firstSessionDate = allCompletedSessions.reduce((earliest, session) => {
+      try {
+        const sessionDate = new Date(session.completedAt!);
+        return sessionDate < earliest ? sessionDate : earliest;
+      } catch (error) {
+        return earliest;
+      }
+    }, new Date());
+    
+    // Calculate days since first session (minimum 1 day)
+    const today = new Date();
+    const daysSinceFirst = Math.max(1, Math.ceil((today.getTime() - firstSessionDate.getTime()) / (1000 * 60 * 60 * 24)));
+    
+    // Use the smaller of 30 days or actual days since first session for more accurate average
+    const daysToAverage = Math.min(30, daysSinceFirst);
+    
+    return (last30DaysSessions / daysToAverage).toFixed(1);
+  };
+  
+  const avgDailySessions = getAvgDailySessions();
 
   // Get most practiced exercises
   const exerciseCount = recentSessions.reduce((acc, session) => {
