@@ -621,22 +621,22 @@ export default function Dashboard() {
                     <div className="text-4xl font-bold text-orange-600 mb-2">
                       {currentStreak} {currentStreak === 1 ? 'day' : 'days'}
                     </div>
+                    {currentStreak > 0 ? (
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Keep it going! 🔥
+                      </p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Start your streak today! 💪
+                      </p>
+                    )}
                     {/* Show highest streak if user has had broken streaks */}
                     {recentSessions.filter(s => s.completed).length > 0 && highestStreak > currentStreak && (
-                      <div className="text-sm text-muted-foreground mb-2 bg-orange-50 dark:bg-orange-950/20 rounded-lg px-3 py-2 border border-orange-200 dark:border-orange-800/30">
+                      <div className="text-sm text-muted-foreground bg-orange-50 dark:bg-orange-950/20 rounded-lg px-3 py-2 border border-orange-200 dark:border-orange-800/30">
                         <span className="text-orange-700 dark:text-orange-300 font-medium">
                           🏆 Best streak: {highestStreak} {highestStreak === 1 ? 'day' : 'days'}
                         </span>
                       </div>
-                    )}
-                    {currentStreak > 0 ? (
-                      <p className="text-sm text-muted-foreground">
-                        Keep it going! 🔥
-                      </p>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">
-                        Start your streak today! 💪
-                      </p>
                     )}
                   </div>
                 </CardContent>
