@@ -15,7 +15,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Initialize Supabase client
     const supabase = createClient(
-      process.env.SUPABASE_URL!,
+      process.env.VITE_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
       {
         auth: {
@@ -47,7 +47,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     
     // Always attempt to send reset email via Supabase (for both local DB users and Supabase-only users)
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.FRONTEND_URL || 'https://breathwork.fyi'}/auth/reset-password`,
+      redirectTo: `${process.env.VITE_FRONTEND_URL || 'https://breathwork.fyi'}/auth/reset-password`,
     });
 
     if (error) {

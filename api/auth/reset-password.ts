@@ -19,8 +19,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Create a temporary Supabase client with the reset tokens
     const tempSupabase = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_ANON_KEY!
+      process.env.VITE_SUPABASE_URL!,
+      process.env.VITE_SUPABASE_ANON_KEY!
     );
 
     // Set the session with the reset tokens
