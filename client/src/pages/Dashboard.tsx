@@ -234,6 +234,91 @@ export default function Dashboard() {
     return streak;
   }, [recentSessions]);
 
+  // Calculate highest streak ever achieved
+  const highestStreak = useMemo(() => {
+    if (recentSessions.length === 0) {
+      return 0;
+    }
+    
+    const completedSessions = recentSessions
+      .filter(s => s.completed && s.completedAt)
+      .sort((a, b) => {
+        try {
+          return new Date(a.completedAt!).getTime() - new Date(b.completedAt!).getTime(); // Sort oldest first for highest streak calculation
+        } catch (error) {
+          console.warn('Invalid date in highest streak calculation:', a.completedAt, b.completedAt);
+          return 0;
+        }
+      });
+    
+    if (completedSessions.length === 0) {
+      return 0;
+    }
+    
+    // Group sessions by date (use UTC for consistency)
+    const sessionsByDate = new Map<string, number>();
+    for (const session of completedSessions) {
+      try {
+        const sessionDate = new Date(session.completedAt!);
+        const year = sessionDate.getUTCFullYear();
+        const month = sessionDate.getUTCMonth() + 1;
+        const day = sessionDate.getUTCDate();
+        const dateString = year + '-' + 
+                          String(month).padStart(2, '0') + '-' + 
+                          String(day).padStart(2, '0');
+        sessionsByDate.set(dateString, (sessionsByDate.get(dateString) || 0) + 1);
+      } catch (error) {
+        console.warn('Invalid date in highest streak session:', session.completedAt);
+        continue;
+      }
+    }
+    
+    // Get unique dates and sort them (oldest first)
+    const uniqueDates = Array.from(sessionsByDate.keys()).sort();
+    
+    if (uniqueDates.length === 0) {
+      return 0;
+    }
+    
+    // Calculate all possible streaks to find the highest one
+    let maxStreak = 0;
+    let currentStreakInLoop = 0;
+    let expectedDate = null;
+    
+    for (const dateString of uniqueDates) {
+      const currentDate = new Date(dateString + 'T00:00:00.000Z');
+      
+      if (expectedDate === null) {
+        // First date - start a streak
+        currentStreakInLoop = 1;
+        expectedDate = new Date(currentDate);
+        expectedDate.setUTCDate(expectedDate.getUTCDate() + 1);
+      } else {
+        // Check if this date is consecutive to the previous one
+        const expectedDateString = expectedDate.getUTCFullYear() + '-' + 
+                                  String(expectedDate.getUTCMonth() + 1).padStart(2, '0') + '-' + 
+                                  String(expectedDate.getUTCDate()).padStart(2, '0');
+        
+        if (dateString === expectedDateString) {
+          // Consecutive date - extend streak
+          currentStreakInLoop++;
+          expectedDate.setUTCDate(expectedDate.getUTCDate() + 1);
+        } else {
+          // Non-consecutive date - save current streak and start new one
+          maxStreak = Math.max(maxStreak, currentStreakInLoop);
+          currentStreakInLoop = 1;
+          expectedDate = new Date(currentDate);
+          expectedDate.setUTCDate(expectedDate.getUTCDate() + 1);
+        }
+      }
+    }
+    
+    // Don't forget to check the last streak
+    maxStreak = Math.max(maxStreak, currentStreakInLoop);
+    
+    return maxStreak;
+  }, [recentSessions]);
+
   // Calculate this week's sessions
   const oneWeekAgo = new Date();
   oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
@@ -536,6 +621,14 @@ export default function Dashboard() {
                     <div className="text-4xl font-bold text-orange-600 mb-2">
                       {currentStreak} {currentStreak === 1 ? 'day' : 'days'}
                     </div>
+                    {/* Show highest streak if user has had broken streaks */}
+                    {recentSessions.filter(s => s.completed).length > 0 && highestStreak > currentStreak && (
+                      <div className="text-sm text-muted-foreground mb-2 bg-orange-50 dark:bg-orange-950/20 rounded-lg px-3 py-2 border border-orange-200 dark:border-orange-800/30">
+                        <span className="text-orange-700 dark:text-orange-300 font-medium">
+                          🏆 Best streak: {highestStreak} {highestStreak === 1 ? 'day' : 'days'}
+                        </span>
+                      </div>
+                    )}
                     {currentStreak > 0 ? (
                       <p className="text-sm text-muted-foreground">
                         Keep it going! 🔥
