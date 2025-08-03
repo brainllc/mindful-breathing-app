@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+
 import { 
   User, 
   Mail, 
@@ -562,13 +562,15 @@ export default function Profile() {
                   )}
 
                   {!isOAuthUser && (
-                    <Alert>
-                      <Shield className="h-4 w-4" />
-                      <AlertDescription>
-                        Your account is secured with industry-standard encryption. 
-                        We never store your passwords in plain text.
-                      </AlertDescription>
-                    </Alert>
+                    <div className="p-4 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Shield className="h-5 w-5 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">
+                          Your account is secured with industry-standard encryption. 
+                          We never store your passwords in plain text.
+                        </p>
+                      </div>
+                    </div>
                   )}
                 </CardContent>
               </Card>
