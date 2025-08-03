@@ -2,6 +2,18 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { db, supabase } from "./db";
 import { createClient } from "@supabase/supabase-js";
+
+// Service role client for admin operations (auth, user management)
+const supabaseAdmin = createClient(
+  process.env.VITE_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+);
 import { 
   users, 
   exerciseSessions, 
@@ -102,7 +114,7 @@ export function registerRoutes(app: Express): Express {
       }
 
       // Create user in Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({ 
+      const { data: authData, error: authError } = await supabaseAdmin.auth.signUp({ 
         email, 
         password 
       });
@@ -116,24 +128,94 @@ export function registerRoutes(app: Express): Express {
       }
 
       // Create user in our database with extended profile
-      const newUser = await db.insert(users).values({
-        id: authData.user.id,
-        email,
-        displayName,
-        isAgeVerified,
-        acceptedTermsAt: new Date(),
-        acceptedPrivacyAt: new Date(),
-        marketingConsent,
-        marketingConsentAt: marketingConsent ? new Date() : null,
-        isEmailVerified: false,
-      }).returning();
+      const now = new Date();
+      let { data: newUser, error: insertError } = await supabaseAdmin
+        .from('users')
+        .insert({
+          id: authData.user.id,
+          email,
+          display_name: displayName,
+          is_age_verified: isAgeVerified,
+          accepted_terms_at: now.toISOString(),
+          accepted_privacy_at: now.toISOString(),
+          marketing_consent: marketingConsent,
+          marketing_consent_at: marketingConsent ? now.toISOString() : null,
+          is_email_verified: false,
+          created_at: now.toISOString(),
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('User creation error:', insertError);
+        
+        // Handle duplicate email scenario (orphaned data from deleted Supabase Auth user)
+        if (insertError.code === '23505' && insertError.message.includes('users_email_unique')) {
+          console.log('Duplicate email found, cleaning up orphaned data and retrying...');
+          
+          // First, find the old user ID to clean up related records
+          const { data: oldUser } = await supabaseAdmin
+            .from('users')
+            .select('id')
+            .eq('email', email)
+            .single();
+          
+          if (oldUser) {
+            // Clean up related records
+            await supabaseAdmin.from('exercise_unlocks').delete().eq('user_id', oldUser.id);
+            await supabaseAdmin.from('exercise_sessions').delete().eq('user_id', oldUser.id);
+            await supabaseAdmin.from('user_stats').delete().eq('user_id', oldUser.id);
+            
+            // Delete the old user record
+            await supabaseAdmin.from('users').delete().eq('email', email);
+            
+            // Retry the insert with the new user ID
+            const { data: retryUser, error: retryError } = await supabaseAdmin
+              .from('users')
+              .insert({
+                id: authData.user.id,
+                email,
+                display_name: displayName,
+                is_age_verified: isAgeVerified,
+                accepted_terms_at: now.toISOString(),
+                accepted_privacy_at: now.toISOString(),
+                marketing_consent: marketingConsent,
+                marketing_consent_at: marketingConsent ? now.toISOString() : null,
+                is_email_verified: false,
+                created_at: now.toISOString(),
+              })
+              .select()
+              .single();
+            
+            if (retryError) {
+              console.error('Retry user creation failed:', retryError);
+              return res.status(500).json({ 
+                message: "Failed to create user account after cleanup. Please try again.",
+                error: retryError.message 
+              });
+            }
+            
+            newUser = retryUser;
+          } else {
+            return res.status(500).json({ 
+              message: "Failed to resolve duplicate email issue. Please try again.",
+              error: insertError.message 
+            });
+          }
+        } else {
+          return res.status(500).json({ 
+            message: "Failed to create user account. Please try again.",
+            error: insertError.message 
+          });
+        }
+      }
 
       // Initialize user stats
-      await db.insert(userStats).values({
-        userId: authData.user.id,
+      await supabaseAdmin.from('user_stats').insert({
+        user_id: authData.user.id,
       });
 
-      // Unlock exercises for registered users (half of premium exercises)
+      // Unlock exercises for registered users
       const registrationUnlocks = [
         "wim-hof",
         "nadi-shodhana", 
@@ -142,16 +224,17 @@ export function registerRoutes(app: Express): Express {
       ];
 
       for (const exerciseId of registrationUnlocks) {
-        await db.insert(exerciseUnlocks).values({
-          userId: authData.user.id,
-          exerciseId,
-          unlockedBy: "registration"
+        await supabaseAdmin.from('exercise_unlocks').insert({
+          user_id: authData.user.id,
+          exercise_id: exerciseId,
+          unlocked_by: "registration"
         });
       }
 
       res.status(201).json({
         message: "User registered successfully",
-        user: newUser[0],
+        user: newUser,
+        requiresEmailConfirmation: !authData.session,
         session: authData.session
       });
     } catch (error) {
@@ -169,11 +252,18 @@ export function registerRoutes(app: Express): Express {
       }
 
       // Check if user exists in our database and if they're an OAuth user
-      const [existingUser] = await db.select().from(users).where(eq(users.email, email));
+      const { data: existingUser } = await supabaseAdmin
+        .from('users')
+        .select('email, display_name')
+        .eq('email', email)
+        .single();
       
       if (existingUser) {        
-        // Check if user is OAuth (no hashed password means they use OAuth)
-        if (!existingUser.hashedPassword) {
+        // Check if this user was created via OAuth by looking at Supabase auth users
+        const { data: authUsers } = await supabaseAdmin.auth.admin.listUsers();
+        const authUser = authUsers.users?.find(user => user.email === email);
+        
+        if (authUser && authUser.app_metadata?.provider && authUser.app_metadata.provider !== 'email') {
           return res.json({
             isOAuthUser: true,
             message: "This account uses Google Sign-In. Please use 'Continue with Google' on the login page instead of resetting your password."
@@ -182,8 +272,8 @@ export function registerRoutes(app: Express): Express {
       }
       
       // Always attempt to send reset email via Supabase (for both local DB users and Supabase-only users)
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${process.env.FRONTEND_URL || 'https://breathwork.fyi'}/auth/reset-password`,
+      const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
+        redirectTo: `${process.env.VITE_FRONTEND_URL || 'https://breathwork.fyi'}/auth/reset-password`,
       });
 
       if (error) {
@@ -221,8 +311,8 @@ export function registerRoutes(app: Express): Express {
 
       // Create a temporary Supabase client with the reset tokens
       const tempSupabase = createClient(
-        process.env.SUPABASE_URL!,
-        process.env.SUPABASE_ANON_KEY!
+        process.env.VITE_SUPABASE_URL!,
+        process.env.VITE_SUPABASE_ANON_KEY!
       );
 
       // Set the session with the reset tokens
@@ -259,7 +349,7 @@ export function registerRoutes(app: Express): Express {
         return res.status(400).json({ error: "Email and password are required" });
       }
 
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabaseAdmin.auth.signInWithPassword({
         email,
         password,
       });
@@ -268,13 +358,18 @@ export function registerRoutes(app: Express): Express {
         return res.status(401).json({ error: error.message });
       }
 
-      // Update last login time
-      await db.update(users)
-        .set({ lastLoginAt: new Date() })
-        .where(eq(users.id, data.user.id));
+      // Update last login time and get user profile
+      const { data: userProfile, error: profileError } = await supabaseAdmin
+        .from('users')
+        .update({ last_login_at: new Date().toISOString() })
+        .eq('id', data.user.id)
+        .select()
+        .single();
 
-      // Get user profile
-      let [userProfile] = await db.select().from(users).where(eq(users.id, data.user.id));
+      if (profileError) {
+        console.error("Failed to update user profile:", profileError);
+        // Continue anyway, login succeeded
+      }
 
       // If user doesn't exist in our database, create them automatically
       if (!userProfile) {
@@ -284,31 +379,40 @@ export function registerRoutes(app: Express): Express {
                            data.user.email?.split('@')[0] || 
                            "User";
         
-        const newUser = {
-          id: data.user.id,
-          email: data.user.email!,
-          displayName: displayName,
-          isAgeVerified: true, // Assume verified for existing auth users
-          acceptedTermsAt: new Date(), // Auto-accept for existing auth users
-          acceptedPrivacyAt: new Date(), // Auto-accept for existing auth users
-          createdAt: new Date(),
-          lastLoginAt: new Date(),
-        };
+        const { data: newUser, error: createError } = await supabaseAdmin
+          .from('users')
+          .insert({
+            id: data.user.id,
+            email: data.user.email,
+            display_name: displayName,
+            is_age_verified: true,
+            accepted_terms_at: new Date().toISOString(),
+            accepted_privacy_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            last_login_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
 
-        try {
-          [userProfile] = await db.insert(users).values(newUser).returning();
-        } catch (dbError) {
-          console.error("Failed to create user record:", dbError);
-          return res.status(500).json({ error: "Failed to create user profile" });
+        if (createError) {
+          console.error("Failed to create user record on login:", createError);
+          return res.status(500).json({ error: "Failed to create user profile on login." });
         }
+
+        // Initialize user stats
+        await supabaseAdmin.from('user_stats').insert({
+          user_id: data.user.id,
+        });
+
+        return res.json({
+          session: data.session,
+          user: newUser,
+        });
       }
 
-      // Don't send sensitive data
-      const { hashedPassword, ...safeProfile } = userProfile;
-      
       res.json({
         session: data.session,
-        user: safeProfile,
+        user: userProfile,
       });
     } catch (error) {
       console.error("Login error:", error);
@@ -319,8 +423,11 @@ export function registerRoutes(app: Express): Express {
   // Logout
   app.post("/api/auth/logout", authenticateUser, async (req, res, next) => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      const { error } = await supabaseAdmin.auth.signOut();
+      if (error) {
+        console.error("Logout error:", error);
+        // Don't throw error, just log it
+      }
       
       res.json({ message: "Logout successful" });
     } catch (error) {
