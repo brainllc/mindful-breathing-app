@@ -51,6 +51,12 @@ We successfully fixed a complex registration system that was failing due to data
 - **Why**: Registration endpoint was trying to `signInWithPassword` immediately after account creation
 - **Solution**: Remove auto sign-in attempt, show "check your email" message instead, don't redirect until email is confirmed
 
+### 6. **Handle Orphaned Database Records**
+- **Problem**: When a user is deleted from Supabase Auth, the records in our custom `users` table remain, causing "duplicate key" errors on re-registration
+- **Why**: Supabase Auth deletion only removes from the auth.users table, not our custom tables
+- **Solution**: Added automatic cleanup in registration endpoint - detect duplicate email constraint violations, clean up orphaned records, and retry insertion
+- **Code**: Check for PostgreSQL error code `23505` and `users_email_unique` constraint violation
+
 ---
 
 ## 🧠 **Key Technical Insights**

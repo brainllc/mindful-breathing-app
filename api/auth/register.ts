@@ -55,7 +55,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Create user in local database
     const now = new Date();
-    const { data: newUser, error: insertError } = await supabase
+    let { data: newUser, error: insertError } = await supabase
       .from('users')
       .insert({
         id: authData.user.id,
@@ -73,10 +73,66 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (insertError) {
       console.error('User creation error:', insertError);
-      return res.status(500).json({ 
-        message: "Failed to create user account. Please try again.",
-        error: insertError.message 
-      });
+      
+      // Handle duplicate email scenario (orphaned data from deleted Supabase Auth user)
+      if (insertError.code === '23505' && insertError.message.includes('users_email_unique')) {
+        console.log('Duplicate email found, cleaning up orphaned data and retrying...');
+        
+        // First, find the old user ID to clean up related records
+        const { data: oldUser } = await supabase
+          .from('users')
+          .select('id')
+          .eq('email', email)
+          .single();
+        
+        if (oldUser) {
+          // Clean up related records
+          await supabase.from('exercise_unlocks').delete().eq('user_id', oldUser.id);
+          await supabase.from('exercise_sessions').delete().eq('user_id', oldUser.id);
+          await supabase.from('user_stats').delete().eq('user_id', oldUser.id);
+          
+          // Delete the old user record
+          await supabase.from('users').delete().eq('email', email);
+          
+          // Retry the insert with the new user ID
+          const { data: retryUser, error: retryError } = await supabase
+            .from('users')
+            .insert({
+              id: authData.user.id,
+              email: email,
+              display_name: displayName,
+              is_age_verified: isAgeVerified,
+              marketing_consent: marketingConsent || false,
+              accepted_terms_at: now.toISOString(),
+              accepted_privacy_at: now.toISOString(),
+              marketing_consent_at: marketingConsent ? now.toISOString() : null,
+              is_email_verified: false,
+            })
+            .select()
+            .single();
+          
+          if (retryError) {
+            console.error('Retry user creation failed:', retryError);
+            return res.status(500).json({ 
+              message: "Failed to create user account after cleanup. Please try again.",
+              error: retryError.message 
+            });
+          }
+          
+          // Use the retry result as newUser
+          newUser = retryUser;
+        } else {
+          return res.status(500).json({ 
+            message: "Failed to resolve duplicate email issue. Please try again.",
+            error: insertError.message 
+          });
+        }
+      } else {
+        return res.status(500).json({ 
+          message: "Failed to create user account. Please try again.",
+          error: insertError.message 
+        });
+      }
     }
 
     // Initialize user stats
