@@ -16,6 +16,7 @@ const DownloadStressGuide = lazy(() => import("@/pages/DownloadStressGuide"));
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Login = lazy(() => import("@/pages/Login"));
 const Register = lazy(() => import("@/pages/Register"));
+const RegistrationSuccess = lazy(() => import("@/pages/RegistrationSuccess"));
 const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const Profile = lazy(() => import("@/pages/Profile"));
@@ -48,6 +49,7 @@ function Router() {
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
+        <Route path="/registration-success" component={RegistrationSuccess} />
         <Route path="/forgot-password" component={ForgotPassword} />
         <Route path="/auth/reset-password" component={ResetPassword} />
         <Route path="/profile" component={Profile} />

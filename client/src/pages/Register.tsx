@@ -15,8 +15,8 @@ export default function Register() {
   };
 
   const handleRegisterSuccess = () => {
-    // Navigate to dashboard or home after successful registration
-    navigate("/");
+    // Navigate to registration success page to show email confirmation instructions
+    navigate("/registration-success");
   };
 
   return (
