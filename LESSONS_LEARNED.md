@@ -63,6 +63,16 @@ We successfully fixed a complex registration system that was failing due to data
 - **Solution**: Created dedicated `/registration-success` page with thank you message, clear email confirmation instructions, premium benefits showcase, and next steps
 - **UX Impact**: Better conversion rate as users understand what they've gained and what to do next
 
+### 8. **Fixed Dashboard Statistics Calculation Bugs**
+- **Problem**: Streak showed 0 days for new users who completed exercises, daily average showed 0.1 for users who completed 2 sessions in one day
+- **Why**: 
+  - Streak calculation had logic error - processed each session individually and moved comparison date backwards on first match, causing subsequent sessions from same day to be ignored
+  - Daily average always divided by 30 days, giving misleading results for new users
+- **Solution**: 
+  - Fixed streak: Group sessions by date first, then check for consecutive days properly
+  - Fixed daily average: Use actual days since first session (min 1, max 30) instead of always 30
+- **Result**: New users now see correct streak = 1 day and meaningful daily averages
+
 ---
 
 ## 🧠 **Key Technical Insights**
