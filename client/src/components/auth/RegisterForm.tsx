@@ -200,11 +200,8 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
 
       // Check if email confirmation is required
       if (data.requiresEmailConfirmation) {
-        toast({
-          title: "Account Created!",
-          description: "Please check your email and click the confirmation link to activate your account. Then you can sign in.",
-        });
-        // Don't redirect or login - user needs to confirm email first
+        // Redirect to success page with proper instructions
+        onSuccess?.();
       } else {
         // Use auth context to login the new user (for cases where email confirmation is disabled)
         if (data.session && data.user) {
