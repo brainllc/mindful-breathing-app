@@ -120,6 +120,13 @@ export default function Dashboard() {
   const currentStreak = useMemo(() => {
     console.log('🔥 Calculating streak with sessions:', recentSessions.length);
     
+    // Helper function to format date in local timezone as YYYY-MM-DD
+    const formatLocalDate = (date: Date): string => {
+      return date.getFullYear() + '-' + 
+             String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+             String(date.getDate()).padStart(2, '0');
+    };
+    
     if (recentSessions.length === 0) return 0;
     
     const completedSessions = recentSessions
@@ -137,13 +144,13 @@ export default function Dashboard() {
     
     if (completedSessions.length === 0) return 0;
     
-    // Group sessions by date to handle multiple sessions per day
+    // Group sessions by date to handle multiple sessions per day (use local timezone)
     const sessionsByDate = new Map<string, number>();
     for (const session of completedSessions) {
       try {
         const sessionDate = new Date(session.completedAt!);
-        sessionDate.setHours(0, 0, 0, 0);
-        const dateString = sessionDate.toISOString().split('T')[0];
+        // Use local timezone date string to match with today comparison
+        const dateString = formatLocalDate(sessionDate);
         sessionsByDate.set(dateString, (sessionsByDate.get(dateString) || 0) + 1);
       } catch (error) {
         console.warn('Invalid date in session:', session.completedAt);
@@ -159,24 +166,26 @@ export default function Dashboard() {
     
     if (uniqueDates.length === 0) return 0;
     
+    // Use local timezone for date comparison to avoid server/client timezone mismatches
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayString = today.toISOString().split('T')[0];
+    const todayString = formatLocalDate(today);
     
-    console.log('🔥 Today string for comparison:', todayString);
+    console.log('🔥 Today string for comparison (local):', todayString);
     
     let streak = 0;
     let currentDate = new Date(today);
     
     for (const dateString of uniqueDates) {
-      const currentDateString = currentDate.toISOString().split('T')[0];
+      // Use local timezone for current date string as well
+      const currentDateString = formatLocalDate(currentDate);
       
       console.log(`🔥 Checking: ${dateString} === ${currentDateString}?`);
       
       if (dateString === currentDateString) {
         streak++;
         currentDate.setDate(currentDate.getDate() - 1);
-        console.log(`🔥 Streak incremented to ${streak}, next date to check: ${currentDate.toISOString().split('T')[0]}`);
+        const nextDateString = formatLocalDate(currentDate);
+        console.log(`🔥 Streak incremented to ${streak}, next date to check: ${nextDateString}`);
       } else {
         console.log('🔥 Streak broken, stopping');
         break;
