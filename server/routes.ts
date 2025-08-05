@@ -751,6 +751,14 @@ export function registerRoutes(app: Express): Express {
       const { sessionId } = req.params;
       const { roundsCompleted, durationSeconds, moodAfter, notes } = req.body;
       
+      const completionTimestamp = new Date();
+      console.log('🕐 BACKEND DEBUG: Saving completion timestamp:', {
+        raw: completionTimestamp,
+        toISOString: completionTimestamp.toISOString(),
+        toString: completionTimestamp.toString(),
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      });
+
       const [session] = await db.update(exerciseSessions)
         .set({
           roundsCompleted,
@@ -758,7 +766,7 @@ export function registerRoutes(app: Express): Express {
           moodAfter,
           notes,
           completed: true,
-          completedAt: new Date().toISOString()
+          completedAt: completionTimestamp
         })
         .where(and(
           eq(exerciseSessions.id, parseInt(sessionId)),
@@ -769,6 +777,14 @@ export function registerRoutes(app: Express): Express {
       if (!session) {
         return res.status(404).json({ error: "Session not found" });
       }
+
+      console.log('🕐 BACKEND DEBUG: Completed session returned:', {
+        sessionId: session.id,
+        completedAt: session.completedAt,
+        completedAtType: typeof session.completedAt,
+        completedAtString: session.completedAt?.toString(),
+        completedAtISO: session.completedAt instanceof Date ? session.completedAt.toISOString() : 'Not a Date object'
+      });
       
       // Update user stats with separate queries (FIXED: Only count completed sessions)
       if (!req.user) throw new Error("User not authenticated");

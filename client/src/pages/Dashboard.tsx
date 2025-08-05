@@ -69,6 +69,14 @@ export default function Dashboard() {
 
       if (historyResponse.ok) {
         const historyData = await historyResponse.json();
+        
+        console.log('🕐 FRONTEND DEBUG: Raw session data from API:', historyData.slice(0, 3).map((session: any) => ({
+          id: session.id,
+          completedAt: session.completedAt,
+          completedAtType: typeof session.completedAt,
+          completed: session.completed
+        })));
+        
         console.log('Fetched history:', historyData);
         // Ensure historyData is an array and filter out invalid sessions
         const validSessions = Array.isArray(historyData) ? historyData.filter(session => 
@@ -178,6 +186,8 @@ export default function Dashboard() {
                       console.log('🔥 STREAK DEBUG: Raw timestamp (first session):', session.completedAt);
                       console.log('🔥 STREAK DEBUG: Parsed Date object (first session):', sessionDate);
                       console.log('🔥 STREAK DEBUG: Local time string:', sessionDate.toString());
+                      console.log('🔥 STREAK DEBUG: ISO string:', sessionDate.toISOString());
+                      console.log('🔥 STREAK DEBUG: User timezone offset (minutes):', sessionDate.getTimezoneOffset());
                     }
                     
                     // IMPORTANT: Use LOCAL dates for streak calculation (user's calendar days)
@@ -555,15 +565,32 @@ export default function Dashboard() {
   const formatDate = (dateStr: string) => {
     if (!dateStr) return 'Unknown date';
     try {
+      console.log('🕐 FRONTEND DEBUG: formatDate input:', {
+        dateStr,
+        type: typeof dateStr
+      });
+      
       const date = new Date(dateStr);
+      
+      console.log('🕐 FRONTEND DEBUG: formatDate parsed:', {
+        dateObj: date,
+        toISOString: date.toISOString(),
+        toString: date.toString(),
+        getTime: date.getTime(),
+        timezoneOffset: date.getTimezoneOffset()
+      });
+      
       // Format in user's local timezone
-      return date.toLocaleDateString('en-US', { 
+      const formatted = date.toLocaleDateString('en-US', { 
         month: 'short', 
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
         hour12: true // Use AM/PM format
       });
+      
+      console.log('🕐 FRONTEND DEBUG: formatDate result:', formatted);
+      return formatted;
     } catch (error) {
       console.warn('Invalid date format:', dateStr);
       return 'Invalid date';
