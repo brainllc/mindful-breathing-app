@@ -73,22 +73,28 @@ We successfully fixed a complex registration system that was failing due to data
   - Fixed daily average: Use actual days since first session (min 1, max 30) instead of always 30
 - **Result**: New users now see correct streak = 1 day and meaningful daily averages
 
-### 9. **Fixed Timezone Mismatch in Streak Calculation (Complex Debug)**
-- **Problem**: After initial fixes, streak still showed 0 days despite daily average working correctly. Sessions existed but dates weren't matching.
-- **Root Cause**: Session timestamps stored in UTC (`2025-08-03T04:47:45.415Z`) but JavaScript `Date` methods use local timezone by default
-  - Session date: `getFullYear()` on UTC timestamp → converted to user's local timezone (e.g., PST = UTC-8)
-  - "Today" date: `getFullYear()` on current time → also in user's local timezone 
-  - **BUT**: UTC 4:47 AM on Aug 3rd = 8:47 PM on Aug 2nd in PST
-  - **Result**: Sessions showed `2025-08-03` but "today" showed `2025-08-02` → no match = 0 streak
+### 9. **Fixed Timezone Mismatch in Streak Calculation (Complex Debug - Final Solution)**
+- **Problem**: After multiple fixes, streak still showed 0 days. User's 9:41 PM Aug 4 PT session was displaying as "Aug 5, 04:41 AM" and not counting toward streak.
+- **Deep Root Cause Discovery**: Database strips 'Z' suffix from UTC timestamps, causing JavaScript misinterpretation
+  - **Backend**: Correctly saves UTC timestamp as `2025-08-05T04:41:05.427Z`
+  - **Database**: PostgreSQL stores correctly but **strips 'Z' when returning** → `2025-08-05T04:41:05.427`
+  - **Frontend**: JavaScript interprets `2025-08-05T04:41:05.427` as **LOCAL time** instead of UTC!
+  - **Result**: User's 9:41 PM PT session → Backend saves as 4:41 AM UTC → Database returns without Z → Frontend thinks it's 4:41 AM PT = wrong day!
 - **Failed Attempts**: 
-  - First tried local timezone consistently with `getFullYear()`, `getMonth()`, `getDate()` - still had mismatches
-  - Then tried `formatLocalDate()` helper function - didn't solve the core issue
-- **Winning Solution**: **Use UTC consistently for all date operations**
-  - Sessions: `getUTCFullYear()`, `getUTCMonth()`, `getUTCDate()`
-  - Today: `getUTCFullYear()`, `getUTCMonth()`, `getUTCDate()`  
-  - Date arithmetic: `setUTCDate()` instead of `setDate()`
-- **Debug Strategy**: Console logs with `🔥 STREAK DEBUG:` prefix to trace exact date conversions
-- **Result**: Both session dates and "today" now calculated in UTC, perfect matching across all timezones
+  - **Attempt 1**: Use local timezone consistently with `getFullYear()`, `getMonth()`, `getDate()` - still had mismatches because core parsing was wrong
+  - **Attempt 2**: Force UTC with `getUTCFullYear()`, `getUTCMonth()`, `getUTCDate()` - created new bugs because it shifted already-wrong local times to wrong UTC days
+- **Winning Solution**: **Force UTC parsing by restoring the 'Z' suffix**
+  ```javascript
+  // Force parsing as UTC by adding 'Z' if missing
+  let timestamp = session.completedAt;
+  if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
+    timestamp = timestamp + 'Z';
+  }
+  const sessionDate = new Date(timestamp);
+  ```
+- **Applied Everywhere**: Streak calculation, formatDate, weekly data, achievements - any place that parses timestamps
+- **Debug Strategy**: Comprehensive logging with `🔥 STREAK DEBUG:` and `🕐 FRONTEND DEBUG:` to trace timestamp parsing through the entire flow
+- **Result**: Sessions now correctly display in user's local time (9:41 PM PT) and streak calculation works properly
 
 ---
 
@@ -111,13 +117,20 @@ We successfully fixed a complex registration system that was failing due to data
 4. **Email confirmation flow**: Don't auto-login users who need to confirm email first
 
 ### **Timezone & Date Handling**
-1. **Database timestamps are UTC**: Modern databases store timestamps in UTC by default
-2. **JavaScript Date() methods default to local timezone**: `getFullYear()`, `getMonth()`, `getDate()` convert UTC to user's local time
-3. **Date comparison consistency**: When comparing dates from database with "today", use same timezone for both:
-   - **UTC approach**: `getUTCFullYear()`, `getUTCMonth()`, `getUTCDate()` for all dates
-   - **Local approach**: Only works if database also stores in local time (not recommended)
-4. **Debugging date issues**: Always log the exact date strings being compared, timezone differences can be subtle
-5. **Timezone arithmetic**: Use `setUTCDate()` for date math when working with UTC dates
+1. **Database timestamps are UTC but lose timezone info**: PostgreSQL stores UTC correctly but strips 'Z' suffix when returning timestamps
+2. **JavaScript Date parsing is timezone-sensitive**: `new Date('2025-08-05T04:41:05.427')` = local time, `new Date('2025-08-05T04:41:05.427Z')` = UTC time
+3. **CRITICAL**: Always ensure UTC timestamps have timezone indicators:
+   ```javascript
+   // Add Z suffix if missing to force UTC parsing
+   let timestamp = dbTimestamp;
+   if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
+     timestamp = timestamp + 'Z';
+   }
+   const date = new Date(timestamp);
+   ```
+4. **Date comparison consistency**: After forcing UTC parsing, JavaScript's standard methods work correctly for local display
+5. **Debugging date issues**: Log raw timestamps AND parsed Date objects to catch timezone parsing errors
+6. **PostgreSQL `timestamptz`**: Use `withTimezone: true` in schema to preserve timezone info (though it may still strip on return)
 
 ---
 
@@ -167,6 +180,8 @@ We successfully fixed a complex registration system that was failing due to data
 - Features working for some users but not others → Timezone-dependent bugs  
 - Dates off by one day → UTC vs local timezone conversion errors
 - Console shows dates like "2025-08-03 vs 2025-08-02" → Classic timezone mismatch pattern
+- **Sessions display wrong local time**: User's 9:41 PM shows as 4:41 AM → Database stripping 'Z' suffix from UTC timestamps
+- **Time appears to "shift" wrong direction**: UTC time being parsed as local → Immediate red flag for missing timezone indicator
 
 ---
 
