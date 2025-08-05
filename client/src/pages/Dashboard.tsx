@@ -182,14 +182,31 @@ export default function Dashboard() {
                     // JavaScript incorrectly interprets these as local time
                     // Force parsing as UTC by adding 'Z' if missing
                     let timestamp = session.completedAt!;
-                    if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
-                      timestamp = timestamp + 'Z';
-                    }
-                    const sessionDate = new Date(timestamp);
                     
                     // DETAILED DEBUG: Check what's happening with date parsing (only for first session to avoid spam)
                     if (i === 0) {
                       console.log('🔥 STREAK DEBUG: Raw timestamp (first session):', session.completedAt);
+                      console.log('🔥 STREAK DEBUG: Timestamp type:', typeof timestamp);
+                      console.log('🔥 STREAK DEBUG: Ends with Z?', timestamp.endsWith('Z'));
+                      console.log('🔥 STREAK DEBUG: Includes +?', timestamp.includes('+'));
+                      console.log('🔥 STREAK DEBUG: Includes -?', timestamp.includes('-'));
+                      console.log('🔥 STREAK DEBUG: Should add Z?', !timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-'));
+                    }
+                    
+                    if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
+                      timestamp = timestamp + 'Z';
+                      if (i === 0) {
+                        console.log('🔥 STREAK DEBUG: Added Z suffix!');
+                      }
+                    } else {
+                      if (i === 0) {
+                        console.log('🔥 STREAK DEBUG: Did NOT add Z suffix');
+                      }
+                    }
+                    
+                    const sessionDate = new Date(timestamp);
+                    
+                    if (i === 0) {
                       console.log('🔥 STREAK DEBUG: Corrected timestamp:', timestamp);
                       console.log('🔥 STREAK DEBUG: Parsed Date object (first session):', sessionDate);
                       console.log('🔥 STREAK DEBUG: Local time string:', sessionDate.toString());
