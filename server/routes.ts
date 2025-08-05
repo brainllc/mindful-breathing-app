@@ -398,9 +398,23 @@ export function registerRoutes(app: Express): Express {
           user_id: data.user.id,
         });
 
+        // Convert snake_case to camelCase for frontend compatibility
+        const userForFrontend = {
+          id: newUser.id,
+          email: newUser.email,
+          displayName: newUser.display_name,
+          isPremium: newUser.is_premium,
+          isAgeVerified: newUser.is_age_verified,
+          acceptedTermsAt: newUser.accepted_terms_at,
+          acceptedPrivacyAt: newUser.accepted_privacy_at,
+          createdAt: newUser.created_at,
+          updatedAt: newUser.updated_at,
+          lastLoginAt: newUser.last_login_at,
+        };
+
         return res.json({
           session: data.session,
-          user: newUser,
+          user: userForFrontend,
         });
       }
 
@@ -410,9 +424,23 @@ export function registerRoutes(app: Express): Express {
         .update({ last_login_at: new Date().toISOString() })
         .eq('id', data.user.id);
 
+      // Convert snake_case to camelCase for frontend compatibility
+      const userForFrontend = {
+        id: userProfile.id,
+        email: userProfile.email,
+        displayName: userProfile.display_name,
+        isPremium: userProfile.is_premium,
+        isAgeVerified: userProfile.is_age_verified,
+        acceptedTermsAt: userProfile.accepted_terms_at,
+        acceptedPrivacyAt: userProfile.accepted_privacy_at,
+        createdAt: userProfile.created_at,
+        updatedAt: userProfile.updated_at,
+        lastLoginAt: userProfile.last_login_at,
+      };
+
       res.json({
         session: data.session,
-        user: userProfile,
+        user: userForFrontend,
       });
     } catch (error) {
       console.error("Login error:", error);
@@ -583,9 +611,21 @@ export function registerRoutes(app: Express): Express {
         return res.status(404).json({ error: "User profile not found" });
       }
 
-      // Don't send sensitive data
-      const { hashedPassword, ...safeProfile } = userProfile;
-      res.json(safeProfile);
+      // Convert snake_case to camelCase for frontend compatibility
+      const userForFrontend = {
+        id: userProfile.id,
+        email: userProfile.email,
+        displayName: userProfile.display_name,
+        isPremium: userProfile.is_premium,
+        isAgeVerified: userProfile.is_age_verified,
+        acceptedTermsAt: userProfile.accepted_terms_at,
+        acceptedPrivacyAt: userProfile.accepted_privacy_at,
+        createdAt: userProfile.created_at,
+        updatedAt: userProfile.updated_at,
+        lastLoginAt: userProfile.last_login_at,
+      };
+      
+      res.json(userForFrontend);
     } catch (error) {
       next(error);
     }
@@ -621,11 +661,23 @@ export function registerRoutes(app: Express): Express {
         return res.status(404).json({ error: "User not found" });
       }
 
-      // Don't send sensitive data
-      const { hashedPassword, ...safeProfile } = updatedUser;
+      // Convert snake_case to camelCase for frontend compatibility
+      const userForFrontend = {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        displayName: updatedUser.display_name,
+        isPremium: updatedUser.is_premium,
+        isAgeVerified: updatedUser.is_age_verified,
+        acceptedTermsAt: updatedUser.accepted_terms_at,
+        acceptedPrivacyAt: updatedUser.accepted_privacy_at,
+        createdAt: updatedUser.created_at,
+        updatedAt: updatedUser.updated_at,
+        lastLoginAt: updatedUser.last_login_at,
+      };
+
       res.json({
         message: "Profile updated successfully",
-        user: safeProfile
+        user: userForFrontend
       });
     } catch (error) {
       next(error);
