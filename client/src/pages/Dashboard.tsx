@@ -183,17 +183,21 @@ export default function Dashboard() {
                     // Force parsing as UTC by adding 'Z' if missing
                     let timestamp = session.completedAt!;
                     
+                    // Check if timestamp has timezone info (Z, +XX:XX, or -XX:XX at the end)
+                    const hasTimezone = timestamp.endsWith('Z') || 
+                                       timestamp.match(/[+-]\d{2}:\d{2}$/) || 
+                                       timestamp.match(/[+-]\d{4}$/);
+                    
                     // DETAILED DEBUG: Check what's happening with date parsing (only for first session to avoid spam)
                     if (i === 0) {
                       console.log('🔥 STREAK DEBUG: Raw timestamp (first session):', session.completedAt);
                       console.log('🔥 STREAK DEBUG: Timestamp type:', typeof timestamp);
                       console.log('🔥 STREAK DEBUG: Ends with Z?', timestamp.endsWith('Z'));
-                      console.log('🔥 STREAK DEBUG: Includes +?', timestamp.includes('+'));
-                      console.log('🔥 STREAK DEBUG: Includes -?', timestamp.includes('-'));
-                      console.log('🔥 STREAK DEBUG: Should add Z?', !timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-'));
+                      console.log('🔥 STREAK DEBUG: Has timezone offset?', timestamp.match(/[+-]\d{2}:\d{2}$/) || timestamp.match(/[+-]\d{4}$/));
+                      console.log('🔥 STREAK DEBUG: Has any timezone indicator?', hasTimezone);
                     }
                     
-                    if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
+                    if (!hasTimezone) {
                       timestamp = timestamp + 'Z';
                       if (i === 0) {
                         console.log('🔥 STREAK DEBUG: Added Z suffix!');
@@ -332,7 +336,10 @@ export default function Dashboard() {
       try {
         // CRITICAL FIX: Force UTC parsing by adding 'Z' if missing
         let timestamp = session.completedAt!;
-        if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
+        const hasTimezone = timestamp.endsWith('Z') || 
+                           timestamp.match(/[+-]\d{2}:\d{2}$/) || 
+                           timestamp.match(/[+-]\d{4}$/);
+        if (!hasTimezone) {
           timestamp = timestamp + 'Z';
         }
         const sessionDate = new Date(timestamp);
@@ -403,7 +410,10 @@ export default function Dashboard() {
       if (!session.completed || !session.completedAt) return false;
       // CRITICAL FIX: Force UTC parsing by adding 'Z' if missing
       let timestamp = session.completedAt;
-      if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
+      const hasTimezone = timestamp.endsWith('Z') || 
+                         timestamp.match(/[+-]\d{2}:\d{2}$/) || 
+                         timestamp.match(/[+-]\d{4}$/);
+      if (!hasTimezone) {
         timestamp = timestamp + 'Z';
       }
       return new Date(timestamp) > oneWeekAgo;
@@ -420,7 +430,10 @@ export default function Dashboard() {
       if (!session.completed || !session.completedAt) return false;
       // CRITICAL FIX: Force UTC parsing by adding 'Z' if missing
       let timestamp = session.completedAt;
-      if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
+      const hasTimezone = timestamp.endsWith('Z') || 
+                         timestamp.match(/[+-]\d{2}:\d{2}$/) || 
+                         timestamp.match(/[+-]\d{4}$/);
+      if (!hasTimezone) {
         timestamp = timestamp + 'Z';
       }
       return new Date(timestamp) > thirtyDaysAgo;
@@ -442,7 +455,10 @@ export default function Dashboard() {
       try {
         // CRITICAL FIX: Force UTC parsing by adding 'Z' if missing
         let timestamp = session.completedAt!;
-        if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
+        const hasTimezone = timestamp.endsWith('Z') || 
+                           timestamp.match(/[+-]\d{2}:\d{2}$/) || 
+                           timestamp.match(/[+-]\d{4}$/);
+        if (!hasTimezone) {
           timestamp = timestamp + 'Z';
         }
         const sessionDate = new Date(timestamp);
@@ -494,7 +510,10 @@ export default function Dashboard() {
         try {      
           // CRITICAL FIX: Force UTC parsing by adding 'Z' if missing
           let timestamp = session.completedAt;
-          if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
+          const hasTimezone = timestamp.endsWith('Z') || 
+                             timestamp.match(/[+-]\d{2}:\d{2}$/) || 
+                             timestamp.match(/[+-]\d{4}$/);
+          if (!hasTimezone) {
             timestamp = timestamp + 'Z';
           }
           const sessionDate = new Date(timestamp);
@@ -586,7 +605,10 @@ export default function Dashboard() {
         try {
           // CRITICAL FIX: Force UTC parsing by adding 'Z' if missing
           let timestamp = session.completedAt;
-          if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
+          const hasTimezone = timestamp.endsWith('Z') || 
+                             timestamp.match(/[+-]\d{2}:\d{2}$/) || 
+                             timestamp.match(/[+-]\d{4}$/);
+          if (!hasTimezone) {
             timestamp = timestamp + 'Z';
           }
           const dayOfWeek = new Date(timestamp).getDay();
@@ -620,7 +642,10 @@ export default function Dashboard() {
       
       // CRITICAL FIX: Force UTC parsing by adding 'Z' if missing
       let timestamp = dateStr;
-      if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
+      const hasTimezone = timestamp.endsWith('Z') || 
+                         timestamp.match(/[+-]\d{2}:\d{2}$/) || 
+                         timestamp.match(/[+-]\d{4}$/);
+      if (!hasTimezone) {
         timestamp = timestamp + 'Z';
       }
       const date = new Date(timestamp);
