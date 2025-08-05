@@ -173,26 +173,33 @@ export default function Dashboard() {
       return 0;
     }
     
-                    // Group sessions by date to handle multiple sessions per day (use local timezone)
+                    // Group sessions by date to handle multiple sessions per day (UTC to local conversion)
                 const sessionsByDate = new Map<string, number>();
                 for (let i = 0; i < completedSessions.length; i++) {
                   const session = completedSessions[i];
                   try {
-                    // Parse timestamp as-is (will be interpreted in user's local timezone)
-                    const sessionDate = new Date(session.completedAt!);
+                    // CRITICAL FIX: Database returns UTC timestamps without 'Z' suffix
+                    // JavaScript incorrectly interprets these as local time
+                    // Force parsing as UTC by adding 'Z' if missing
+                    let timestamp = session.completedAt!;
+                    if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
+                      timestamp = timestamp + 'Z';
+                    }
+                    const sessionDate = new Date(timestamp);
                     
                     // DETAILED DEBUG: Check what's happening with date parsing (only for first session to avoid spam)
                     if (i === 0) {
                       console.log('🔥 STREAK DEBUG: Raw timestamp (first session):', session.completedAt);
+                      console.log('🔥 STREAK DEBUG: Corrected timestamp:', timestamp);
                       console.log('🔥 STREAK DEBUG: Parsed Date object (first session):', sessionDate);
                       console.log('🔥 STREAK DEBUG: Local time string:', sessionDate.toString());
                       console.log('🔥 STREAK DEBUG: ISO string:', sessionDate.toISOString());
-                      console.log('🔥 STREAK DEBUG: User timezone offset (minutes):', sessionDate.getTimezoneOffset());
                     }
                     
-                    // IMPORTANT: Use LOCAL dates for streak calculation (user's calendar days)
+                    // IMPORTANT: Convert UTC timestamp to user's local calendar day for streak calculation
+                    // sessionDate is now correctly parsed as UTC, convert to local components
                     const year = sessionDate.getFullYear();
-                    const month = sessionDate.getMonth() + 1; // getMonth() returns 0-11, so add 1
+                    const month = sessionDate.getMonth() + 1; // getMonth() returns 0-11, so add 1  
                     const day = sessionDate.getDate();
                     
                     if (i === 0) {
@@ -302,12 +309,16 @@ export default function Dashboard() {
       return 0;
     }
     
-    // Group sessions by date (use local timezone)
+    // Group sessions by date (UTC to local conversion)
     const sessionsByDate = new Map<string, number>();
     for (const session of completedSessions) {
       try {
-        // Parse timestamp as-is (will be interpreted in user's local timezone)  
-        const sessionDate = new Date(session.completedAt!);
+        // CRITICAL FIX: Force UTC parsing by adding 'Z' if missing
+        let timestamp = session.completedAt!;
+        if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
+          timestamp = timestamp + 'Z';
+        }
+        const sessionDate = new Date(timestamp);
         const year = sessionDate.getFullYear();
         const month = sessionDate.getMonth() + 1;
         const day = sessionDate.getDate();
@@ -373,8 +384,12 @@ export default function Dashboard() {
   const thisWeekSessions = recentSessions.filter(session => {
     try {
       if (!session.completed || !session.completedAt) return false;
-      // Parse timestamp as-is (will be interpreted in user's local timezone)
-      return new Date(session.completedAt) > oneWeekAgo;
+      // CRITICAL FIX: Force UTC parsing by adding 'Z' if missing
+      let timestamp = session.completedAt;
+      if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
+        timestamp = timestamp + 'Z';
+      }
+      return new Date(timestamp) > oneWeekAgo;
     } catch (error) {
       return false;
     }
@@ -386,8 +401,12 @@ export default function Dashboard() {
   const last30DaysSessions = recentSessions.filter(session => {
     try {
       if (!session.completed || !session.completedAt) return false;
-      // Parse timestamp as-is (will be interpreted in user's local timezone)
-      return new Date(session.completedAt) > thirtyDaysAgo;
+      // CRITICAL FIX: Force UTC parsing by adding 'Z' if missing
+      let timestamp = session.completedAt;
+      if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
+        timestamp = timestamp + 'Z';
+      }
+      return new Date(timestamp) > thirtyDaysAgo;
     } catch (error) {
       return false;
     }
@@ -404,8 +423,12 @@ export default function Dashboard() {
     // Get the earliest session date
     const firstSessionDate = allCompletedSessions.reduce((earliest, session) => {
       try {
-        // Parse timestamp as-is (will be interpreted in user's local timezone)
-        const sessionDate = new Date(session.completedAt!);
+        // CRITICAL FIX: Force UTC parsing by adding 'Z' if missing
+        let timestamp = session.completedAt!;
+        if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
+          timestamp = timestamp + 'Z';
+        }
+        const sessionDate = new Date(timestamp);
         return sessionDate < earliest ? sessionDate : earliest;
       } catch (error) {
         return earliest;
@@ -452,8 +475,12 @@ export default function Dashboard() {
     recentSessions.forEach(session => {
       if (session.completed && session.completedAt && session.completedAt !== null) {
         try {      
-          // Parse timestamp as-is and format to local date string
-          const sessionDate = new Date(session.completedAt);
+          // CRITICAL FIX: Force UTC parsing by adding 'Z' if missing
+          let timestamp = session.completedAt;
+          if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
+            timestamp = timestamp + 'Z';
+          }
+          const sessionDate = new Date(timestamp);
           const year = sessionDate.getFullYear();
           const month = String(sessionDate.getMonth() + 1).padStart(2, '0');
           const day = String(sessionDate.getDate()).padStart(2, '0');
@@ -540,8 +567,12 @@ export default function Dashboard() {
     recentSessions.forEach(session => {
       if (session.completed && session.completedAt) {
         try {
-          // Parse timestamp as-is (will be interpreted in user's local timezone)
-          const dayOfWeek = new Date(session.completedAt).getDay();
+          // CRITICAL FIX: Force UTC parsing by adding 'Z' if missing
+          let timestamp = session.completedAt;
+          if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
+            timestamp = timestamp + 'Z';
+          }
+          const dayOfWeek = new Date(timestamp).getDay();
           daySessionCounts[dayOfWeek]++;
         } catch (error) {
           console.warn('Invalid date in session for day calculation:', session.completedAt);
@@ -570,9 +601,15 @@ export default function Dashboard() {
         type: typeof dateStr
       });
       
-      const date = new Date(dateStr);
+      // CRITICAL FIX: Force UTC parsing by adding 'Z' if missing
+      let timestamp = dateStr;
+      if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
+        timestamp = timestamp + 'Z';
+      }
+      const date = new Date(timestamp);
       
       console.log('🕐 FRONTEND DEBUG: formatDate parsed:', {
+        correctedTimestamp: timestamp,
         dateObj: date,
         toISOString: date.toISOString(),
         toString: date.toString(),
@@ -580,7 +617,7 @@ export default function Dashboard() {
         timezoneOffset: date.getTimezoneOffset()
       });
       
-      // Format in user's local timezone
+      // Format in user's local timezone (UTC timestamp converted to local display)
       const formatted = date.toLocaleDateString('en-US', { 
         month: 'short', 
         day: 'numeric',
