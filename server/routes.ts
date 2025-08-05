@@ -758,7 +758,7 @@ export function registerRoutes(app: Express): Express {
           moodAfter,
           notes,
           completed: true,
-          completedAt: new Date()
+          completedAt: new Date().toISOString()
         })
         .where(and(
           eq(exerciseSessions.id, parseInt(sessionId)),
