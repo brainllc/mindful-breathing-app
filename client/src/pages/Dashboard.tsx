@@ -38,13 +38,11 @@ export default function Dashboard() {
   const [recentSessions, setRecentSessions] = useState<ExerciseSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [achievementsExpanded, setAchievementsExpanded] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-
   const fetchDashboardData = useCallback(async () => {
     if (!user) return;
 
     try {
-      setRefreshing(true);
+      setLoading(true);
       const storedSession = localStorage.getItem('supabase.auth.token');
       if (!storedSession) return;
       
@@ -91,7 +89,6 @@ export default function Dashboard() {
       console.error('Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   }, [user]);
 
@@ -132,16 +129,10 @@ export default function Dashboard() {
     };
   }, [user, fetchDashboardData]);
 
-  // Manual refresh function for debugging
-  const handleManualRefresh = async () => {
-    console.log('🔄 Manual refresh triggered');
-    await fetchDashboardData();
-  };
+
 
   // Calculate current streak (consecutive days with sessions) - using useMemo to prevent recalculation
   const currentStreak = useMemo(() => {
-    console.log('🔥 STREAK DEBUG: Starting calculation with', recentSessions.length, 'sessions');
-    console.log('🔥 STREAK DEBUG: All sessions:', recentSessions.map(s => ({ id: s.id, completed: s.completed, completedAt: s.completedAt, exerciseId: s.exerciseId })));
     
     // Helper function to format date in local timezone as YYYY-MM-DD
     const formatLocalDate = (date: Date): string => {
@@ -717,17 +708,6 @@ export default function Dashboard() {
             <p className="text-xl text-muted-foreground leading-relaxed">
               Here's your breathing journey progress
             </p>
-            {/* Debug refresh button */}
-            <button
-              onClick={handleManualRefresh}
-              disabled={refreshing}
-              className="absolute top-0 right-0 p-2 text-muted-foreground hover:text-primary transition-colors rounded-lg hover:bg-muted/50"
-              title="Refresh dashboard data"
-            >
-              <svg className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-            </button>
           </motion.header>
 
           <div className="max-w-7xl mx-auto space-y-12">
@@ -790,9 +770,15 @@ export default function Dashboard() {
                 <CardContent>
                   <div className="text-center">
                     <div className="text-4xl font-bold text-orange-600 mb-2">
-                      {currentStreak} {currentStreak === 1 ? 'day' : 'days'}
+                      {loading ? (
+                        <div className="animate-pulse bg-muted rounded w-24 h-10 mx-auto"></div>
+                      ) : (
+                        `${currentStreak} ${currentStreak === 1 ? 'day' : 'days'}`
+                      )}
                     </div>
-                    {currentStreak > 0 ? (
+                    {loading ? (
+                      <div className="animate-pulse bg-muted rounded w-32 h-4 mx-auto mb-2"></div>
+                    ) : currentStreak > 0 ? (
                       <p className="text-sm text-muted-foreground mb-2">
                         Keep it going! 🔥
                       </p>
@@ -827,9 +813,19 @@ export default function Dashboard() {
                   <Activity className="h-5 w-5 text-primary/60" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-primary">{stats?.totalSessions || 0}</div>
+                  <div className="text-3xl font-bold text-primary">
+                    {loading ? (
+                      <div className="animate-pulse bg-muted rounded w-16 h-8"></div>
+                    ) : (
+                      stats?.totalSessions || 0
+                    )}
+                  </div>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {stats?.totalMinutes || 0} total minutes
+                    {loading ? (
+                      <div className="animate-pulse bg-muted rounded w-24 h-4"></div>
+                    ) : (
+                      `${stats?.totalMinutes || 0} total minutes`
+                    )}
                   </p>
                 </CardContent>
               </Card>
@@ -853,7 +849,13 @@ export default function Dashboard() {
                   <Target className="h-5 w-5 text-green-500" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-green-600">{stats?.totalRounds || 0}</div>
+                  <div className="text-3xl font-bold text-green-600">
+                    {loading ? (
+                      <div className="animate-pulse bg-muted rounded w-16 h-8"></div>
+                    ) : (
+                      stats?.totalRounds || 0
+                    )}
+                  </div>
                   <p className="text-sm text-muted-foreground mt-1">
                     breathing rounds
                   </p>
