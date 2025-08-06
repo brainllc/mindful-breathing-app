@@ -3,10 +3,6 @@
   "outputDirectory": "dist/public",
   "routes": [
     {
-      "src": "/api/auth/(.*)",
-      "dest": "/api/index"
-    },
-    {
       "src": "/api/(.*)",
       "dest": "/api/index"
     },
