@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { calculateCurrentStreak } from "@/lib/streaks";
 
 import { 
   User, 
@@ -36,12 +37,27 @@ interface UserStats {
   lastSessionDate: string;
 }
 
+interface ExerciseSession {
+  id: number;
+  exerciseId: string;
+  rounds: number;
+  roundsCompleted: number | null;
+  durationSeconds: number | null;
+  completed: boolean;
+  startedAt: string;
+  completedAt: string | null;
+  moodBefore: string | null;
+  moodAfter: string | null;
+  notes: string | null;
+}
+
 export default function Profile() {
   const { user, logout, login, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [userStats, setUserStats] = useState<UserStats | null>(null);
+  const [sessionHistory, setSessionHistory] = useState<ExerciseSession[]>([]);
   const [isOAuthUser, setIsOAuthUser] = useState(false);
   const [formData, setFormData] = useState({
     displayName: user?.displayName || "",
@@ -58,6 +74,11 @@ export default function Profile() {
     new: false,
     confirm: false
   });
+
+  // Calculate current streak using the same logic as Dashboard
+  const currentStreak = useMemo(() => {
+    return calculateCurrentStreak(sessionHistory);
+  }, [sessionHistory]);
 
   // Fetch user stats and check OAuth status
   useEffect(() => {
@@ -80,6 +101,18 @@ export default function Profile() {
           if (response.ok) {
             const stats = await response.json();
             setUserStats(stats);
+          }
+
+          // Fetch session history for streak calculation
+          const historyResponse = await fetch("/api/exercises/history", {
+            headers: {
+              "Authorization": `Bearer ${session.access_token}`,
+            },
+          });
+
+          if (historyResponse.ok) {
+            const history = await historyResponse.json();
+            setSessionHistory(history);
           }
         }
       } catch (error) {
@@ -600,7 +633,7 @@ export default function Profile() {
                       </div>
 
                       <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                        <div className="text-2xl font-bold text-green-600">{userStats.currentStreak}</div>
+                        <div className="text-2xl font-bold text-green-600">{currentStreak}</div>
                         <div className="text-sm text-muted-foreground">Day Streak</div>
                       </div>
 
