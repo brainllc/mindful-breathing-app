@@ -151,8 +151,8 @@ export default function ResetPassword() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <Alert>
-                  <CheckCircle className="h-4 w-4" />
                   <AlertDescription>
+                    <CheckCircle className="h-4 w-4" />
                     Redirecting you to the login page in a few seconds...
                   </AlertDescription>
                 </Alert>
