@@ -12,3 +12,36 @@ breathwork.fyi next steps (create a .md doc for cursor to see these next steps).
 * Welcome to The 5-Minute Reset. This guide was created by the experts at breathwork.fyi to give you simple, powerful, and science-backed techniques to take back control of your well-being. In the next 10 minutes, you will learn a set of tools that can shift you from a state of stress to a state of calm in as little as 60 seconds. No experience, special equipment, or lengthy time commitment required.
 * You're about to discover how to consciously use your breath to reduce anxiety, sharpen your focus, and prepare your body for restful sleep. Your journey to a calmer, more centered you starts now.
 
+## Recent Fixes & Learnings
+
+### Session Completion Issue (Fixed ✅)
+**Problem**: Sessions were being started but not completed properly, causing:
+- Stats not updating after exercises
+- "In progress" sessions never marked as completed
+- Streak calculations failing
+
+**Root Cause**: Frontend was looking for `sessionData.sessionId` but backend returned `sessionData.id`
+
+**Solution**: Changed frontend to use `sessionData.id` instead of `sessionData.sessionId`
+
+**Key Learning**: Always verify API response structure matches frontend expectations
+
+### Streak Calculation Consistency (Fixed ✅)
+**Problem**: Dashboard showed streak = 1, but User Settings showed streak = 0
+
+**Root Cause**: 
+- Dashboard calculated streaks dynamically from session history
+- User Settings used stale `currentStreak` field from database that was never updated
+
+**Solution**: 
+1. Created shared streak calculation utility (`client/src/lib/streaks.ts`)
+2. Updated both Dashboard and Profile pages to use same calculation logic
+3. Both now fetch session history and calculate streaks in real-time
+
+**Key Learning**: Avoid duplicate logic across components - create shared utilities for consistency
+
+### Password Update Timestamp Issue (In Progress 🔄)
+**Problem**: Profile page shows "Last updated 30 days ago" even after recent password changes
+
+**Next**: Investigate password update tracking in backend
+

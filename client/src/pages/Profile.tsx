@@ -35,6 +35,7 @@ interface UserStats {
   favoriteExercise: string;
   joinedDate: string;
   lastSessionDate: string;
+  passwordUpdatedAt?: string | null;
 }
 
 interface ExerciseSession {
@@ -79,6 +80,26 @@ export default function Profile() {
   const currentStreak = useMemo(() => {
     return calculateCurrentStreak(sessionHistory);
   }, [sessionHistory]);
+
+  // Format relative time for password updates
+  const formatRelativeTime = (dateString: string | null) => {
+    if (!dateString) return "Never updated";
+    
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    
+    if (diffInMinutes < 1) return "Just now";
+    if (diffInMinutes < 60) return `${diffInMinutes} minute${diffInMinutes === 1 ? '' : 's'} ago`;
+    if (diffInHours < 24) return `${diffInHours} hour${diffInHours === 1 ? '' : 's'} ago`;
+    if (diffInDays < 30) return `${diffInDays} day${diffInDays === 1 ? '' : 's'} ago`;
+    
+    const diffInMonths = Math.floor(diffInDays / 30);
+    return `${diffInMonths} month${diffInMonths === 1 ? '' : 's'} ago`;
+  };
 
   // Fetch user stats and check OAuth status
   useEffect(() => {
@@ -473,7 +494,9 @@ export default function Profile() {
                         <Lock className="h-5 w-5 text-muted-foreground" />
                         <div>
                           <p className="font-medium">Password</p>
-                          <p className="text-sm text-muted-foreground">Last updated 30 days ago</p>
+                          <p className="text-sm text-muted-foreground">
+                            Last updated {formatRelativeTime(userStats?.passwordUpdatedAt || null)}
+                          </p>
                         </div>
                       </div>
                       <Button variant="outline" size="sm" onClick={() => setIsChangingPassword(true)}>

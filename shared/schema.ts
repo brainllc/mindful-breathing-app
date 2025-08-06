@@ -29,6 +29,7 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   lastLoginAt: timestamp("last_login_at"),
+  passwordUpdatedAt: timestamp("password_updated_at"),
   
   // Legacy fields (keep for compatibility)
   currentExercise: text("current_exercise"),

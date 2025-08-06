@@ -550,6 +550,19 @@ export function registerRoutes(app: Express): Express {
         return res.status(400).json({ error: error.message });
       }
 
+      // Update password timestamp in our database
+      try {
+        await db.update(users)
+          .set({ 
+            passwordUpdatedAt: new Date(),
+            updatedAt: new Date()
+          })
+          .where(eq(users.id, req.user.id));
+      } catch (dbError) {
+        console.error('Failed to update password timestamp:', dbError);
+        // Don't fail the request if this fails
+      }
+
       res.json({ message: "Password changed successfully" });
     } catch (error) {
       next(error);
@@ -776,6 +789,7 @@ export function registerRoutes(app: Express): Express {
           ...newStats[0],
           joinedDate: userInfo?.createdAt?.toISOString() || new Date().toISOString(),
           lastSessionDate: null,
+          passwordUpdatedAt: userInfo?.passwordUpdatedAt?.toISOString() || null,
         });
       }
 
@@ -786,6 +800,7 @@ export function registerRoutes(app: Express): Express {
         ...stats,
         joinedDate: userInfo?.createdAt?.toISOString() || new Date().toISOString(),
         lastSessionDate: stats.lastSessionAt?.toISOString() || null,
+        passwordUpdatedAt: userInfo?.passwordUpdatedAt?.toISOString() || null,
       });
     } catch (error) {
       next(error);
