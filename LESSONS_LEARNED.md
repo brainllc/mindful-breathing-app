@@ -136,6 +136,61 @@ We successfully fixed a complex registration system that was failing due to data
 - **Result**: Display name changes now persist correctly for ALL users across ALL login methods
 - **Prevention**: When mixing database clients (Drizzle + Supabase), always ensure consistent field name mapping in API responses
 
+### 11. **PDF Download Returns HTML - Vercel Routing Conflicts (CRITICAL)**
+- **Problem**: Users clicking "Download Your Guide Now" button were getting `index.html` instead of the actual PDF file. API endpoints were also returning 404 errors.
+- **Symptoms**:
+  - Download button downloads `index.html` instead of PDF
+  - Console errors: `Failed to load resource: the server responded with a status of 404 ()` for `/api/track-download`
+  - Browser tries to parse PDF as JavaScript module: `Expected a JavaScript-or-Wasm module script but the server responded with a MIME type of "application/octet-stream"`
+- **Root Cause Discovery**: **Vercel routing configuration conflicts**
+  - **Catch-all route too broad**: `"src": "/(.*)", "dest": "/index.html"` was intercepting PDF requests before Express handlers could process them
+  - **API routing misconfigured**: Routes like `/api/track-download` weren't reaching the Express app
+  - **Route processing order**: Vercel processes routes sequentially, so broad patterns must come AFTER specific ones
+- **Failed debugging attempts**:
+  - Added Express route handlers for PDF (correct approach but blocked by Vercel config)
+  - Checked static file serving (wasn't the issue)
+  - Initially thought it was a server-side problem (was actually routing configuration)
+- **Winning Solution**: **Fix Vercel routing order and specificity in vercel.json**
+  ```json
+  {
+    "routes": [
+      {
+        "src": "/api/(.*)",
+        "dest": "/api/index"  // All API requests → Express app
+      },
+      {
+        "src": "/stress-guide\\.pdf$", 
+        "dest": "/api/index"  // PDF requests → Express handler
+      },
+      {
+        "src": "/(.*)",
+        "dest": "/index.html"  // Everything else → SPA
+      }
+    ]
+  }
+  ```
+- **Key changes**:
+  - **Fixed API routing**: All `/api/*` requests now route to Express app (not `/api/$1`)
+  - **Added specific PDF route**: `/stress-guide.pdf` routes to Express before catch-all
+  - **Maintained route order**: Specific routes before broad catch-all
+- **Express handlers working correctly**:
+  ```javascript
+  // PDF download with proper headers
+  app.get("/stress-guide.pdf", (req, res) => {
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", "attachment; filename=5-Minute-Reset-Stress-Guide.pdf");
+    // ... stream file
+  });
+  
+  // Download tracking API
+  app.post("/api/track-download", (req, res) => {
+    // ... track download
+  });
+  ```
+- **Debug Strategy**: Checked Vercel routing logs and traced how requests were being routed vs where they needed to go
+- **Result**: PDF downloads work correctly, tracking API responds, proper file downloads with correct names
+- **Prevention**: Always put specific routes BEFORE catch-all routes in vercel.json, test file downloads in production environment
+
 ---
 
 ## 🧠 **Key Technical Insights**
@@ -202,8 +257,10 @@ We successfully fixed a complex registration system that was failing due to data
 
 ### **Database Issues**
 - Any `SASL_` or `SSL_` errors → Connection/authentication problems
+- `SASL_SIGNATURE_MISMATCH` specifically → PostgreSQL client not configured for Supabase/serverless environment
 - `Connection timeout` → Network or configuration issues
 - `ERR_MODULE_NOT_FOUND` with database imports → Build/dependency issues
+- **Dashboard showing all zeros with 500 API errors** → Database connection configuration issue in serverless deployment
 
 ### **Vercel Deployment Issues**
 - Build succeeds but functions fail → Runtime environment differences
@@ -228,6 +285,12 @@ We successfully fixed a complex registration system that was failing due to data
 - **Frontend accessing `undefined` fields**: API returns `display_name` but frontend expects `displayName` → Mixed camelCase/snake_case
 - **OAuth vs regular login behaving differently**: Same underlying issue manifesting in different auth flows → Inconsistent API response formatting
 - **Profile updates work but login doesn't load them**: Different routes using different database clients (Drizzle vs Supabase) with different field naming conventions
+
+### **Vercel Routing & File Download Issues**
+- **Download buttons return HTML instead of files**: Catch-all routes intercepting specific file requests → Vercel routing order problem
+- **API endpoints return 404 in production but work locally**: Routes not properly configured for serverless deployment → Check vercel.json routing
+- **"Expected JavaScript module but got different MIME type"**: Browser trying to parse non-JS files as modules → File routing/MIME type issue
+- **Static files download as wrong type**: Missing or incorrect Content-Type headers → Need specific route handlers for file downloads
 
 ---
 
@@ -261,6 +324,29 @@ We successfully fixed a complex registration system that was failing due to data
 3. **Test both auth flows**: OAuth and regular login may use different routes with different field naming
 4. **Check frontend expectations**: Verify what field names the frontend code is actually accessing
 5. **Trace the data flow**: Follow user data from database → API response → frontend state → UI display
+
+### **Debugging Database Connection Issues (SASL_SIGNATURE_MISMATCH)**
+1. **Check Vercel logs first**: Look for specific `SASL_SIGNATURE_MISMATCH` errors in function logs
+2. **Verify environment variables**: Ensure `DATABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are set in all environments
+3. **Review PostgreSQL client config**: For Supabase + Vercel, ensure proper SSL and connection settings:
+   ```javascript
+   const client = postgres(connectionString, {
+     ssl: 'require',
+     max: 1, // Critical for serverless
+     idle_timeout: 20,
+     connect_timeout: 10,
+   });
+   ```
+4. **Test locally vs production**: Connection issues often manifest only in production serverless environment
+5. **Check connection string format**: Ensure using correct Supabase database URL format
+
+### **Debugging Vercel Routing & File Download Issues**
+1. **Check route order in vercel.json**: Specific routes must come BEFORE catch-all routes like `"src": "/(.*)", "dest": "/index.html"`
+2. **Test in production environment**: Local development may work fine while production fails due to routing differences
+3. **Verify API routing**: Ensure all `/api/*` requests route to your Express app with `"dest": "/api/index"`
+4. **Check browser network tab**: Look for 404s, wrong MIME types, or HTML responses where files expected
+5. **Add console logging**: Log which routes are being hit and what they're returning
+6. **Test file downloads directly**: Try accessing PDF/file URLs directly in browser to isolate routing vs handler issues
 
 ---
 
