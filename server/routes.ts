@@ -398,18 +398,18 @@ export function registerRoutes(app: Express): Express {
           user_id: data.user.id,
         });
 
-        // User data is already in camelCase from Drizzle
+        // Convert snake_case to camelCase for frontend compatibility (using Supabase client)
         const userForFrontend = {
           id: newUser.id,
           email: newUser.email,
-          displayName: newUser.displayName,
-          isPremium: newUser.isPremium,
-          isAgeVerified: newUser.isAgeVerified,
-          acceptedTermsAt: newUser.acceptedTermsAt,
-          acceptedPrivacyAt: newUser.acceptedPrivacyAt,
-          createdAt: newUser.createdAt,
-          updatedAt: newUser.updatedAt,
-          lastLoginAt: newUser.lastLoginAt,
+          displayName: newUser.display_name,
+          isPremium: newUser.is_premium,
+          isAgeVerified: newUser.is_age_verified,
+          acceptedTermsAt: newUser.accepted_terms_at,
+          acceptedPrivacyAt: newUser.accepted_privacy_at,
+          createdAt: newUser.created_at,
+          updatedAt: newUser.updated_at,
+          lastLoginAt: newUser.last_login_at,
         };
 
         return res.json({
@@ -424,18 +424,18 @@ export function registerRoutes(app: Express): Express {
         .update({ last_login_at: new Date().toISOString() })
         .eq('id', data.user.id);
 
-      // User data is already in camelCase from Drizzle
+      // Convert snake_case to camelCase for frontend compatibility (using Supabase client)
       const userForFrontend = {
         id: userProfile.id,
         email: userProfile.email,
-        displayName: userProfile.displayName,
-        isPremium: userProfile.isPremium,
-        isAgeVerified: userProfile.isAgeVerified,
-        acceptedTermsAt: userProfile.acceptedTermsAt,
-        acceptedPrivacyAt: userProfile.acceptedPrivacyAt,
-        createdAt: userProfile.createdAt,
-        updatedAt: userProfile.updatedAt,
-        lastLoginAt: userProfile.lastLoginAt,
+        displayName: userProfile.display_name,
+        isPremium: userProfile.is_premium,
+        isAgeVerified: userProfile.is_age_verified,
+        acceptedTermsAt: userProfile.accepted_terms_at,
+        acceptedPrivacyAt: userProfile.accepted_privacy_at,
+        createdAt: userProfile.created_at,
+        updatedAt: userProfile.updated_at,
+        lastLoginAt: userProfile.last_login_at,
       };
 
       res.json({
@@ -533,9 +533,23 @@ export function registerRoutes(app: Express): Express {
           .update({ last_login_at: new Date().toISOString() })
           .eq('id', existingUser.id);
           
+        // Convert snake_case to camelCase for frontend compatibility
+        const userForFrontend = {
+          id: existingUser.id,
+          email: existingUser.email,
+          displayName: existingUser.display_name,
+          isPremium: existingUser.is_premium,
+          isAgeVerified: existingUser.is_age_verified,
+          acceptedTermsAt: existingUser.accepted_terms_at,
+          acceptedPrivacyAt: existingUser.accepted_privacy_at,
+          createdAt: existingUser.created_at,
+          updatedAt: existingUser.updated_at,
+          lastLoginAt: existingUser.last_login_at,
+        };
+
         return res.json({
           message: "Login successful",
-          user: existingUser
+          user: userForFrontend
         });
       }
 
@@ -588,9 +602,23 @@ export function registerRoutes(app: Express): Express {
         });
       }
 
+      // Convert snake_case to camelCase for frontend compatibility
+      const userForFrontend = {
+        id: newUser.id,
+        email: newUser.email,
+        displayName: newUser.display_name,
+        isPremium: newUser.is_premium,
+        isAgeVerified: newUser.is_age_verified,
+        acceptedTermsAt: newUser.accepted_terms_at,
+        acceptedPrivacyAt: newUser.accepted_privacy_at,
+        createdAt: newUser.created_at,
+        updatedAt: newUser.updated_at,
+        lastLoginAt: newUser.last_login_at,
+      };
+
       res.status(201).json({
         message: "OAuth registration successful",
-        user: newUser
+        user: userForFrontend
       });
     } catch (error) {
       next(error);
