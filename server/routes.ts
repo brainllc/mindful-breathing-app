@@ -398,18 +398,18 @@ export function registerRoutes(app: Express): Express {
           user_id: data.user.id,
         });
 
-        // Convert snake_case to camelCase for frontend compatibility
+        // User data is already in camelCase from Drizzle
         const userForFrontend = {
           id: newUser.id,
           email: newUser.email,
-          displayName: newUser.display_name,
-          isPremium: newUser.is_premium,
-          isAgeVerified: newUser.is_age_verified,
-          acceptedTermsAt: newUser.accepted_terms_at,
-          acceptedPrivacyAt: newUser.accepted_privacy_at,
-          createdAt: newUser.created_at,
-          updatedAt: newUser.updated_at,
-          lastLoginAt: newUser.last_login_at,
+          displayName: newUser.displayName,
+          isPremium: newUser.isPremium,
+          isAgeVerified: newUser.isAgeVerified,
+          acceptedTermsAt: newUser.acceptedTermsAt,
+          acceptedPrivacyAt: newUser.acceptedPrivacyAt,
+          createdAt: newUser.createdAt,
+          updatedAt: newUser.updatedAt,
+          lastLoginAt: newUser.lastLoginAt,
         };
 
         return res.json({
@@ -424,18 +424,18 @@ export function registerRoutes(app: Express): Express {
         .update({ last_login_at: new Date().toISOString() })
         .eq('id', data.user.id);
 
-      // Convert snake_case to camelCase for frontend compatibility
+      // User data is already in camelCase from Drizzle
       const userForFrontend = {
         id: userProfile.id,
         email: userProfile.email,
-        displayName: userProfile.display_name,
-        isPremium: userProfile.is_premium,
-        isAgeVerified: userProfile.is_age_verified,
-        acceptedTermsAt: userProfile.accepted_terms_at,
-        acceptedPrivacyAt: userProfile.accepted_privacy_at,
-        createdAt: userProfile.created_at,
-        updatedAt: userProfile.updated_at,
-        lastLoginAt: userProfile.last_login_at,
+        displayName: userProfile.displayName,
+        isPremium: userProfile.isPremium,
+        isAgeVerified: userProfile.isAgeVerified,
+        acceptedTermsAt: userProfile.acceptedTermsAt,
+        acceptedPrivacyAt: userProfile.acceptedPrivacyAt,
+        createdAt: userProfile.createdAt,
+        updatedAt: userProfile.updatedAt,
+        lastLoginAt: userProfile.lastLoginAt,
       };
 
       res.json({
@@ -611,18 +611,18 @@ export function registerRoutes(app: Express): Express {
         return res.status(404).json({ error: "User profile not found" });
       }
 
-      // Convert snake_case to camelCase for frontend compatibility
+      // User data is already in camelCase from Drizzle
       const userForFrontend = {
         id: userProfile.id,
         email: userProfile.email,
-        displayName: userProfile.display_name,
-        isPremium: userProfile.is_premium,
-        isAgeVerified: userProfile.is_age_verified,
-        acceptedTermsAt: userProfile.accepted_terms_at,
-        acceptedPrivacyAt: userProfile.accepted_privacy_at,
-        createdAt: userProfile.created_at,
-        updatedAt: userProfile.updated_at,
-        lastLoginAt: userProfile.last_login_at,
+        displayName: userProfile.displayName,
+        isPremium: userProfile.isPremium,
+        isAgeVerified: userProfile.isAgeVerified,
+        acceptedTermsAt: userProfile.acceptedTermsAt,
+        acceptedPrivacyAt: userProfile.acceptedPrivacyAt,
+        createdAt: userProfile.createdAt,
+        updatedAt: userProfile.updatedAt,
+        lastLoginAt: userProfile.lastLoginAt,
       };
       
       res.json(userForFrontend);
@@ -661,18 +661,18 @@ export function registerRoutes(app: Express): Express {
         return res.status(404).json({ error: "User not found" });
       }
 
-      // Convert snake_case to camelCase for frontend compatibility
+      // User data is already in camelCase from Drizzle
       const userForFrontend = {
         id: updatedUser.id,
         email: updatedUser.email,
-        displayName: updatedUser.display_name,
-        isPremium: updatedUser.is_premium,
-        isAgeVerified: updatedUser.is_age_verified,
-        acceptedTermsAt: updatedUser.accepted_terms_at,
-        acceptedPrivacyAt: updatedUser.accepted_privacy_at,
-        createdAt: updatedUser.created_at,
-        updatedAt: updatedUser.updated_at,
-        lastLoginAt: updatedUser.last_login_at,
+        displayName: updatedUser.displayName,
+        isPremium: updatedUser.isPremium,
+        isAgeVerified: updatedUser.isAgeVerified,
+        acceptedTermsAt: updatedUser.acceptedTermsAt,
+        acceptedPrivacyAt: updatedUser.acceptedPrivacyAt,
+        createdAt: updatedUser.createdAt,
+        updatedAt: updatedUser.updatedAt,
+        lastLoginAt: updatedUser.lastLoginAt,
       };
 
       res.json({
