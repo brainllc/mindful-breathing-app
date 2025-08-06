@@ -8,7 +8,7 @@
     },
     {
       "src": "/api/(.*)",
-      "dest": "/api/$1"
+      "dest": "/api/index"
     },
     {
       "src": "/assets/(.*\\.mp3)$",
@@ -72,6 +72,10 @@
       "headers": {
         "Content-Type": "image/x-icon"
       }
+    },
+    {
+      "src": "/stress-guide\\.pdf$",
+      "dest": "/api/index"
     },
     {
       "src": "/(.*)",
