@@ -261,6 +261,7 @@ We successfully fixed a complex registration system that was failing due to data
 - `Connection timeout` → Network or configuration issues
 - `ERR_MODULE_NOT_FOUND` with database imports → Build/dependency issues
 - **Dashboard showing all zeros with 500 API errors** → Database connection configuration issue in serverless deployment
+- **User streak showing wrong values** → API using naive increment instead of consecutive day logic
 
 ### **Vercel Deployment Issues**
 - Build succeeds but functions fail → Runtime environment differences
@@ -339,6 +340,13 @@ We successfully fixed a complex registration system that was failing due to data
    ```
 4. **Test locally vs production**: Connection issues often manifest only in production serverless environment
 5. **Check connection string format**: Ensure using correct Supabase database URL format
+
+### **Debugging Incorrect Streak Calculations**
+1. **Compare frontend vs database streak**: Dashboard calculates dynamically, Profile page shows database value
+2. **Check API streak logic**: Look for naive `current_streak + 1` instead of consecutive day logic
+3. **Review session completion API**: Streak should only increment on new consecutive days, not multiple sessions per day
+4. **Audit existing data**: Create script to recalculate streaks from actual session history
+5. **Test edge cases**: Same day sessions, gaps in days, timezone handling
 
 ### **Debugging Vercel Routing & File Download Issues**
 1. **Check route order in vercel.json**: Specific routes must come BEFORE catch-all routes like `"src": "/(.*)", "dest": "/index.html"`
