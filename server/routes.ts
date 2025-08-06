@@ -38,26 +38,32 @@ declare global {
 // Middleware to verify authentication
 const authenticateUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    console.log('🔐 AUTH: Authenticating request to:', req.path);
     const authHeader = req.headers.authorization;
     if (!authHeader) {
+      console.log('🔐 AUTH: No authorization header');
       return res.status(401).json({ error: "Authorization header is missing" });
     }
     
     const token = authHeader.split(" ")[1];
     if (!token) {
+      console.log('🔐 AUTH: No bearer token');
       return res.status(401).json({ error: "Bearer token is missing" });
     }
 
     const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
 
     if (error || !user) {
+      console.log('🔐 AUTH: Token validation failed:', error);
       return res.status(401).json({ error: "Unauthorized" });
     }
 
+    console.log('🔐 AUTH: User authenticated:', user.id);
     // Attach user to request
     req.user = user;
     next();
   } catch (error) {
+    console.log('🔐 AUTH: Authentication error:', error);
     next(error);
   }
 };
@@ -868,6 +874,11 @@ export function registerRoutes(app: Express): Express {
   // Complete exercise session
   app.post("/api/exercises/sessions/:sessionId/complete", authenticateUser, async (req, res, next) => {
     try {
+      console.log('🚀 BACKEND: Session completion API called!');
+      console.log('🚀 BACKEND: User ID:', req.user?.id);
+      console.log('🚀 BACKEND: Session ID:', req.params.sessionId);
+      console.log('🚀 BACKEND: Request body:', req.body);
+      
       const { sessionId } = req.params;
       const { roundsCompleted, durationSeconds, moodAfter, notes } = req.body;
       
