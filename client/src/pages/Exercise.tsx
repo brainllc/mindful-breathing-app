@@ -156,9 +156,10 @@ export default function Exercise() {
 
       if (response.ok) {
         const sessionData = await response.json();
-        setCurrentSessionId(sessionData.sessionId);
+        console.log('🎯 FRONTEND: Session start response:', sessionData);
+        setCurrentSessionId(sessionData.id); // Use 'id' field, not 'sessionId'
         setSessionStartTime(new Date());
-        console.log('Session started:', sessionData);
+        console.log('🎯 FRONTEND: Set currentSessionId to:', sessionData.id);
       } else {
         console.error('Failed to start session:', response.status, await response.text());
       }
