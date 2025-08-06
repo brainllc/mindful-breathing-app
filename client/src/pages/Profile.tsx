@@ -648,7 +648,7 @@ export default function Profile() {
                 <CardHeader>
                   <CardTitle>Quick Actions</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-4">
                   <Link href="/dashboard">
                     <Button variant="outline" className="w-full justify-start">
                       <Activity className="h-4 w-4 mr-2" />
