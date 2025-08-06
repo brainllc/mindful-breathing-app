@@ -40,8 +40,17 @@ breathwork.fyi next steps (create a .md doc for cursor to see these next steps).
 
 **Key Learning**: Avoid duplicate logic across components - create shared utilities for consistency
 
-### Password Update Timestamp Issue (In Progress 🔄)
+### Password Update Timestamp Issue (Fixed ✅)
 **Problem**: Profile page shows "Last updated 30 days ago" even after recent password changes
 
-**Next**: Investigate password update tracking in backend
+**Root Cause**: The timestamp was hardcoded text, not dynamic data from the backend
+
+**Solution**:
+1. Added `passwordUpdatedAt` field to users schema
+2. Updated password change API to track when passwords are updated
+3. Updated user stats API to return password update timestamp
+4. Updated Profile page to show dynamic relative time (e.g., "2 hours ago", "Just now")
+5. Added relative time formatting utility for better UX
+
+**Key Learning**: Always make timestamps dynamic rather than hardcoded - users notice when dates don't update!
 
