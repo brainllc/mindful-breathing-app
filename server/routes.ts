@@ -90,6 +90,46 @@ export function registerRoutes(app: Express): Express {
     });
   });
 
+  // Stress guide PDF download handler
+  app.get("/stress-guide.pdf", (req, res) => {
+    const pdfPath = path.join(process.cwd(), "public", "stress-guide.pdf");
+    
+    // Check if file exists
+    if (!fs.existsSync(pdfPath)) {
+      console.error("Stress guide PDF not found at:", pdfPath);
+      return res.status(404).send("Stress guide not found");
+    }
+
+    const readStream = fs.createReadStream(pdfPath);
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", "attachment; filename=5-Minute-Reset-Stress-Guide.pdf");
+    res.setHeader("Cache-Control", "public, max-age=86400"); // Cache for 1 day
+
+    readStream.pipe(res);
+
+    readStream.on("error", (err) => {
+      console.error("Error reading stress guide PDF:", err);
+      res.status(500).send("Error downloading stress guide");
+    });
+  });
+
+  // Track download endpoint
+  app.post("/api/track-download", async (req, res) => {
+    try {
+      const { guide } = req.body;
+      console.log(`Download tracked: ${guide} at ${new Date().toISOString()}`);
+      
+      // Here you could add analytics tracking, database logging, etc.
+      // For now, we'll just log it
+      
+      res.json({ success: true, message: "Download tracked successfully" });
+    } catch (error) {
+      console.error("Error tracking download:", error);
+      res.status(500).json({ error: "Failed to track download" });
+    }
+  });
+
   // ============================================================================
   // AUTHENTICATION ROUTES
   // ============================================================================
