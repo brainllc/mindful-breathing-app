@@ -35,3 +35,4 @@ vite.config.ts.*
 # TypeScript
 *.tsbuildinfo
 .vercel
+.env*.local

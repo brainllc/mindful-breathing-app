@@ -122,6 +122,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(500).json({ error: 'Failed to create user stats' });
       }
     } else {
+      // Calculate proper streak based on consecutive days
+      const now = new Date();
+      const today = now.toISOString().split('T')[0]; // YYYY-MM-DD format
+      
+      let newStreak = 1; // Default for new session
+      
+      if (stats.last_session_at) {
+        const lastSessionDate = new Date(stats.last_session_at).toISOString().split('T')[0];
+        
+        // Calculate yesterday's date
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayString = yesterday.toISOString().split('T')[0];
+        
+        if (lastSessionDate === today) {
+          // Same day - keep current streak
+          newStreak = stats.current_streak || 1;
+        } else if (lastSessionDate === yesterdayString) {
+          // Yesterday - continue streak
+          newStreak = (stats.current_streak || 0) + 1;
+        } else {
+          // Gap in days - reset to 1
+          newStreak = 1;
+        }
+      }
+      
       // Update existing stats
       const { error: updateStatsError } = await supabase
         .from('user_stats')
@@ -130,9 +156,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           total_minutes: newTotalMinutes,
           total_rounds: newTotalRounds,
           last_session_at: new Date().toISOString(),
-          // Note: Streak calculation could be more sophisticated
-          current_streak: (stats.current_streak || 0) + 1,
-          longest_streak: Math.max(stats.longest_streak || 0, (stats.current_streak || 0) + 1)
+          current_streak: newStreak,
+          longest_streak: Math.max(stats.longest_streak || 0, newStreak)
         })
         .eq('user_id', user.id);
 
