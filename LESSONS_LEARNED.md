@@ -96,6 +96,46 @@ We successfully fixed a complex registration system that was failing due to data
 - **Debug Strategy**: Comprehensive logging with `🔥 STREAK DEBUG:` and `🕐 FRONTEND DEBUG:` to trace timestamp parsing through the entire flow
 - **Result**: Sessions now correctly display in user's local time (9:41 PM PT) and streak calculation works properly
 
+### 10. **Display Name Persistence Bug - Snake_case vs CamelCase Mismatch (CRITICAL)**
+- **Problem**: Users would update their display name, log out, log back in, and the display name would revert to default (OAuth name or email prefix). This happened for BOTH OAuth users and regular email/password users.
+- **Symptoms**: 
+  - OAuth users: Custom display name reverted to Google full name
+  - Regular users: Custom display name reverted to email prefix
+  - Profile updates appeared to work but didn't persist across login sessions
+- **Root Cause Discovery**: **Mixed database client usage causing field name inconsistency**
+  - **Drizzle ORM** (`db.select().from(users)`) → returns **camelCase** fields (`displayName`)
+  - **Supabase Client** (`supabaseAdmin.from('users')`) → returns **snake_case** fields (`display_name`)
+  - **Frontend** expects **camelCase** (`displayName`) everywhere
+- **Where the mismatch occurred**:
+  - ✅ **Profile GET route**: Used Drizzle → returned `displayName` correctly
+  - ✅ **Profile PUT route**: Used Drizzle → returned `displayName` correctly  
+  - ❌ **Login route**: Used Supabase Client → returned `display_name` but frontend accessed `displayName` → undefined!
+  - ❌ **OAuth callback route**: Used Supabase Client → returned `display_name` but frontend accessed `displayName` → undefined!
+- **Failed debugging attempts**: 
+  - Checked profile update logic (was working correctly)
+  - Checked frontend state management (was working correctly)
+  - Initially thought it was OAuth-specific (actually affected both flows)
+- **Winning Solution**: **Consistent snake_case to camelCase conversion in ALL API responses**
+  ```javascript
+  // Convert snake_case to camelCase for frontend compatibility
+  const userForFrontend = {
+    id: userProfile.id,
+    email: userProfile.email,
+    displayName: userProfile.display_name,  // ← Key fix!
+    isPremium: userProfile.is_premium,
+    isAgeVerified: userProfile.is_age_verified,
+    // ... all other fields
+  };
+  ```
+- **Applied to all routes**:
+  - `POST /api/auth/login` (both new and existing users)
+  - `POST /api/auth/oauth-callback` (both new and existing users)
+  - `GET /api/user/profile` (already correct - using Drizzle)
+  - `PUT /api/user/profile` (already correct - using Drizzle)
+- **Debug Strategy**: Traced the exact field names returned by each API endpoint and compared with frontend expectations
+- **Result**: Display name changes now persist correctly for ALL users across ALL login methods
+- **Prevention**: When mixing database clients (Drizzle + Supabase), always ensure consistent field name mapping in API responses
+
 ---
 
 ## 🧠 **Key Technical Insights**
@@ -183,6 +223,12 @@ We successfully fixed a complex registration system that was failing due to data
 - **Sessions display wrong local time**: User's 9:41 PM shows as 4:41 AM → Database stripping 'Z' suffix from UTC timestamps
 - **Time appears to "shift" wrong direction**: UTC time being parsed as local → Immediate red flag for missing timezone indicator
 
+### **Database Field Name Issues**
+- **User data not persisting after login/logout**: Profile updates work but revert on next login → Field name mismatch between database clients
+- **Frontend accessing `undefined` fields**: API returns `display_name` but frontend expects `displayName` → Mixed camelCase/snake_case
+- **OAuth vs regular login behaving differently**: Same underlying issue manifesting in different auth flows → Inconsistent API response formatting
+- **Profile updates work but login doesn't load them**: Different routes using different database clients (Drizzle vs Supabase) with different field naming conventions
+
 ---
 
 ## 💡 **Future Recommendations**
@@ -208,6 +254,13 @@ We successfully fixed a complex registration system that was failing due to data
 3. **Test with users in different timezones**: Or simulate by changing system timezone
 4. **Compare actual values**: Log the exact strings being compared, don't assume they match
 5. **Check database timezone**: Verify whether timestamps are stored in UTC or local time
+
+### **Debugging Database Field Name Issues**
+1. **Log API responses**: Check exact field names returned by each endpoint (`console.log('API response:', data)`)
+2. **Compare database clients**: Identify which routes use Drizzle (camelCase) vs Supabase Client (snake_case)
+3. **Test both auth flows**: OAuth and regular login may use different routes with different field naming
+4. **Check frontend expectations**: Verify what field names the frontend code is actually accessing
+5. **Trace the data flow**: Follow user data from database → API response → frontend state → UI display
 
 ---
 
