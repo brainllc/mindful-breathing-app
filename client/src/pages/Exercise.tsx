@@ -169,14 +169,31 @@ export default function Exercise() {
 
   // Function to complete a session in the backend
   const completeSession = async () => {
-    if (!user || !currentSessionId || !sessionStartTime) return;
+    console.log('🎯 FRONTEND: completeSession called');
+    console.log('🎯 FRONTEND: user:', !!user);
+    console.log('🎯 FRONTEND: currentSessionId:', currentSessionId);
+    console.log('🎯 FRONTEND: sessionStartTime:', sessionStartTime);
+    
+    if (!user || !currentSessionId || !sessionStartTime) {
+      console.log('🎯 FRONTEND: Missing required data, returning early');
+      return;
+    }
 
     try {
+      console.log('🎯 FRONTEND: Getting stored session');
       const storedSession = localStorage.getItem('supabase.auth.token');
-      if (!storedSession) return;
+      if (!storedSession) {
+        console.log('🎯 FRONTEND: No stored session, returning');
+        return;
+      }
       
+      console.log('🎯 FRONTEND: Parsing session and calculating duration');
       const session = JSON.parse(storedSession);
       const durationSeconds = Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 1000);
+      
+      console.log('🎯 FRONTEND: Making API call to complete session');
+      console.log('🎯 FRONTEND: URL:', `/api/exercises/sessions/${currentSessionId}/complete`);
+      console.log('🎯 FRONTEND: Body:', { roundsCompleted: currentRound + 1, durationSeconds });
       
       const response = await fetch(`/api/exercises/sessions/${currentSessionId}/complete`, {
         method: 'POST',
@@ -190,9 +207,14 @@ export default function Exercise() {
         })
       });
 
+      console.log('🎯 FRONTEND: API response received');
+      console.log('🎯 FRONTEND: Response status:', response.status);
+      console.log('🎯 FRONTEND: Response ok:', response.ok);
+
       if (response.ok) {
+        console.log('🎯 FRONTEND: Response OK, parsing JSON');
         const completionData = await response.json();
-        console.log('Session completed:', completionData);
+        console.log('🎯 FRONTEND: Session completed successfully:', completionData);
         
         // Trigger immediate dashboard refresh
         window.dispatchEvent(new CustomEvent('exerciseCompleted', { 
@@ -224,10 +246,14 @@ export default function Exercise() {
           description: `You completed ${currentRound + 1} rounds in ${durationText}.`,
         });
       } else {
-        console.error('Failed to complete session:', response.status, await response.text());
+        console.error('🎯 FRONTEND: Response NOT OK');
+        const errorText = await response.text();
+        console.error('🎯 FRONTEND: Error status:', response.status);
+        console.error('🎯 FRONTEND: Error text:', errorText);
       }
     } catch (error) {
-      console.error('Error completing session:', error);
+      console.error('🎯 FRONTEND: Exception in completeSession:', error);
+      console.error('🎯 FRONTEND: Error stack:', error.stack);
     }
   };
 
