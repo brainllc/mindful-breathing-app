@@ -9,9 +9,10 @@ interface Props {
   currentRound: number;
   onRoundComplete: () => void;
   onPhaseProgress: (progress: number) => void;
+  availableHeight?: number;
 }
 
-export function BreathingAnimation({ exercise, isActive, currentRound, onRoundComplete, onPhaseProgress }: Props) {
+export function BreathingAnimation({ exercise, isActive, currentRound, onRoundComplete, onPhaseProgress, availableHeight }: Props) {
   const [phase, setPhase] = useState<"inhale" | "hold" | "exhale">("inhale");
   const [phaseTimeLeft, setPhaseTimeLeft] = useState(exercise.pattern.inhale);
   const [roundCompleted, setRoundCompleted] = useState(false);
@@ -159,15 +160,25 @@ export function BreathingAnimation({ exercise, isActive, currentRound, onRoundCo
     };
   }, [isActive, exercise, phase, onRoundComplete, onPhaseProgress, phaseSequenceDuration, roundCompleted]);
 
+  // Compute dynamic base size from available height if provided
+  const containerHeight = availableHeight
+    ? Math.max(availableHeight, 320)
+    : undefined;
+  const baseSizeClass = !availableHeight
+    ? "w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72"
+    : "";
+
   return (
-    <div className="relative w-full h-[28rem] sm:h-[30rem] md:h-[34rem] flex items-center justify-center">
+    <div className="relative w-full flex items-center justify-center" style={containerHeight ? { height: containerHeight } : {}}>
       <motion.div
-        className="absolute w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 bg-primary/20 rounded-full"
+        className={`absolute ${baseSizeClass} bg-primary/20 rounded-full`}
+        style={containerHeight ? { width: Math.min(containerHeight * 0.5, 420), height: Math.min(containerHeight * 0.5, 420) } : undefined}
         animate={animationRef.current}
         transition={{ duration: 0 }}
       />
       <motion.div
-        className="absolute w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 border-4 border-primary rounded-full"
+        className={`absolute ${baseSizeClass} border-4 border-primary rounded-full`}
+        style={containerHeight ? { width: Math.min(containerHeight * 0.5, 420), height: Math.min(containerHeight * 0.5, 420) } : undefined}
         animate={animationRef.current}
         transition={{ duration: 0 }}
       />

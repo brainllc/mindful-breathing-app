@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRoute } from "wouter";
 import { exercises } from "@/lib/exercises";
 import { RoundConfig } from "@/components/RoundConfig";
@@ -45,6 +45,19 @@ export default function Exercise() {
   const containerRef = useRef<HTMLDivElement>(null);
   const exerciseTitleRef = useRef<HTMLDivElement>(null);
   const breathingAnimationRef = useRef<HTMLDivElement>(null);
+  const [availableHeight, setAvailableHeight] = useState<number | null>(null);
+
+  const recomputeAvailableHeight = useCallback(() => {
+    try {
+      const viewportH = window.innerHeight || 0;
+      const reserveBottomPx = 180; // space for fixed ControlsBar
+      const top = breathingAnimationRef.current?.getBoundingClientRect().top || 0;
+      const avail = Math.max(220, viewportH - top - reserveBottomPx);
+      setAvailableHeight(avail);
+    } catch {
+      // no-op
+    }
+  }, []);
 
   useEffect(() => {
     if (exercise) {
@@ -403,6 +416,17 @@ export default function Exercise() {
     }
   }, [isCompleted, completionData, exercise]);
 
+  // Recompute available height when layout changes
+  useEffect(() => {
+    recomputeAvailableHeight();
+    window.addEventListener('resize', recomputeAvailableHeight);
+    window.addEventListener('orientationchange', recomputeAvailableHeight);
+    return () => {
+      window.removeEventListener('resize', recomputeAvailableHeight);
+      window.removeEventListener('orientationchange', recomputeAvailableHeight);
+    };
+  }, [recomputeAvailableHeight, isStarted, showCountdown, currentRound, totalRounds]);
+
   // Handle case where exercise is not found - after all hooks are called
   if (!exercise) {
     return (
@@ -601,6 +625,7 @@ export default function Exercise() {
                       currentRound={currentRound}
                       onRoundComplete={handleRoundComplete}
                       onPhaseProgress={handlePhaseProgress}
+                      availableHeight={availableHeight ?? undefined}
                     />
                     </div>
 
