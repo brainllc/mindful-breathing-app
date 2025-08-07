@@ -588,7 +588,7 @@ export default function Exercise() {
                   exit={{ opacity: 0 }}
                   className="space-y-6"
                 >
-                  <div className="space-y-4 md:space-y-6">
+                  <div className="space-y-2">
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm text-muted-foreground">
                         <span>Round {currentRound + 1} of {totalRounds}</span>
@@ -597,7 +597,7 @@ export default function Exercise() {
                       <Progress value={totalProgress} className="h-1" />
                     </div>
 
-                    <div ref={breathingAnimationRef} className="pt-0 -mt-6 sm:-mt-8 md:-mt-10 mb-6 md:mb-8">
+                    <div ref={breathingAnimationRef} className="pt-0 -mt-16 sm:-mt-20 md:-mt-24 mb-6 md:mb-8">
                     <BreathingAnimation
                       exercise={exercise}
                       isActive={isStarted && !isPaused}

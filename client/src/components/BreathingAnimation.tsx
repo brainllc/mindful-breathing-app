@@ -165,7 +165,7 @@ export function BreathingAnimation({ exercise, isActive, currentRound, onRoundCo
   const baseSizeClass = "w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72";
 
   return (
-    <div className="relative w-full h-[26rem] sm:h-[28rem] md:h-[32rem] flex items-center justify-center">
+    <div className="relative w-full h-[24rem] sm:h-[26rem] md:h-[30rem] flex items-center justify-center">
       <motion.div
         className={`absolute ${baseSizeClass} bg-primary/20 rounded-full`}
         animate={animationRef.current}
