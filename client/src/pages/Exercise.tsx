@@ -462,7 +462,7 @@ export default function Exercise() {
       />
 
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-25 dark:opacity-20 will-change-transform" role="presentation" aria-hidden="true" />
-        <div ref={containerRef} className={`container relative mx-auto px-4 pb-[200px] ${!isStarted && !showCountdown ? 'pt-32' : 'pt-20'}`}>
+        <div ref={containerRef} className={`container relative mx-auto px-4 pb-[120px] ${!isStarted && !showCountdown ? 'pt-32' : 'pt-20'}`}>
         <div className="max-w-4xl mx-auto">
 
           {!isStarted && !showCountdown && (
@@ -597,7 +597,7 @@ export default function Exercise() {
                       <Progress value={totalProgress} className="h-1" />
                     </div>
 
-                    <div ref={breathingAnimationRef} className="pt-0 -mt-16 sm:-mt-20 md:-mt-24 mb-6 md:mb-8">
+                    <div ref={breathingAnimationRef} className="pt-0 -mt-[74px] sm:-mt-[90px] md:-mt-[106px] mb-6 md:mb-8">
                     <BreathingAnimation
                       exercise={exercise}
                       isActive={isStarted && !isPaused}
