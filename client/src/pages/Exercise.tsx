@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRoute } from "wouter";
 import { exercises } from "@/lib/exercises";
 import { RoundConfig } from "@/components/RoundConfig";
@@ -45,19 +45,7 @@ export default function Exercise() {
   const containerRef = useRef<HTMLDivElement>(null);
   const exerciseTitleRef = useRef<HTMLDivElement>(null);
   const breathingAnimationRef = useRef<HTMLDivElement>(null);
-  const [availableHeight, setAvailableHeight] = useState<number | null>(null);
-
-  const recomputeAvailableHeight = useCallback(() => {
-    try {
-      const viewportH = window.innerHeight || 0;
-      const reserveBottomPx = 180; // space for fixed ControlsBar
-      const top = breathingAnimationRef.current?.getBoundingClientRect().top || 0;
-      const avail = Math.max(220, viewportH - top - reserveBottomPx);
-      setAvailableHeight(avail);
-    } catch {
-      // no-op
-    }
-  }, []);
+  // Removed dynamic sizing to avoid adding unintended top padding
 
   useEffect(() => {
     if (exercise) {
@@ -416,16 +404,7 @@ export default function Exercise() {
     }
   }, [isCompleted, completionData, exercise]);
 
-  // Recompute available height when layout changes
-  useEffect(() => {
-    recomputeAvailableHeight();
-    window.addEventListener('resize', recomputeAvailableHeight);
-    window.addEventListener('orientationchange', recomputeAvailableHeight);
-    return () => {
-      window.removeEventListener('resize', recomputeAvailableHeight);
-      window.removeEventListener('orientationchange', recomputeAvailableHeight);
-    };
-  }, [recomputeAvailableHeight, isStarted, showCountdown, currentRound, totalRounds]);
+  //
 
   // Handle case where exercise is not found - after all hooks are called
   if (!exercise) {
@@ -483,7 +462,7 @@ export default function Exercise() {
       />
 
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-25 dark:opacity-20 will-change-transform" role="presentation" aria-hidden="true" />
-        <div ref={containerRef} className={`container relative mx-auto px-4 pb-[180px] ${!isStarted && !showCountdown ? 'pt-32' : 'pt-20'}`}>
+        <div ref={containerRef} className={`container relative mx-auto px-4 pb-[150px] ${!isStarted && !showCountdown ? 'pt-32' : 'pt-20'}`}>
         <div className="max-w-4xl mx-auto">
 
           {!isStarted && !showCountdown && (
@@ -625,7 +604,6 @@ export default function Exercise() {
                       currentRound={currentRound}
                       onRoundComplete={handleRoundComplete}
                       onPhaseProgress={handlePhaseProgress}
-                      availableHeight={availableHeight ?? undefined}
                     />
                     </div>
 

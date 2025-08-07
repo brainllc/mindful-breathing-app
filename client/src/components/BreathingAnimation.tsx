@@ -9,10 +9,10 @@ interface Props {
   currentRound: number;
   onRoundComplete: () => void;
   onPhaseProgress: (progress: number) => void;
-  availableHeight?: number;
+  // optional future prop removed from usage for now
 }
 
-export function BreathingAnimation({ exercise, isActive, currentRound, onRoundComplete, onPhaseProgress, availableHeight }: Props) {
+export function BreathingAnimation({ exercise, isActive, currentRound, onRoundComplete, onPhaseProgress }: Props) {
   const [phase, setPhase] = useState<"inhale" | "hold" | "exhale">("inhale");
   const [phaseTimeLeft, setPhaseTimeLeft] = useState(exercise.pattern.inhale);
   const [roundCompleted, setRoundCompleted] = useState(false);
@@ -84,7 +84,7 @@ export function BreathingAnimation({ exercise, isActive, currentRound, onRoundCo
 
         // Update animation reference based on the current phase
         // Smaller overall scale so the circle stays fully visible above the controls bar
-        const maxScale = 1.35; // was 1.5
+        const maxScale = 1.28; // reduce slightly more to avoid overlap
         const deltaScale = maxScale - 1;
         if (phase === "inhale") {
           animationRef.current = {
@@ -161,24 +161,18 @@ export function BreathingAnimation({ exercise, isActive, currentRound, onRoundCo
   }, [isActive, exercise, phase, onRoundComplete, onPhaseProgress, phaseSequenceDuration, roundCompleted]);
 
   // Compute dynamic base size from available height if provided
-  const containerHeight = availableHeight
-    ? Math.max(availableHeight, 320)
-    : undefined;
-  const baseSizeClass = !availableHeight
-    ? "w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72"
-    : "";
+  const containerHeight = undefined;
+  const baseSizeClass = "w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72";
 
   return (
-    <div className="relative w-full flex items-center justify-center" style={containerHeight ? { height: containerHeight } : {}}>
+    <div className="relative w-full h-[28rem] sm:h-[30rem] md:h-[34rem] flex items-center justify-center">
       <motion.div
         className={`absolute ${baseSizeClass} bg-primary/20 rounded-full`}
-        style={containerHeight ? { width: Math.min(containerHeight * 0.5, 420), height: Math.min(containerHeight * 0.5, 420) } : undefined}
         animate={animationRef.current}
         transition={{ duration: 0 }}
       />
       <motion.div
         className={`absolute ${baseSizeClass} border-4 border-primary rounded-full`}
-        style={containerHeight ? { width: Math.min(containerHeight * 0.5, 420), height: Math.min(containerHeight * 0.5, 420) } : undefined}
         animate={animationRef.current}
         transition={{ duration: 0 }}
       />
