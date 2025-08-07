@@ -82,19 +82,22 @@ export function BreathingAnimation({ exercise, isActive, currentRound, onRoundCo
         const elapsedInCurrentPhase = currentPhaseDuration - newTimeLeft;
 
         // Update animation reference based on the current phase
+        // Smaller overall scale so the circle stays fully visible above the controls bar
+        const maxScale = 1.35; // was 1.5
+        const deltaScale = maxScale - 1;
         if (phase === "inhale") {
           animationRef.current = {
-            scale: 1 + (0.5 * (elapsedInCurrentPhase / exercise.pattern.inhale)),
+            scale: 1 + (deltaScale * (elapsedInCurrentPhase / exercise.pattern.inhale)),
             opacity: 0.5 + (0.5 * (elapsedInCurrentPhase / exercise.pattern.inhale))
           };
         } else if (phase === "hold") {
           animationRef.current = {
-            scale: 1.5,
+            scale: maxScale,
             opacity: 1
           };
         } else if (phase === "exhale") {
           animationRef.current = {
-            scale: 1.5 - (0.5 * (elapsedInCurrentPhase / exercise.pattern.exhale)),
+            scale: maxScale - (deltaScale * (elapsedInCurrentPhase / exercise.pattern.exhale)),
             opacity: 1 - (0.5 * (elapsedInCurrentPhase / exercise.pattern.exhale))
           };
         }
@@ -157,14 +160,14 @@ export function BreathingAnimation({ exercise, isActive, currentRound, onRoundCo
   }, [isActive, exercise, phase, onRoundComplete, onPhaseProgress, phaseSequenceDuration, roundCompleted]);
 
   return (
-    <div className="relative w-full h-96 flex items-center justify-center">
+    <div className="relative w-full h-[28rem] sm:h-[30rem] md:h-[34rem] flex items-center justify-center">
       <motion.div
-        className="absolute w-64 h-64 bg-primary/20 rounded-full"
+        className="absolute w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 bg-primary/20 rounded-full"
         animate={animationRef.current}
         transition={{ duration: 0 }}
       />
       <motion.div
-        className="absolute w-64 h-64 border-4 border-primary rounded-full"
+        className="absolute w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 border-4 border-primary rounded-full"
         animate={animationRef.current}
         transition={{ duration: 0 }}
       />
