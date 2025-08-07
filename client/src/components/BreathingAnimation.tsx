@@ -84,7 +84,7 @@ export function BreathingAnimation({ exercise, isActive, currentRound, onRoundCo
 
         // Update animation reference based on the current phase
         // Smaller overall scale so the circle stays fully visible above the controls bar
-        const maxScale = 1.28; // reduce slightly more to avoid overlap
+        const maxScale = 1.22; // tighter to leave room near the controls bar
         const deltaScale = maxScale - 1;
         if (phase === "inhale") {
           animationRef.current = {
