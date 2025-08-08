@@ -167,20 +167,20 @@ export function BreathingAnimation({ exercise, isActive, currentRound, onRoundCo
   const baseSizeClass = baseSize ? "" : "w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72";
 
   return (
-    <div className="relative w-full flex items-center justify-center" style={containerHeight ? { height: containerHeight } : {}}>
+    <div className="relative w-full" style={containerHeight ? { height: containerHeight } : {}}>
       <motion.div
-        className={`absolute ${baseSizeClass} bg-primary/20 rounded-full`}
+        className={`absolute inset-0 m-auto ${baseSizeClass} bg-primary/20 rounded-full`}
         style={baseSize ? { width: baseSize, height: baseSize } : undefined}
         animate={animationRef.current}
         transition={{ duration: 0 }}
       />
       <motion.div
-        className={`absolute ${baseSizeClass} border-4 border-primary rounded-full`}
+        className={`absolute inset-0 m-auto ${baseSizeClass} border-4 border-primary rounded-full`}
         style={baseSize ? { width: baseSize, height: baseSize } : undefined}
         animate={animationRef.current}
         transition={{ duration: 0 }}
       />
-      <div className="absolute flex flex-col items-center space-y-2">
+      <div className="absolute inset-0 m-auto h-min flex flex-col items-center space-y-2">
         <div className="text-2xl font-light text-primary">
           {phase.charAt(0).toUpperCase() + phase.slice(1)}
         </div>

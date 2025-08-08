@@ -422,8 +422,9 @@ export default function Exercise() {
       // Container fills the available region exactly
       setAnimContainerHeight(available);
 
-      // Base diameter is 50% of available to allow scale up to ~1.2 without overlap
-      const baseDiameter = Math.floor(available * 0.5);
+      // Base diameter selected so maxScale keeps equal top/bottom spacing → diameter = available / maxScale
+      const maxScale = 1.15;
+      const baseDiameter = Math.floor(available / maxScale);
       setAnimBaseDiameter(Math.max(160, baseDiameter));
     } catch {
       // ignore
