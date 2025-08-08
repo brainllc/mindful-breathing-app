@@ -412,21 +412,26 @@ export default function Exercise() {
   const centerAnimation = useCallback(() => {
     try {
       const progressEl = progressBarRef.current?.getBoundingClientRect();
-      const controlsEl = (document.getElementById('controls-bar-desktop') || document.getElementById('controls-bar-mobile'))?.getBoundingClientRect();
-      if (!progressEl || !controlsEl) return;
+      if (!progressEl) return;
 
       const topY = progressEl.bottom;
-      const bottomY = controlsEl.top;
-      const safety = 8;
-      const available = Math.max(0, bottomY - topY - safety);
+      const viewportH = window.innerHeight;
+      const isMobile = window.innerWidth < 768;
+      const bottomPadding = 72; // matches pb-[72px]
+      const desktopControls = document.getElementById('controls-bar-desktop')?.getBoundingClientRect();
+      // Bottom boundary: on mobile, ignore the floating button and use padding; on desktop, respect controls if present
+      const bottomY = isMobile
+        ? viewportH - bottomPadding
+        : Math.min(desktopControls?.top ?? viewportH, viewportH - bottomPadding);
+      const available = Math.max(0, bottomY - topY);
 
       // Container fills the available region exactly
       setAnimContainerHeight(available || undefined);
 
       // Base diameter selected so maxScale keeps equal top/bottom spacing → diameter = available / maxScale
       const maxScale = 1.15;
-      // Keep equal top/bottom spacing by sizing from available gap
-      const baseDiameter = Math.floor((available / maxScale) * 0.92);
+      // Make the circle 10% smaller than perfect fit to avoid any overlap
+      const baseDiameter = Math.floor((available / maxScale) * 0.90);
       setAnimBaseDiameter(Math.max(160, baseDiameter));
     } catch {
       // ignore
