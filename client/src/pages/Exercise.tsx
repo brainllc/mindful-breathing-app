@@ -417,7 +417,8 @@ export default function Exercise() {
 
       const topY = progressEl.bottom;
       const bottomY = controlsEl.top;
-      const safety = 8; // small buffer so it never touches
+      const isMobile = window.innerWidth < 768;
+      const safety = isMobile ? 0 : 8; // give mobile the full gap
       const available = Math.max(0, bottomY - topY - safety);
 
       // Container fills the available region exactly
@@ -425,13 +426,10 @@ export default function Exercise() {
 
       // Base diameter selected so maxScale keeps equal top/bottom spacing → diameter = available / maxScale
       const maxScale = 1.15;
-      // Base size tuned for desktop; scale up for mobile for better presence
-      const isMobile = window.innerWidth < 768; // Tailwind md breakpoint
-      const desktopBase = (available / maxScale) * 0.9; // 10% headroom
-      const mobileBoost = isMobile ? 1.5 : 1.0; // +50% on mobile
-      // Cap to slightly under the max so it never clips when expanded
-      const hardCap = (available / maxScale) * 0.98; // 2% safety margin
-      const boosted = Math.min(desktopBase * mobileBoost, hardCap);
+      // Desktop uses 0.9 headroom; mobile uses near-max cap to appear larger
+      const desktopBase = (available / maxScale) * 0.9;
+      const hardCap = (available / maxScale) * (isMobile ? 0.995 : 0.98); // mobile ~99.5% of cap
+      const boosted = Math.min(desktopBase, hardCap);
       const baseDiameter = Math.floor(boosted);
       setAnimBaseDiameter(Math.max(160, baseDiameter));
     } catch {
