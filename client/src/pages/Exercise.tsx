@@ -425,7 +425,8 @@ export default function Exercise() {
 
       // Base diameter selected so maxScale keeps equal top/bottom spacing → diameter = available / maxScale
       const maxScale = 1.15;
-      const baseDiameter = Math.floor(available / maxScale);
+      // Reduce overall size by ~10%
+      const baseDiameter = Math.floor((available / maxScale) * 0.9);
       setAnimBaseDiameter(Math.max(160, baseDiameter));
     } catch {
       // ignore
