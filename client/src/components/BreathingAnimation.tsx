@@ -9,10 +9,11 @@ interface Props {
   currentRound: number;
   onRoundComplete: () => void;
   onPhaseProgress: (progress: number) => void;
-  // optional future prop removed from usage for now
+  containerHeight?: number;
+  baseDiameterPx?: number;
 }
 
-export function BreathingAnimation({ exercise, isActive, currentRound, onRoundComplete, onPhaseProgress }: Props) {
+export function BreathingAnimation({ exercise, isActive, currentRound, onRoundComplete, onPhaseProgress, containerHeight, baseDiameterPx }: Props) {
   const [phase, setPhase] = useState<"inhale" | "hold" | "exhale">("inhale");
   const [phaseTimeLeft, setPhaseTimeLeft] = useState(exercise.pattern.inhale);
   const [roundCompleted, setRoundCompleted] = useState(false);
@@ -161,19 +162,21 @@ export function BreathingAnimation({ exercise, isActive, currentRound, onRoundCo
     };
   }, [isActive, exercise, phase, onRoundComplete, onPhaseProgress, phaseSequenceDuration, roundCompleted]);
 
-  // Compute dynamic base size from available height if provided
-  const containerHeight = undefined;
-  const baseSizeClass = "w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72";
+  // Determine base circle size
+  const baseSize = baseDiameterPx ?? undefined;
+  const baseSizeClass = baseSize ? "" : "w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72";
 
   return (
-    <div className="relative w-full h-[22rem] sm:h-[24rem] md:h-[28rem] flex items-center justify-center">
+    <div className="relative w-full flex items-center justify-center" style={containerHeight ? { height: containerHeight } : {}}>
       <motion.div
         className={`absolute ${baseSizeClass} bg-primary/20 rounded-full`}
+        style={baseSize ? { width: baseSize, height: baseSize } : undefined}
         animate={animationRef.current}
         transition={{ duration: 0 }}
       />
       <motion.div
         className={`absolute ${baseSizeClass} border-4 border-primary rounded-full`}
+        style={baseSize ? { width: baseSize, height: baseSize } : undefined}
         animate={animationRef.current}
         transition={{ duration: 0 }}
       />

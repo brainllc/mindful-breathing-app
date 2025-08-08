@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRoute } from "wouter";
 import { exercises } from "@/lib/exercises";
 import { RoundConfig } from "@/components/RoundConfig";
@@ -45,6 +45,10 @@ export default function Exercise() {
   const containerRef = useRef<HTMLDivElement>(null);
   const exerciseTitleRef = useRef<HTMLDivElement>(null);
   const breathingAnimationRef = useRef<HTMLDivElement>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
+  const controlsBarRef = useRef<HTMLDivElement>(null);
+  const [animContainerHeight, setAnimContainerHeight] = useState<number | undefined>(undefined);
+  const [animBaseDiameter, setAnimBaseDiameter] = useState<number | undefined>(undefined);
   // Removed dynamic sizing to avoid adding unintended top padding
 
   useEffect(() => {
@@ -404,6 +408,42 @@ export default function Exercise() {
     }
   }, [isCompleted, completionData, exercise]);
 
+  // Center animation container between progress bar and controls
+  const centerAnimation = useCallback(() => {
+    try {
+      const progressEl = progressBarRef.current?.getBoundingClientRect();
+      const controlsEl = controlsBarRef.current?.getBoundingClientRect();
+      const animWrapperEl = breathingAnimationRef.current?.getBoundingClientRect();
+      const viewportH = window.innerHeight;
+
+      if (!progressEl || !controlsEl || !animWrapperEl) return;
+
+      // Top is bottom of progress block; bottom is top of controls
+      const topY = progressEl.bottom;
+      const bottomY = controlsEl.top;
+      const available = Math.max(0, bottomY - topY);
+
+      // Set container height to the available gap
+      setAnimContainerHeight(available);
+
+      // Base diameter is 60% of available (leaves headroom for maxScale ~1.2)
+      const baseDiameter = Math.floor(available * 0.6);
+      setAnimBaseDiameter(Math.max(160, baseDiameter));
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    centerAnimation();
+    window.addEventListener('resize', centerAnimation);
+    window.addEventListener('orientationchange', centerAnimation);
+    return () => {
+      window.removeEventListener('resize', centerAnimation);
+      window.removeEventListener('orientationchange', centerAnimation);
+    };
+  }, [centerAnimation, isStarted, showCountdown]);
+
   //
 
   // Handle case where exercise is not found - after all hooks are called
@@ -589,7 +629,7 @@ export default function Exercise() {
                   className="space-y-6"
                 >
                   <div className="space-y-2">
-                    <div className="space-y-2">
+                    <div className="space-y-2" ref={progressBarRef}>
                       <div className="flex justify-between text-sm text-muted-foreground">
                         <span>Round {currentRound + 1} of {totalRounds}</span>
                         <span>{Math.round(totalProgress)}% Complete</span>
@@ -604,10 +644,13 @@ export default function Exercise() {
                       currentRound={currentRound}
                       onRoundComplete={handleRoundComplete}
                       onPhaseProgress={handlePhaseProgress}
+                      containerHeight={animContainerHeight}
+                      baseDiameterPx={animBaseDiameter}
                     />
                     </div>
 
                     {isStarted && (
+                      <div ref={controlsBarRef}>
                       <ControlsBar
                         rounds={totalRounds}
                         onRoundsChange={(newRounds) => {
@@ -626,6 +669,7 @@ export default function Exercise() {
                         isPaused={isPaused}
                         currentRound={currentRound}
                       />
+                      </div>
                     )}
                   </div>
                 </motion.div>
