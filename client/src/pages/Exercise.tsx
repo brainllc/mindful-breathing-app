@@ -425,8 +425,14 @@ export default function Exercise() {
 
       // Base diameter selected so maxScale keeps equal top/bottom spacing → diameter = available / maxScale
       const maxScale = 1.15;
-      // Reduce overall size by ~10%
-      const baseDiameter = Math.floor((available / maxScale) * 0.9);
+      // Base size tuned for desktop; scale up for mobile for better presence
+      const isMobile = window.innerWidth < 768; // Tailwind md breakpoint
+      const desktopBase = (available / maxScale) * 0.9; // 10% headroom
+      const mobileBoost = isMobile ? 1.5 : 1.0; // +50% on mobile
+      // Cap to slightly under the max so it never clips when expanded
+      const hardCap = (available / maxScale) * 0.98; // 2% safety margin
+      const boosted = Math.min(desktopBase * mobileBoost, hardCap);
+      const baseDiameter = Math.floor(boosted);
       setAnimBaseDiameter(Math.max(160, baseDiameter));
     } catch {
       // ignore
