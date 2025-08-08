@@ -408,25 +408,25 @@ export default function Exercise() {
     }
   }, [isCompleted, completionData, exercise]);
 
-  // Center animation container between progress bar and bottom padding (consistent across viewports)
+  // Center animation container between progress bar and controls bar (equal spacing top/bottom)
   const centerAnimation = useCallback(() => {
     try {
       const progressEl = progressBarRef.current?.getBoundingClientRect();
-      if (!progressEl) return;
+      const controlsEl = (document.getElementById('controls-bar-desktop') || document.getElementById('controls-bar-mobile'))?.getBoundingClientRect();
+      if (!progressEl || !controlsEl) return;
 
-      const topY = progressEl.bottom; // bottom of progress header
-      const viewportH = window.innerHeight;
-      const bottomPadding = 72; // matches pb-[72px] on container
-      const safety = 8; // small buffer so it never touches
-      const available = Math.max(0, viewportH - topY - bottomPadding - safety);
+      const topY = progressEl.bottom;
+      const bottomY = controlsEl.top;
+      const safety = 8;
+      const available = Math.max(0, bottomY - topY - safety);
 
       // Container fills the available region exactly
       setAnimContainerHeight(available || undefined);
 
       // Base diameter selected so maxScale keeps equal top/bottom spacing → diameter = available / maxScale
       const maxScale = 1.15;
-      // Unified sizing for all screens – reduce overall size by ~16%
-      const baseDiameter = Math.floor((available / maxScale) * 0.95 * 0.84);
+      // Keep equal top/bottom spacing by sizing from available gap
+      const baseDiameter = Math.floor((available / maxScale) * 0.92);
       setAnimBaseDiameter(Math.max(160, baseDiameter));
     } catch {
       // ignore
