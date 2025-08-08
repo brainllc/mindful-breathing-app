@@ -597,7 +597,7 @@ export default function Exercise() {
                       <Progress value={totalProgress} className="h-1" />
                     </div>
 
-                    <div ref={breathingAnimationRef} className="pt-0 -mt-[114px] sm:-mt-[130px] md:-mt-[146px] mb-2">
+                    <div ref={breathingAnimationRef} className="pt-0 -mt-[114px] sm:-mt-[130px] md:-mt-[146px] mb-6">
                     <BreathingAnimation
                       exercise={exercise}
                       isActive={isStarted && !isPaused}
