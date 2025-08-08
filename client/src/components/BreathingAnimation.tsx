@@ -84,14 +84,15 @@ export function BreathingAnimation({ exercise, isActive, currentRound, onRoundCo
         const elapsedInCurrentPhase = currentPhaseDuration - newTimeLeft;
 
         // Update animation reference based on the current phase
-        // Smaller overall scale so the circle stays fully visible above the controls bar
-        // Slightly reduce max scale so spacing balances top and bottom
-        const maxScale = 1.15;
-        const deltaScale = maxScale - 1;
+        // Keep max size the same, make minimum size ~30% smaller for clearer contrast
+        const maxScale = 1.15;        // top expansion scale
+        const minScale = 0.7;         // ~30% smaller than previous minimum
+        const range = maxScale - minScale;
         if (phase === "inhale") {
+          const t = elapsedInCurrentPhase / Math.max(0.0001, exercise.pattern.inhale);
           animationRef.current = {
-            scale: 1 + (deltaScale * (elapsedInCurrentPhase / exercise.pattern.inhale)),
-            opacity: 0.5 + (0.5 * (elapsedInCurrentPhase / exercise.pattern.inhale))
+            scale: minScale + range * t,
+            opacity: 0.5 + 0.5 * t
           };
         } else if (phase === "hold") {
           animationRef.current = {
@@ -99,9 +100,10 @@ export function BreathingAnimation({ exercise, isActive, currentRound, onRoundCo
             opacity: 1
           };
         } else if (phase === "exhale") {
+          const t = elapsedInCurrentPhase / Math.max(0.0001, exercise.pattern.exhale);
           animationRef.current = {
-            scale: maxScale - (deltaScale * (elapsedInCurrentPhase / exercise.pattern.exhale)),
-            opacity: 1 - (0.5 * (elapsedInCurrentPhase / exercise.pattern.exhale))
+            scale: maxScale - range * t,
+            opacity: 1 - 0.5 * t
           };
         }
 
