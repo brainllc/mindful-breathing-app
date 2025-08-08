@@ -304,8 +304,9 @@ export default function Exercise() {
         // Continue with exercise even if music fails
       }
       // Ensure centering after state transition
+      // Recenter on next frames to avoid measuring during layout/paint
       requestAnimationFrame(() => centerAnimation());
-      setTimeout(() => centerAnimation(), 0);
+      setTimeout(() => centerAnimation(), 60);
   };
 
   const handlePause = async () => {
@@ -422,10 +423,9 @@ export default function Exercise() {
       const isMobile = window.innerWidth < 768;
       const bottomPadding = 72; // matches pb-[72px]
       const desktopControls = document.getElementById('controls-bar-desktop')?.getBoundingClientRect();
-      // Bottom boundary: on mobile, ignore the floating button and use padding; on desktop, respect controls if present
-      const bottomY = isMobile
-        ? viewportH - bottomPadding
-        : Math.min(desktopControls?.top ?? viewportH, viewportH - bottomPadding);
+      // Bottom boundary: prefer controls top when present; otherwise viewport bottom - padding
+      const extraBottomGap = 12; // small visual lift away from controls
+      const bottomY = (desktopControls?.top ?? (viewportH - bottomPadding)) - extraBottomGap;
       const available = Math.max(0, bottomY - topY);
 
       // Container fills the available region exactly
@@ -434,7 +434,7 @@ export default function Exercise() {
       // Base diameter selected so maxScale keeps equal top/bottom spacing → diameter = available / maxScale
       const maxScale = 1.15;
       // Make the circle 10% smaller than perfect fit to avoid any overlap
-      const baseDiameter = Math.floor((available / maxScale) * 0.90);
+      const baseDiameter = Math.floor((available / maxScale) * 0.90) - 2; // slight lift from controls
       setAnimBaseDiameter(Math.max(160, baseDiameter));
     } catch {
       // ignore

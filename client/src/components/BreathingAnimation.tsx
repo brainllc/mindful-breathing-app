@@ -177,13 +177,13 @@ export function BreathingAnimation({ exercise, isActive, currentRound, onRoundCo
         className={`absolute inset-0 m-auto ${baseSizeClass} bg-primary/20 rounded-full`}
         style={baseSize ? { width: baseSize, height: baseSize } : undefined}
         animate={animationRef.current}
-        transition={{ duration: 0 }}
+        transition={{ type: 'tween', ease: 'easeInOut', duration: 0.2 }}
       />
       <motion.div
         className={`absolute inset-0 m-auto ${baseSizeClass} border-4 border-primary rounded-full`}
         style={baseSize ? { width: baseSize, height: baseSize } : undefined}
         animate={animationRef.current}
-        transition={{ duration: 0 }}
+        transition={{ type: 'tween', ease: 'easeInOut', duration: 0.2 }}
       />
       <div className="absolute inset-0 m-auto h-min flex flex-col items-center space-y-2">
         <div className="text-2xl font-light text-primary">
