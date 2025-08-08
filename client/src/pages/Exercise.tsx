@@ -412,7 +412,13 @@ export default function Exercise() {
   const centerAnimation = useCallback(() => {
     try {
       const progressEl = progressBarRef.current?.getBoundingClientRect();
-      const controlsEl = document.getElementById('controls-bar')?.getBoundingClientRect();
+      // Prefer desktop controls for measurement if present, else mobile
+      const desktopControls = document.querySelector('#controls-bar.hidden.md\\:block, #controls-bar.md\\:block');
+      const mobileControls = document.querySelector('#controls-bar.md\\:hidden, #controls-bar:not(.md\\:block)');
+      const controlsRect = (desktopControls as HTMLElement | null)?.getBoundingClientRect()
+        || (mobileControls as HTMLElement | null)?.getBoundingClientRect()
+        || document.getElementById('controls-bar')?.getBoundingClientRect();
+      const controlsEl = controlsRect;
       if (!progressEl || !controlsEl) return;
 
       const topY = progressEl.bottom;
