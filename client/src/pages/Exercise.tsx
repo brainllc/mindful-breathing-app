@@ -303,6 +303,9 @@ export default function Exercise() {
         console.error('Failed to start music for exercise:', error);
         // Continue with exercise even if music fails
       }
+      // Ensure centering after state transition
+      requestAnimationFrame(() => centerAnimation());
+      setTimeout(() => centerAnimation(), 0);
   };
 
   const handlePause = async () => {
@@ -457,7 +460,7 @@ export default function Exercise() {
     window.addEventListener('load', onWindowLoad);
 
     const progressEl = progressBarRef.current || undefined;
-    const controlsEl = document.getElementById('controls-bar') || undefined;
+    const controlsEl = (document.getElementById('controls-bar-desktop') || document.getElementById('controls-bar-mobile')) || undefined;
     const ro = new ResizeObserver(() => centerAnimation());
     if (progressEl) ro.observe(progressEl);
     if (controlsEl) ro.observe(controlsEl);
