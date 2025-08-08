@@ -413,21 +413,17 @@ export default function Exercise() {
     try {
       const progressEl = progressBarRef.current?.getBoundingClientRect();
       const controlsEl = controlsBarRef.current?.getBoundingClientRect();
-      const animWrapperEl = breathingAnimationRef.current?.getBoundingClientRect();
-      const viewportH = window.innerHeight;
+      if (!progressEl || !controlsEl) return;
 
-      if (!progressEl || !controlsEl || !animWrapperEl) return;
-
-      // Top is bottom of progress block; bottom is top of controls
       const topY = progressEl.bottom;
       const bottomY = controlsEl.top;
       const available = Math.max(0, bottomY - topY);
 
-      // Set container height to the available gap
+      // Container fills the available region exactly
       setAnimContainerHeight(available);
 
-      // Base diameter is 60% of available (leaves headroom for maxScale ~1.2)
-      const baseDiameter = Math.floor(available * 0.6);
+      // Base diameter is 50% of available to allow scale up to ~1.2 without overlap
+      const baseDiameter = Math.floor(available * 0.5);
       setAnimBaseDiameter(Math.max(160, baseDiameter));
     } catch {
       // ignore
@@ -637,7 +633,7 @@ export default function Exercise() {
                       <Progress value={totalProgress} className="h-1" />
                     </div>
 
-                    <div ref={breathingAnimationRef} className="pt-0 -mt-[114px] sm:-mt-[130px] md:-mt-[146px] mb-6">
+                    <div ref={breathingAnimationRef} className="pt-0 mt-0 mb-0">
                     <BreathingAnimation
                       exercise={exercise}
                       isActive={isStarted && !isPaused}
