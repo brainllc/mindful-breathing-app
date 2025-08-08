@@ -144,8 +144,8 @@ export function ControlsBar({
       </div>
 
       {/* Desktop View */}
-      <div id="controls-bar" className="fixed bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 hidden md:block">
-        <div className="flex items-center gap-8 bg-card/50 backdrop-blur-sm px-6 py-3 rounded-full border border-border/50">
+      <div id="controls-bar" className="fixed bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 hidden md:block pointer-events-none">
+        <div className="flex items-center gap-8 bg-card/50 backdrop-blur-sm px-6 py-3 rounded-full border border-border/50 pointer-events-auto">
           <div className="space-y-1">
             <div className="text-xs font-medium text-muted-foreground text-center">Rounds</div>
             <div className="flex items-center gap-4">

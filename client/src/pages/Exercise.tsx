@@ -46,7 +46,6 @@ export default function Exercise() {
   const exerciseTitleRef = useRef<HTMLDivElement>(null);
   const breathingAnimationRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
-  const controlsBarRef = useRef<HTMLDivElement>(null);
   const [animContainerHeight, setAnimContainerHeight] = useState<number | undefined>(undefined);
   const [animBaseDiameter, setAnimBaseDiameter] = useState<number | undefined>(undefined);
   // Removed dynamic sizing to avoid adding unintended top padding
@@ -412,12 +411,13 @@ export default function Exercise() {
   const centerAnimation = useCallback(() => {
     try {
       const progressEl = progressBarRef.current?.getBoundingClientRect();
-      const controlsEl = controlsBarRef.current?.getBoundingClientRect();
+      const controlsEl = document.getElementById('controls-bar')?.getBoundingClientRect();
       if (!progressEl || !controlsEl) return;
 
       const topY = progressEl.bottom;
       const bottomY = controlsEl.top;
-      const available = Math.max(0, bottomY - topY);
+      const safety = 8; // small buffer so it never touches
+      const available = Math.max(0, bottomY - topY - safety);
 
       // Container fills the available region exactly
       setAnimContainerHeight(available);
