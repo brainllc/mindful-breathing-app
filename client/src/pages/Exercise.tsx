@@ -464,6 +464,30 @@ export default function Exercise() {
     };
   }, [centerAnimation, isStarted, showCountdown]);
 
+  // Extra guards: re-center shortly after state changes and when controls node appears
+  useEffect(() => {
+    if (showCountdown || !isStarted) return;
+    const t1 = setTimeout(centerAnimation, 0);
+    const t2 = setTimeout(centerAnimation, 150);
+    const t3 = setTimeout(centerAnimation, 350);
+
+    const mo = new MutationObserver(() => {
+      const hasControls = document.getElementById('controls-bar');
+      if (hasControls) {
+        centerAnimation();
+        mo.disconnect();
+      }
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      mo.disconnect();
+    };
+  }, [isStarted, showCountdown, centerAnimation]);
+
   //
 
   // Handle case where exercise is not found - after all hooks are called
