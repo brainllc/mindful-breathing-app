@@ -408,23 +408,17 @@ export default function Exercise() {
     }
   }, [isCompleted, completionData, exercise]);
 
-  // Center animation container between progress bar and controls
+  // Center animation container between progress bar and bottom padding (consistent across viewports)
   const centerAnimation = useCallback(() => {
     try {
       const progressEl = progressBarRef.current?.getBoundingClientRect();
-      // Prefer desktop controls for measurement if present, else mobile
-      const desktopControls = document.querySelector('#controls-bar.hidden.md\\:block, #controls-bar.md\\:block');
-      const mobileControls = document.querySelector('#controls-bar.md\\:hidden, #controls-bar:not(.md\\:block)');
-      const controlsRect = (desktopControls as HTMLElement | null)?.getBoundingClientRect()
-        || (mobileControls as HTMLElement | null)?.getBoundingClientRect()
-        || document.getElementById('controls-bar')?.getBoundingClientRect();
-      const controlsEl = controlsRect;
-      if (!progressEl || !controlsEl) return;
+      if (!progressEl) return;
 
-      const topY = progressEl.bottom;
-      const bottomY = controlsEl.top;
-      const safety = 8; // consistent buffer across viewports
-      const available = Math.max(0, bottomY - topY - safety);
+      const topY = progressEl.bottom; // bottom of progress header
+      const viewportH = window.innerHeight;
+      const bottomPadding = 72; // matches pb-[72px] on container
+      const safety = 8; // small buffer so it never touches
+      const available = Math.max(0, viewportH - topY - bottomPadding - safety);
 
       // Container fills the available region exactly
       setAnimContainerHeight(available || undefined);
