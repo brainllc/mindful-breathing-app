@@ -46,6 +46,7 @@ export default function Exercise() {
   const exerciseTitleRef = useRef<HTMLDivElement>(null);
   const breathingAnimationRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
+  const controlsBarRef = useRef<HTMLDivElement>(null);
   const [animContainerHeight, setAnimContainerHeight] = useState<number | undefined>(undefined);
   const [animBaseDiameter, setAnimBaseDiameter] = useState<number | undefined>(undefined);
   // Removed dynamic sizing to avoid adding unintended top padding
