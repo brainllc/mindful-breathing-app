@@ -425,8 +425,8 @@ export default function Exercise() {
 
       // Base diameter selected so maxScale keeps equal top/bottom spacing → diameter = available / maxScale
       const maxScale = 1.15;
-      // Unified sizing for all screens – slightly reduced for safe margins
-      const baseDiameter = Math.floor((available / maxScale) * 0.95);
+      // Unified sizing for all screens – reduce overall size by ~16%
+      const baseDiameter = Math.floor((available / maxScale) * 0.95 * 0.84);
       setAnimBaseDiameter(Math.max(160, baseDiameter));
     } catch {
       // ignore
