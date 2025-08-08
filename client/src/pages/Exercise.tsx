@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useLayoutEffect } from "react";
 import { useRoute } from "wouter";
 import { exercises } from "@/lib/exercises";
 import { RoundConfig } from "@/components/RoundConfig";
@@ -440,6 +440,27 @@ export default function Exercise() {
     return () => {
       window.removeEventListener('resize', centerAnimation);
       window.removeEventListener('orientationchange', centerAnimation);
+    };
+  }, [centerAnimation, isStarted, showCountdown]);
+
+  // Ensure centering after initial paint and when observed elements resize
+  useLayoutEffect(() => {
+    // Run on next frame to ensure DOM has painted
+    const raf = requestAnimationFrame(centerAnimation);
+
+    const onWindowLoad = () => centerAnimation();
+    window.addEventListener('load', onWindowLoad);
+
+    const progressEl = progressBarRef.current || undefined;
+    const controlsEl = document.getElementById('controls-bar') || undefined;
+    const ro = new ResizeObserver(() => centerAnimation());
+    if (progressEl) ro.observe(progressEl);
+    if (controlsEl) ro.observe(controlsEl);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('load', onWindowLoad);
+      ro.disconnect();
     };
   }, [centerAnimation, isStarted, showCountdown]);
 
