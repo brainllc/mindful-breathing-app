@@ -54,7 +54,7 @@ export function ControlsBar({
   return (
     <>
       {/* Mobile View */}
-      <div className="md:hidden fixed bottom-8 left-1/2 -translate-x-1/2">
+      <div id="controls-bar" className="md:hidden fixed bottom-8 left-1/2 -translate-x-1/2">
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild>
             <Button size="icon" className="rounded-full shadow-lg">
