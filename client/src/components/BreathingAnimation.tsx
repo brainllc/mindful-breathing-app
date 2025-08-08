@@ -167,7 +167,10 @@ export function BreathingAnimation({ exercise, isActive, currentRound, onRoundCo
   const baseSizeClass = baseSize ? "" : "w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72";
 
   return (
-    <div className="relative w-full" style={containerHeight ? { height: containerHeight } : {}}>
+    <div
+      className={containerHeight ? "relative w-full" : "relative w-full h-[22rem] sm:h-[24rem] md:h-[28rem]"}
+      style={containerHeight ? { height: containerHeight } : {}}
+    >
       <motion.div
         className={`absolute inset-0 m-auto ${baseSizeClass} bg-primary/20 rounded-full`}
         style={baseSize ? { width: baseSize, height: baseSize } : undefined}

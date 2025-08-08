@@ -420,7 +420,7 @@ export default function Exercise() {
       const available = Math.max(0, bottomY - topY - safety);
 
       // Container fills the available region exactly
-      setAnimContainerHeight(available);
+      setAnimContainerHeight(available || undefined);
 
       // Base diameter selected so maxScale keeps equal top/bottom spacing → diameter = available / maxScale
       const maxScale = 1.15;
